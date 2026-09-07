@@ -9,16 +9,29 @@
 
 {% block content %}
 <div class="hero-product">
-  {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
+  {% if galerie %}<img id="hero-img" src="{{ galerie.0.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
   <div class="seal">TESTED BY DEEA</div>
 </div>
+{% if galerie|length > 1 %}
+<div class="gallery-strip">
+  {% for poza in galerie %}
+  <img src="{{ poza.url }}" class="thumb{% if forloop.first %} active{% endif %}" data-full="{{ poza.url }}" alt="{{ produs.nume }} — poza {{ forloop.counter }}">
+  {% endfor %}
+</div>
+{% endif %}
 <div class="detail-body">
   <div style="display:flex;justify-content:space-between;align-items:center;">
     <a href="{% url 'reviews:feed' %}" class="back-link">&larr; înapoi la feed</a>
-    <button type="button" class="share-btn" id="share-btn" data-url="{{ request.build_absolute_uri }}">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9"/></svg>
-      <span id="share-btn-label">Copiază linkul</span>
-    </button>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="share-btn" id="fav-btn" data-slug="{{ produs.slug }}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.6c0 4-4.4 7.3-8.8 10.4C7.6 15.9 3.2 12.6 3.2 8.6 3.2 5.9 5.3 4 7.8 4c1.5 0 2.9.7 3.7 1.9C12.3 4.7 13.7 4 15.2 4c2.5 0 4.6 1.9 4.6 4.6z"/></svg>
+        <span id="fav-btn-label">Salvează</span>
+      </button>
+      <button type="button" class="share-btn" id="share-btn" data-url="{{ request.build_absolute_uri }}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9"/></svg>
+        <span id="share-btn-label">Copiază linkul</span>
+      </button>
+    </div>
   </div>
   <div class="d-brand" style="margin-top:12px;">{{ produs.brand }}</div>
   <div class="d-name">{{ produs.nume }}</div>
@@ -64,7 +77,7 @@
 
   <div class="divider"></div>
 
-  <div class="section-title">Ce au zis alte fete</div>
+  <div class="section-title">Ce au zis alte fete{% if comentarii %} ({{ comentarii|length }}){% endif %}</div>
   {% for comentariu in comentarii %}
   <div class="comment-item">
     <div class="comment-top">
@@ -80,7 +93,34 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/favorites.js' %}"></script>
 <script>
+  (function () {
+    var favBtn = document.getElementById('fav-btn');
+    var favLabel = document.getElementById('fav-btn-label');
+    if (favBtn && favLabel) {
+      GlowFavorites.wireButtons('#fav-btn');
+      var syncLabel = function () {
+        favLabel.textContent = favBtn.classList.contains('active') ? 'Salvat ✓' : 'Salvează';
+      };
+      syncLabel();
+      favBtn.addEventListener('favchange', syncLabel);
+    }
+  })();
+
+  (function () {
+    var thumbs = document.querySelectorAll('.gallery-strip .thumb');
+    var hero = document.getElementById('hero-img');
+    if (!thumbs.length || !hero) return;
+    thumbs.forEach(function (thumb) {
+      thumb.addEventListener('click', function () {
+        hero.src = thumb.getAttribute('data-full');
+        thumbs.forEach(function (t) { t.classList.remove('active'); });
+        thumb.classList.add('active');
+      });
+    });
+  })();
+
   (function () {
     var btn = document.getElementById('share-btn');
     var label = document.getElementById('share-btn-label');

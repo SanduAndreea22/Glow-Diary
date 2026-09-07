@@ -70,6 +70,56 @@ class Product(models.Model):
         return "★" * self.nota_mea + "☆" * (5 - self.nota_mea)
 
 
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="imagini"
+    )
+    imagine = models.ImageField("Imagine", upload_to="produse/galerie/")
+    ordine = models.PositiveSmallIntegerField("Ordine", default=0)
+
+    class Meta:
+        ordering = ["ordine", "id"]
+        verbose_name = "Imagine galerie"
+        verbose_name_plural = "Imagini galerie"
+
+    def __str__(self):
+        return f"Imagine {self.ordine} — {self.product}"
+
+
+class Collection(models.Model):
+    nume = models.CharField("Nume colecție", max_length=150)
+    slug = models.SlugField(max_length=180, unique=True, blank=True)
+    descriere = models.TextField(
+        "Descriere", blank=True,
+        help_text="Un rând-două despre ce leagă produsele din colecție.",
+    )
+    coperta = models.ImageField("Copertă", upload_to="colectii/", blank=True)
+    produse = models.ManyToManyField(
+        Product, related_name="colectii", blank=True, verbose_name="Produse"
+    )
+    data_creare = models.DateTimeField("Data creării", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-data_creare"]
+
+    def __str__(self):
+        return self.nume
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.nume)[:170]
+            slug = base_slug
+            i = 2
+            while Collection.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{i}"
+                i += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("reviews:collection_detail", kwargs={"slug": self.slug})
+
+
 class Comment(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="comentarii"

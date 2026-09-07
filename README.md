@@ -33,7 +33,19 @@ Apoi:
 
 ## Adăugare produs nou
 
-Din Django admin → Products → Add product: nume, brand, categorie, nuanță (opțional), sursă (de unde a fost cumpărat), poză, nota ta (1-5) și părerea ta. Slug-ul se generează automat din brand + nume.
+Din Django admin → Products → Add product: nume, brand, categorie, nuanță (opțional), sursă (de unde a fost cumpărat), poză, nota ta (1-5) și părerea ta. Slug-ul se generează automat din brand + nume. Poți adăuga și poze suplimentare de galerie direct din aceeași pagină (secțiunea „Imagine galerie" de sub formular).
+
+## Colecții curate
+
+Din admin → Collections poți grupa produse existente într-o colecție tematică (nume, descriere, copertă opțională + produsele incluse). Colecțiile fără produse nu apar public.
+
+## Wishlist vizitatoare
+
+Butonul cu inimioară de pe orice postare salvează produsul într-o listă locală, în browserul vizitatoarei (`localStorage`, fără cont, fără server). Pagina „Favorite" citește acea listă și afișează produsele salvate.
+
+## Moment de celebrare
+
+Când numărul de produse postate atinge un prag (10, 25, 50, 100, 200, 500), feed-ul arată o dată un banner + confetti de celebrare (per vizitator, ținut minte tot în `localStorage`).
 
 ## Comentarii vizitatoare
 

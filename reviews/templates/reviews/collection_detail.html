@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ colectie.nume }} · Glow Diary by Deea{% endblock %}
+{% block meta_description %}{{ colectie.descriere|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<a href="{% url 'reviews:collections' %}" class="back-link" style="display:block;padding:0 22px;margin-bottom:8px;">&larr; toate colecțiile</a>
+<div class="feed-title">{{ colectie.nume }}</div>
+{% if colectie.descriere %}<div class="feed-tag" style="color:var(--maroon);opacity:0.7;font-weight:500;">{{ colectie.descriere }}</div>{% endif %}
+
+{% for produs in produse %}
+<div class="post-wrap">
+  <a href="{{ produs.get_absolute_url }}" class="post">
+    <div class="post-photo">
+      {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
+      <div class="seal">TESTED BY DEEA</div>
+    </div>
+    <div class="post-body">
+      <div class="post-brand">{{ produs.brand }}</div>
+      <div class="post-name">{{ produs.nume }}</div>
+      <div class="post-cat">{{ produs.get_categorie_display }}</div>
+      {% if produs.nuanta %}<div class="post-shade">Nuanță: {{ produs.nuanta }}</div>{% endif %}
+      {% if produs.sursa %}<div class="post-source">Cumpărat de la {{ produs.sursa }}</div>{% endif %}
+      <span class="stars">{{ produs.stele }}</span>
+      {% if produs.comment_count %}<div class="post-comments">💬 {{ produs.comment_count }} păreri</div>{% endif %}
+      <div class="post-snippet">{{ produs.parerea_mea|truncatewords:20 }}</div>
+    </div>
+  </a>
+  <button type="button" class="card-fav" data-slug="{{ produs.slug }}" aria-label="Salvează la favorite">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.6c0 4-4.4 7.3-8.8 10.4C7.6 15.9 3.2 12.6 3.2 8.6 3.2 5.9 5.3 4 7.8 4c1.5 0 2.9.7 3.7 1.9C12.3 4.7 13.7 4 15.2 4c2.5 0 4.6 1.9 4.6 4.6z"/></svg>
+  </button>
+</div>
+{% empty %}
+<div class="empty-state">Nu sunt produse în această colecție încă.</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/favorites.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    GlowFavorites.wireButtons('.card-fav');
+  });
+</script>
+{% endblock %}

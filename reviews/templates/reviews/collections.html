@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Colecții · Glow Diary by Deea{% endblock %}
+
+{% block content %}
+<div class="feed-title">Colecții</div>
+<div class="feed-tag">Selecții curate de Deea</div>
+
+{% for colectie in colectii %}
+<a href="{{ colectie.get_absolute_url }}" class="collection-card">
+  <div class="collection-cover">
+    {% if colectie.coperta %}<img src="{{ colectie.coperta.url }}" alt="{{ colectie.nume }}">{% else %}✨{% endif %}
+  </div>
+  <div class="collection-body">
+    <div class="collection-name">{{ colectie.nume }}</div>
+    {% if colectie.descriere %}<div class="collection-desc">{{ colectie.descriere }}</div>{% endif %}
+    <div class="collection-count">{{ colectie.produse.count }} produse</div>
+  </div>
+</a>
+{% empty %}
+<div class="empty-state">Deea nu a publicat încă nicio colecție.</div>
+{% endfor %}
+{% endblock %}
