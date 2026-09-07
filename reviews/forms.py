@@ -15,14 +15,18 @@ class CommentForm(forms.ModelForm):
     # honeypot: câmp ascuns prin CSS; boturile îl completează, oamenii nu.
     website = forms.CharField(required=False, widget=forms.HiddenInput())
 
+    comentariu = forms.CharField(
+        label="Comentariu",
+        max_length=600,
+        widget=forms.Textarea(attrs={"placeholder": "Scrie părerea ta...", "rows": 3}),
+        error_messages={"required": "Scrie câteva cuvinte despre experiența ta."},
+    )
+
     class Meta:
         model = Comment
         fields = ["nume", "nota", "comentariu"]
         widgets = {
             "nume": forms.TextInput(attrs={"placeholder": "Numele tău (opțional)"}),
-            "comentariu": forms.Textarea(
-                attrs={"placeholder": "Scrie părerea ta...", "rows": 3}
-            ),
         }
 
     def clean_website(self):
@@ -41,15 +45,25 @@ class CommentForm(forms.ModelForm):
 class ContactForm(forms.ModelForm):
     website = forms.CharField(required=False, widget=forms.HiddenInput())
 
+    email = forms.EmailField(
+        label="Email",
+        widget=forms.EmailInput(attrs={"placeholder": "emailul tău"}),
+        error_messages={
+            "required": "Lasă-mi un email ca să-ți pot răspunde.",
+            "invalid": "Verifică emailul — pare să fie greșit.",
+        },
+    )
+    mesaj = forms.CharField(
+        label="Mesaj",
+        widget=forms.Textarea(attrs={"placeholder": "Scrie-mi mesajul tău...", "rows": 5}),
+        error_messages={"required": "Scrie-mi câteva rânduri, ca să știu despre ce e vorba."},
+    )
+
     class Meta:
         model = ContactMessage
         fields = ["nume", "email", "mesaj"]
         widgets = {
             "nume": forms.TextInput(attrs={"placeholder": "Numele tău (opțional)"}),
-            "email": forms.EmailInput(attrs={"placeholder": "emailul tău"}),
-            "mesaj": forms.Textarea(
-                attrs={"placeholder": "Scrie-mi mesajul tău...", "rows": 5}
-            ),
         }
 
     def clean_website(self):

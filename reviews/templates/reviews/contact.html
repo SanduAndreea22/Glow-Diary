@@ -14,7 +14,7 @@
     {{ form.website }}
 
     <input class="field" type="text" name="nume" value="{{ form.nume.value|default:'' }}" placeholder="Numele tău (opțional)">
-    <input class="field" type="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="Emailul tău" required>
+    <input class="field" type="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="Emailul tău">
     {% if form.email.errors %}<div class="no-comments" style="color:#8A1F1F;">{{ form.email.errors.0 }}</div>{% endif %}
 
     <textarea class="field" name="mesaj" rows="5" placeholder="Scrie-mi mesajul tău...">{{ form.mesaj.value|default:'' }}</textarea>
