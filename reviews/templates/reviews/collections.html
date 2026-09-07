@@ -6,6 +6,7 @@
 <div class="feed-title">Colecții</div>
 <div class="feed-tag">Selecții curate de Deea</div>
 
+<div class="card-grid">
 {% for colectie in colectii %}
 <a href="{{ colectie.get_absolute_url }}" class="collection-card">
   <div class="collection-cover">
@@ -20,4 +21,8 @@
 {% empty %}
 <div class="empty-state">Deea nu a publicat încă nicio colecție.</div>
 {% endfor %}
+</div>
+{% if colectii and colectii|length <= 2 %}
+<div class="collection-teaser">Mai vin colecții curând ✨</div>
+{% endif %}
 {% endblock %}

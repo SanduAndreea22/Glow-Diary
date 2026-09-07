@@ -25,7 +25,10 @@
 <div class="screen">
   <div class="topbar">
     <a href="{% url 'reviews:feed' %}" class="logo">glow<span>diary</span><small>by Deea</small></a>
-    <div class="nav-links">
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Meniu" aria-expanded="false" aria-controls="nav-links">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="nav-links">
       <a href="{% url 'reviews:feed' %}" class="{% if request.resolver_match.url_name == 'feed' %}active{% endif %}">Acasă</a>
       <a href="{% url 'reviews:collections' %}" class="{% if request.resolver_match.url_name == 'collections' or request.resolver_match.url_name == 'collection_detail' %}active{% endif %}">Colecții</a>
       <a href="{% url 'reviews:favorites' %}" class="{% if request.resolver_match.url_name == 'favorites' %}active{% endif %}">Favorite</a>
@@ -48,6 +51,22 @@
 <footer class="site-footer">Glow Diary by Deea · Real products. My honest take.</footer>
 
 <script>
+  (function () {
+    var toggle = document.getElementById('nav-toggle');
+    var nav = document.getElementById('nav-links');
+    if (!toggle || !nav) return;
+    toggle.addEventListener('click', function () {
+      var isOpen = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    nav.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        nav.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  })();
+
   document.querySelectorAll('.messages li').forEach(function (el) {
     setTimeout(function () {
       el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';

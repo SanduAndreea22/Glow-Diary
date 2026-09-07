@@ -25,6 +25,7 @@
      class="chip{% if nota_min_activa == '4' %} active{% endif %}">Notă 4+</a>
 </div>
 
+<div class="card-grid">
 {% for produs in produse %}
 <div class="post-wrap">
   <a href="{{ produs.get_absolute_url }}" class="post">
@@ -51,6 +52,7 @@
 {% empty %}
 <div class="empty-state">Niciun produs găsit. Încearcă alt filtru sau altă căutare.</div>
 {% endfor %}
+</div>
 
 {% if is_paginated %}
 <div class="pagination">

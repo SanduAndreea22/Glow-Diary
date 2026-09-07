@@ -20,9 +20,9 @@
 </div>
 {% endif %}
 <div class="detail-body">
-  <div style="display:flex;justify-content:space-between;align-items:center;">
+  <div class="detail-top-row">
     <a href="{% url 'reviews:feed' %}" class="back-link">&larr; înapoi la feed</a>
-    <div style="display:flex;gap:8px;">
+    <div class="detail-actions">
       <button type="button" class="share-btn" id="fav-btn" data-slug="{{ produs.slug }}">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.6c0 4-4.4 7.3-8.8 10.4C7.6 15.9 3.2 12.6 3.2 8.6 3.2 5.9 5.3 4 7.8 4c1.5 0 2.9.7 3.7 1.9C12.3 4.7 13.7 4 15.2 4c2.5 0 4.6 1.9 4.6 4.6z"/></svg>
         <span id="fav-btn-label">Salvează</span>
