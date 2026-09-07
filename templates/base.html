@@ -7,6 +7,9 @@
 <meta name="description" content="{% block meta_description %}Recenzii reale de makeup, scrise de mine — produsele pe care le-am cumpărat, le-am testat și le-am notat chiar eu. Real products. My honest take.{% endblock %}">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23FF6FA5'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle' fill='white'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="{% static 'img/icon-192.png' %}">
+<link rel="manifest" href="{% static 'site.webmanifest' %}">
+<meta name="theme-color" content="#FF6FA5">
 
 <meta property="og:site_name" content="Glow Diary by Deea">
 <meta property="og:type" content="website">
@@ -75,6 +78,14 @@
       setTimeout(function () { el.remove(); }, 400);
     }, 4000);
   });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function () {
+        /* PWA e un bonus, nu o cerință — dacă înregistrarea eșuează, site-ul funcționează normal mai departe. */
+      });
+    });
+  }
 </script>
 {% block extra_js %}{% endblock %}
 </body>

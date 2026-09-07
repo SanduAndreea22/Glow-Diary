@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}{{ colectie.nume }} · Glow Diary by Deea{% endblock %}
 {% block meta_description %}{{ colectie.descriere|truncatewords:25 }}{% endblock %}
@@ -24,7 +24,7 @@
       {% if produs.nuanta %}<div class="post-shade">Nuanță: {{ produs.nuanta }}</div>{% endif %}
       {% if produs.sursa %}<div class="post-source">Cumpărat de la {{ produs.sursa }}</div>{% endif %}
       <span class="stars">{{ produs.stele }}</span>
-      {% if produs.comment_count %}<div class="post-comments">💬 {{ produs.comment_count }} păreri</div>{% endif %}
+      <div class="post-meta">{{ produs.data_postarii|naturaltime }}{% if produs.comment_count %} · 💬 {{ produs.comment_count }} păreri{% endif %}</div>
       <div class="post-snippet">{{ produs.parerea_mea|truncatewords:20 }}</div>
     </div>
   </a>

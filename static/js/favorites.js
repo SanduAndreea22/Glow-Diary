@@ -43,6 +43,25 @@ var GlowFavorites = {
     return isFav;
   },
 
+  burst: function (btn) {
+    var colors = ["#FF6FA5", "#E8B84B", "#7A1E3D"];
+    for (var i = 0; i < 6; i++) {
+      var p = document.createElement("span");
+      p.className = "heart-burst-particle";
+      var angle = i * 60 + (Math.random() * 20 - 10);
+      var dist = 16 + Math.random() * 10;
+      p.style.setProperty("--angle", angle + "deg");
+      p.style.setProperty("--dist", dist + "px");
+      p.style.background = colors[i % colors.length];
+      btn.appendChild(p);
+      (function (el) {
+        setTimeout(function () {
+          el.remove();
+        }, 500);
+      })(p);
+    }
+  },
+
   wireButtons: function (selector) {
     var self = this;
     var syncTitle = function (btn, isFav) {
@@ -59,6 +78,7 @@ var GlowFavorites = {
         var isFav = self.toggle(slug);
         btn.classList.toggle("active", isFav);
         syncTitle(btn, isFav);
+        if (isFav) self.burst(btn);
         btn.dispatchEvent(new CustomEvent("favchange", { detail: { isFav: isFav } }));
       });
     });

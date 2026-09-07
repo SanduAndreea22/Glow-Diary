@@ -31,6 +31,10 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9"/></svg>
         <span id="share-btn-label">Copiază linkul</span>
       </button>
+      <a class="share-btn" href="{% url 'reviews:product_story_image' slug=produs.slug %}" download>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+        Descarcă pentru Story
+      </a>
     </div>
   </div>
   <div class="d-brand" style="margin-top:12px;">{{ produs.brand }}</div>
@@ -90,6 +94,33 @@
   <div class="no-comments">Fii prima care lasă o părere despre acest produs.</div>
   {% endfor %}
 </div>
+
+{% if similare %}
+<div class="divider" style="margin:0 22px 22px;"></div>
+<div class="feed-title" style="font-size:17px;">S-ar putea să-ți placă și</div>
+<div class="card-grid">
+  {% for produs in similare %}
+  <div class="post-wrap">
+    <a href="{{ produs.get_absolute_url }}" class="post">
+      <div class="post-photo">
+        {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
+        <div class="seal">TESTED BY DEEA</div>
+      </div>
+      <div class="post-body">
+        <div class="post-brand">{{ produs.brand }}</div>
+        <div class="post-name">{{ produs.nume }}</div>
+        <div class="post-cat">{{ produs.get_categorie_display }}</div>
+        <span class="stars">{{ produs.stele }}</span>
+        <div class="post-snippet">{{ produs.parerea_mea|truncatewords:16 }}</div>
+      </div>
+    </a>
+    <button type="button" class="card-fav" data-slug="{{ produs.slug }}" aria-label="Salvează la favorite">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.6c0 4-4.4 7.3-8.8 10.4C7.6 15.9 3.2 12.6 3.2 8.6 3.2 5.9 5.3 4 7.8 4c1.5 0 2.9.7 3.7 1.9C12.3 4.7 13.7 4 15.2 4c2.5 0 4.6 1.9 4.6 4.6z"/></svg>
+    </button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -106,6 +137,7 @@
       syncLabel();
       favBtn.addEventListener('favchange', syncLabel);
     }
+    GlowFavorites.wireButtons('.card-fav');
   })();
 
   (function () {

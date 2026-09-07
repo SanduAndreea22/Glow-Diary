@@ -2,15 +2,17 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.cache import cache
 from django.db.models import Count, Q
-from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.http import FileResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views.generic import DetailView, ListView, TemplateView
 
 from .forms import CommentForm, ContactForm
 from .models import CATEGORIE_CHOICES, Collection, Product
+from .story_image import render_story_png
 
 RATE_LIMIT_SECONDS = 60
 GLOBAL_RATE_LIMIT_MAX = 5
@@ -103,6 +105,16 @@ class FeedView(ListView):
         stats = _feed_stats()
         ctx["produsul_lunii_id"] = stats["produsul_lunii_id"]
         ctx["total_produse"] = stats["total_produse"]
+
+        extra = self.request.GET.copy()
+        extra.pop("page", None)
+        ctx["querystring_extra"] = ("&" + extra.urlencode()) if extra else ""
+
+        if ctx.get("is_paginated"):
+            page_obj = ctx["page_obj"]
+            ctx["page_range"] = page_obj.paginator.get_elided_page_range(
+                page_obj.number, on_each_side=1, on_ends=1
+            )
         return ctx
 
 
@@ -123,6 +135,9 @@ class ProductDetailView(DetailView):
             img.imagine for img in galerie if img.imagine
         ]
         ctx["galerie"] = pozele
+        ctx["similare"] = _cu_numar_pareri(
+            Product.objects.filter(categorie=self.object.categorie).exclude(pk=self.object.pk)
+        )[:3]
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -162,6 +177,14 @@ class ProductDetailView(DetailView):
         return self.render_to_response(self.get_context_data(form=form))
 
 
+def product_story_image(request, slug):
+    produs = get_object_or_404(Product, slug=slug)
+    buf = render_story_png(produs, request.get_host())
+    response = FileResponse(buf, content_type="image/png")
+    response["Content-Disposition"] = f'attachment; filename="{produs.slug}-story.png"'
+    return response
+
+
 class CollectionListView(ListView):
     model = Collection
     template_name = "reviews/collections.html"
@@ -189,24 +212,49 @@ class FavoritesView(TemplateView):
     template_name = "reviews/favorites.html"
 
 
+def _product_card_data(p):
+    return {
+        "nume": p.nume,
+        "brand": p.brand,
+        "categorie": p.get_categorie_display(),
+        "nuanta": p.nuanta,
+        "sursa": p.sursa,
+        "poza": p.poza.url if p.poza else "",
+        "stele": p.stele,
+        "snippet": p.parerea_mea[:140],
+        "url": p.get_absolute_url(),
+        "slug": p.slug,
+        "postat": str(naturaltime(p.data_postarii)),
+    }
+
+
 def favorites_data(request):
     slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:50]
     produse = Product.objects.filter(slug__in=slugs)
     data = [
-        {
-            "nume": p.nume,
-            "brand": p.brand,
-            "categorie": p.get_categorie_display(),
-            "nuanta": p.nuanta,
-            "sursa": p.sursa,
-            "poza": p.poza.url if p.poza else "",
-            "stele": p.stele,
-            "snippet": p.parerea_mea[:140],
-            "url": p.get_absolute_url(),
-            "slug": p.slug,
-        }
+        _product_card_data(p)
         for p in produse
     ]
+    return JsonResponse({"produse": data})
+
+
+def search_data(request):
+    q = request.GET.get("q", "").strip()
+    categorie = request.GET.get("categorie", "").strip()
+    nota_min = request.GET.get("nota_min", "").strip()
+
+    qs = Product.objects.all()
+    if q:
+        qs = qs.filter(Q(nume__icontains=q) | Q(brand__icontains=q))
+    if categorie:
+        qs = qs.filter(categorie=categorie)
+    if nota_min:
+        try:
+            qs = qs.filter(nota_mea__gte=int(nota_min))
+        except ValueError:
+            pass
+
+    data = [_product_card_data(p) for p in qs.order_by("-data_postarii")[:24]]
     return JsonResponse({"produse": data})
 
 

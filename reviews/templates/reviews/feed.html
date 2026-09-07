@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}Glow Diary by Deea — Ultimele încercări{% endblock %}
 
@@ -7,10 +7,11 @@
 <div class="feed-title">Ultimele încercări</div>
 <div class="feed-tag">Real products. My honest take.</div>
 <p class="feed-intro">Machiajul pe care l-am cumpărat, l-am testat și l-am evaluat eu — fără PR-uri, fără sponsorizări. Vezi și <a href="{% url 'reviews:collections' %}">colecțiile mele curate →</a></p>
+{% if total_produse %}<div class="stat-chip">✨ {{ total_produse }} produse testate până acum</div>{% endif %}
 
 <form class="search-bar" method="get">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7A1E3D" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-  <input type="text" name="q" value="{{ q }}" placeholder="Caută produs sau brand...">
+  <input type="text" name="q" id="search-input" value="{{ q }}" placeholder="Caută produs sau brand...">
   {% if categorie_activa %}<input type="hidden" name="categorie" value="{{ categorie_activa }}">{% endif %}
   {% if nota_min_activa %}<input type="hidden" name="nota_min" value="{{ nota_min_activa }}">{% endif %}
   <button type="submit">Caută</button>
@@ -26,7 +27,7 @@
      class="chip{% if nota_min_activa == '4' %} active{% endif %}">Notă 4+</a>
 </div>
 
-<div class="card-grid">
+<div class="card-grid" id="card-grid">
 {% for produs in produse %}
 <div class="post-wrap">
   <a href="{{ produs.get_absolute_url }}" class="post">
@@ -42,7 +43,7 @@
       {% if produs.nuanta %}<div class="post-shade">Nuanță: {{ produs.nuanta }}</div>{% endif %}
       {% if produs.sursa %}<div class="post-source">Cumpărat de la {{ produs.sursa }}</div>{% endif %}
       <span class="stars">{{ produs.stele }}</span>
-      {% if produs.comment_count %}<div class="post-comments">💬 {{ produs.comment_count }} păreri</div>{% endif %}
+      <div class="post-meta">{{ produs.data_postarii|naturaltime }}{% if produs.comment_count %} · 💬 {{ produs.comment_count }} păreri{% endif %}</div>
       <div class="post-snippet">{{ produs.parerea_mea|truncatewords:20 }}</div>
     </div>
   </a>
@@ -56,21 +57,85 @@
 </div>
 
 {% if is_paginated %}
-<div class="pagination">
-  {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if categorie_activa %}&categorie={{ categorie_activa }}{% endif %}{% if nota_min_activa %}&nota_min={{ nota_min_activa }}{% endif %}">&larr; înapoi</a>{% endif %}
-  <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if categorie_activa %}&categorie={{ categorie_activa }}{% endif %}{% if nota_min_activa %}&nota_min={{ nota_min_activa }}{% endif %}">înainte &rarr;</a>{% endif %}
-</div>
+<nav class="pagination" id="pagination-nav" aria-label="Paginare">
+  {% if page_obj.has_previous %}
+  <a href="?page={{ page_obj.previous_page_number }}{{ querystring_extra }}" class="page-arrow" aria-label="Pagina anterioară">&larr;</a>
+  {% else %}
+  <span class="page-arrow disabled">&larr;</span>
+  {% endif %}
+
+  {% for num in page_range %}
+    {% if num == page_obj.paginator.ELLIPSIS %}
+    <span class="page-ellipsis">…</span>
+    {% else %}
+    <a href="?page={{ num }}{{ querystring_extra }}" class="page-pill{% if num == page_obj.number %} active{% endif %}">{{ num }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if page_obj.has_next %}
+  <a href="?page={{ page_obj.next_page_number }}{{ querystring_extra }}" class="page-arrow" aria-label="Pagina următoare">&rarr;</a>
+  {% else %}
+  <span class="page-arrow disabled">&rarr;</span>
+  {% endif %}
+</nav>
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/favorites.js' %}"></script>
+<script src="{% static 'js/cards.js' %}"></script>
 <script src="{% static 'js/milestone.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     GlowFavorites.wireButtons('.card-fav');
     GlowMilestone.check({{ total_produse }});
   });
+
+  (function () {
+    var input = document.getElementById('search-input');
+    var grid = document.getElementById('card-grid');
+    var pagination = document.getElementById('pagination-nav');
+    if (!input || !grid) return;
+
+    var originalGrid = grid.innerHTML;
+    var originalPaginationDisplay = pagination ? pagination.style.display : null;
+    var timer = null;
+
+    var runSearch = function (q) {
+      var params = new URLSearchParams({ q: q });
+      var categorie = document.querySelector('input[name="categorie"]');
+      var notaMin = document.querySelector('input[name="nota_min"]');
+      if (categorie) params.set('categorie', categorie.value);
+      if (notaMin) params.set('nota_min', notaMin.value);
+
+      fetch('{% url "reviews:search_data" %}?' + params.toString())
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.produse.length) {
+            grid.innerHTML = '<div class="empty-state">Niciun produs găsit. Încearcă alt filtru sau altă căutare.</div>';
+          } else {
+            grid.innerHTML = data.produse.map(GlowCards.render).join('');
+          }
+          GlowFavorites.wireButtons('.card-fav');
+        });
+    };
+
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      var q = input.value.trim();
+
+      if (!q) {
+        grid.innerHTML = originalGrid;
+        if (pagination) pagination.style.display = originalPaginationDisplay || '';
+        GlowFavorites.wireButtons('.card-fav');
+        return;
+      }
+
+      if (pagination) pagination.style.display = 'none';
+      timer = setTimeout(function () {
+        runSearch(q);
+      }, 300);
+    });
+  })();
 </script>
 {% endblock %}

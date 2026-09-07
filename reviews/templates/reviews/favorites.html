@@ -7,6 +7,10 @@
 <div class="feed-title">Favoritele tale</div>
 <div class="feed-tag">Produsele care ți-au plăcut, la un click distanță — fără cont, fără bătaie de cap.</div>
 
+<div id="favorites-skeleton" class="card-grid">
+  <div class="skeleton-card"></div>
+  <div class="skeleton-card"></div>
+</div>
 <div id="favorites-list" class="card-grid"></div>
 <div id="favorites-empty" class="empty-state" hidden>
   Nu ai salvat încă niciun produs. Apasă pe inimioară de pe orice postare ca s-o adaugi aici.
@@ -15,13 +19,16 @@
 
 {% block extra_js %}
 <script src="{% static 'js/favorites.js' %}"></script>
+<script src="{% static 'js/cards.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     var slugs = GlowFavorites.getAll();
     var list = document.getElementById('favorites-list');
     var empty = document.getElementById('favorites-empty');
+    var skeleton = document.getElementById('favorites-skeleton');
 
     if (!slugs.length) {
+      skeleton.hidden = true;
       empty.hidden = false;
       return;
     }
@@ -29,35 +36,12 @@
     fetch('{% url "reviews:favorites_data" %}?slugs=' + encodeURIComponent(slugs.join(',')))
       .then(function (r) { return r.json(); })
       .then(function (data) {
+        skeleton.hidden = true;
         if (!data.produse.length) {
           empty.hidden = false;
           return;
         }
-        data.produse.forEach(function (p) {
-          var esc = GlowFavorites.escapeHtml;
-          var wrap = document.createElement('div');
-          wrap.className = 'post-wrap';
-          wrap.innerHTML =
-            '<a href="' + esc(p.url) + '" class="post">' +
-              '<div class="post-photo">' +
-                (p.poza ? '<img src="' + esc(p.poza) + '" alt="' + esc(p.nume) + '">' : '💄') +
-                '<div class="seal">TESTED BY DEEA</div>' +
-              '</div>' +
-              '<div class="post-body">' +
-                '<div class="post-brand">' + esc(p.brand) + '</div>' +
-                '<div class="post-name">' + esc(p.nume) + '</div>' +
-                '<div class="post-cat">' + esc(p.categorie) + '</div>' +
-                (p.nuanta ? '<div class="post-shade">Nuanță: ' + esc(p.nuanta) + '</div>' : '') +
-                (p.sursa ? '<div class="post-source">Cumpărat de la ' + esc(p.sursa) + '</div>' : '') +
-                '<span class="stars">' + esc(p.stele) + '</span>' +
-                '<div class="post-snippet">' + esc(p.snippet) + '</div>' +
-              '</div>' +
-            '</a>' +
-            '<button type="button" class="card-fav active" data-slug="' + esc(p.slug) + '" aria-label="Elimină din favorite">' +
-              '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.6c0 4-4.4 7.3-8.8 10.4C7.6 15.9 3.2 12.6 3.2 8.6 3.2 5.9 5.3 4 7.8 4c1.5 0 2.9.7 3.7 1.9C12.3 4.7 13.7 4 15.2 4c2.5 0 4.6 1.9 4.6 4.6z"/></svg>' +
-            '</button>';
-          list.appendChild(wrap);
-        });
+        list.innerHTML = data.produse.map(GlowCards.render).join('');
 
         GlowFavorites.wireButtons('.card-fav');
         document.querySelectorAll('.card-fav').forEach(function (btn) {
@@ -68,6 +52,10 @@
             }
           });
         });
+      })
+      .catch(function () {
+        skeleton.hidden = true;
+        empty.hidden = false;
       });
   });
 </script>

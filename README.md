@@ -75,6 +75,22 @@ Butonul cu inimioară de pe orice postare salvează produsul într-o listă loca
 
 Când numărul de produse postate atinge un prag (10, 25, 50, 100, 200, 500), feed-ul arată o dată un banner + confetti de celebrare (per vizitator, ținut minte tot în `localStorage`).
 
+## Căutare live și paginare
+
+Căutarea din feed filtrează pe măsură ce tastezi (debounced, fără reload), prin `/api/search/`. Paginarea folosește pastile numerotate, nu doar „înapoi/înainte".
+
+## Produse similare
+
+Pagina de produs arată automat 2-3 produse din aceeași categorie sub secțiunea de comentarii ("S-ar putea să-ți placă și").
+
+## Card de distribuire pentru Instagram Story
+
+Fiecare produs are un buton „Descarcă pentru Story" (`/produs/<slug>/story.png`) care generează pe loc o imagine 1080x1920 cu poza produsului, brand, notă și sigiliul TESTED BY DEEA — gata de postat direct la story.
+
+## PWA — instalabil pe telefon
+
+Site-ul are `site.webmanifest` + service worker minim (`/sw.js`) — pe telefon poate fi adăugat pe ecranul principal ca o mini-aplicație (fără bară de adresă). Service worker-ul cache-uiește doar fișierele statice; paginile HTML merg mereu în rețea întâi, ca conținutul să rămână mereu actual.
+
 ## Comentarii vizitatoare
 
 Fiecare produs are o secțiune de comentarii publice (fără cont). Protecție anti-spam minimă:
