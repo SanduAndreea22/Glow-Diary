@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{{ produs.nume }} — {{ produs.brand }} · Glow Diary by Deea{% endblock %}
+
+{% block content %}
+<div class="hero-product">
+  {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
+  <div class="seal">tested by deea</div>
+</div>
+<div class="detail-body">
+  <a href="{% url 'reviews:feed' %}" class="back-link">&larr; înapoi la feed</a>
+  <div class="d-brand" style="margin-top:12px;">{{ produs.brand }}</div>
+  <div class="d-name">{{ produs.nume }}</div>
+  <div class="post-cat">{{ produs.get_categorie_display }}</div>
+  <div class="d-shade">
+    {% if produs.nuanta %}Nuanță: {{ produs.nuanta }}{% endif %}
+    {% if produs.nuanta and produs.sursa %} · {% endif %}
+    {% if produs.sursa %}Cumpărat de la {{ produs.sursa }}{% endif %}
+  </div>
+
+  <div class="d-rating">
+    <span class="stars">{{ produs.stele }}</span>
+    <div class="d-rating-label">nota mea</div>
+  </div>
+
+  <div class="my-take">
+    <div class="my-take-label">Părerea mea</div>
+    <div class="my-take-text">{{ produs.parerea_mea }}</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <form class="comment-form" method="post">
+    {% csrf_token %}
+    <div class="comment-q">L-ai încercat și tu? Cum ți s-a părut?</div>
+
+    {{ form.website }}
+
+    <input class="field" type="text" name="nume" value="{{ form.nume.value|default:'' }}" placeholder="Numele tău (opțional)">
+
+    <div class="star-pick">
+      {% for value, label in form.fields.nota.choices %}
+        {% if value %}
+        <input type="radio" name="nota" id="star{{ value }}" value="{{ value }}" {% if form.nota.value|stringformat:"s" == value|stringformat:"s" %}checked{% endif %}>
+        <label for="star{{ value }}">★</label>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <textarea class="field" name="comentariu" rows="3" placeholder="Scrie părerea ta...">{{ form.comentariu.value|default:'' }}</textarea>
+    {% if form.comentariu.errors %}<div class="no-comments" style="color:#8A1F1F;">{{ form.comentariu.errors.0 }}</div>{% endif %}
+
+    <button type="submit" class="submit-btn">Trimite</button>
+  </form>
+
+  <div class="divider"></div>
+
+  <div class="section-title">Ce au zis alte fete</div>
+  {% for comentariu in comentarii %}
+  <div class="comment-item">
+    <div class="comment-top">
+      <div class="comment-name">{{ comentariu.nume|default:"anonim" }}</div>
+      {% if comentariu.nota %}<div class="comment-stars">{{ comentariu.stele }}</div>{% endif %}
+    </div>
+    <div class="comment-text">{{ comentariu.comentariu }}</div>
+  </div>
+  {% empty %}
+  <div class="no-comments">Fii prima care lasă o părere despre acest produs.</div>
+  {% endfor %}
+</div>
+{% endblock %}

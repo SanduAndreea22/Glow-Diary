@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Glow Diary by Deea — Ultimele încercări{% endblock %}
+
+{% block content %}
+<div class="feed-title">Ultimele încercări</div>
+<div class="feed-tag">Real products. My honest take.</div>
+
+<form class="search-bar" method="get">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7A1E3D" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+  <input type="text" name="q" value="{{ q }}" placeholder="Caută produs sau brand...">
+  {% if categorie_activa %}<input type="hidden" name="categorie" value="{{ categorie_activa }}">{% endif %}
+  {% if nota_min_activa %}<input type="hidden" name="nota_min" value="{{ nota_min_activa }}">{% endif %}
+  <button type="submit">Caută</button>
+</form>
+
+<div class="filters">
+  <a href="?{% if q %}q={{ q }}&{% endif %}" class="chip{% if not categorie_activa %} active{% endif %}">Toate</a>
+  {% for value, label in categorii %}
+  <a href="?{% if q %}q={{ q }}&{% endif %}categorie={{ value }}{% if nota_min_activa %}&nota_min={{ nota_min_activa }}{% endif %}"
+     class="chip{% if categorie_activa == value %} active{% endif %}">{{ label }}</a>
+  {% endfor %}
+  <a href="?{% if q %}q={{ q }}&{% endif %}{% if categorie_activa %}categorie={{ categorie_activa }}&{% endif %}nota_min=4"
+     class="chip{% if nota_min_activa == '4' %} active{% endif %}">Notă 4+</a>
+</div>
+
+{% for produs in produse %}
+<a href="{{ produs.get_absolute_url }}" class="post">
+  <div class="post-photo">
+    {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
+    <div class="seal">tested by deea</div>
+  </div>
+  <div class="post-body">
+    <div class="post-brand">{{ produs.brand }}</div>
+    <div class="post-name">{{ produs.nume }}</div>
+    <div class="post-cat">{{ produs.get_categorie_display }}</div>
+    {% if produs.nuanta %}<div class="post-shade">Nuanță: {{ produs.nuanta }}</div>{% endif %}
+    {% if produs.sursa %}<div class="post-source">Cumpărat de la {{ produs.sursa }}</div>{% endif %}
+    <span class="stars">{{ produs.stele }}</span>
+    <div class="post-snippet">{{ produs.parerea_mea|truncatewords:20 }}</div>
+  </div>
+</a>
+{% empty %}
+<div class="empty-state">Niciun produs găsit. Încearcă alt filtru sau altă căutare.</div>
+{% endfor %}
+
+{% if is_paginated %}
+<div class="pagination">
+  {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if categorie_activa %}&categorie={{ categorie_activa }}{% endif %}{% if nota_min_activa %}&nota_min={{ nota_min_activa }}{% endif %}">&larr; înapoi</a>{% endif %}
+  <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if categorie_activa %}&categorie={{ categorie_activa }}{% endif %}{% if nota_min_activa %}&nota_min={{ nota_min_activa }}{% endif %}">înainte &rarr;</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

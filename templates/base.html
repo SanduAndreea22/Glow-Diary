@@ -1,0 +1,37 @@
+{% load static %}<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Glow Diary by Deea{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<div class="screen">
+  <div class="topbar">
+    <a href="{% url 'reviews:feed' %}" class="logo">glow<span>diary</span><small>by deea</small></a>
+    <div class="nav-links">
+      <a href="{% url 'reviews:feed' %}" class="{% if request.resolver_match.url_name == 'feed' %}active{% endif %}">Acasă</a>
+      <a href="{% url 'reviews:about' %}" class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}">Despre</a>
+      <a href="{% url 'reviews:contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
+    </div>
+  </div>
+
+  {% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+    <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<footer class="site-footer">Glow Diary by Deea · Real products. My honest take.</footer>
+
+</body>
+</html>
