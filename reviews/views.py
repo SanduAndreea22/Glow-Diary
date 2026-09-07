@@ -9,6 +9,7 @@ from django.db.models import Count, Q
 from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
+from django.views import View
 from django.views.generic import DetailView, ListView, TemplateView
 
 from .forms import CommentForm, ContactForm
@@ -179,22 +180,23 @@ class ProductDetailView(DetailView):
         return self.render_to_response(self.get_context_data(form=form))
 
 
-def product_story_image(request, slug):
-    produs = get_object_or_404(Product, slug=slug)
-    host = request.get_host()
-    # Cheia include poza + nota, ca imaginea din cache să nu rămână învechită
-    # dacă Deea schimbă poza produsului sau nota din admin.
-    cache_key = (
-        f"story-img:{produs.slug}:{produs.poza.name if produs.poza else ''}"
-        f":{produs.nota_mea}:{host}"
-    )
-    png_bytes = cache.get(cache_key)
-    if png_bytes is None:
-        png_bytes = render_story_png(produs, host).getvalue()
-        cache.set(cache_key, png_bytes, STORY_IMAGE_CACHE_TTL)
-    response = FileResponse(io.BytesIO(png_bytes), content_type="image/png")
-    response["Content-Disposition"] = f'attachment; filename="{produs.slug}-story.png"'
-    return response
+class ProductStoryImageView(View):
+    def get(self, request, slug):
+        produs = get_object_or_404(Product, slug=slug)
+        host = request.get_host()
+        # Cheia include poza + nota, ca imaginea din cache să nu rămână
+        # învechită dacă Deea schimbă poza produsului sau nota din admin.
+        cache_key = (
+            f"story-img:{produs.slug}:{produs.poza.name if produs.poza else ''}"
+            f":{produs.nota_mea}:{host}"
+        )
+        png_bytes = cache.get(cache_key)
+        if png_bytes is None:
+            png_bytes = render_story_png(produs, host).getvalue()
+            cache.set(cache_key, png_bytes, STORY_IMAGE_CACHE_TTL)
+        response = FileResponse(io.BytesIO(png_bytes), content_type="image/png")
+        response["Content-Disposition"] = f'attachment; filename="{produs.slug}-story.png"'
+        return response
 
 
 class CollectionListView(ListView):
@@ -240,34 +242,33 @@ def _product_card_data(p):
     }
 
 
-def favorites_data(request):
-    slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:50]
-    produse = Product.objects.filter(slug__in=slugs)
-    data = [
-        _product_card_data(p)
-        for p in produse
-    ]
-    return JsonResponse({"produse": data})
+class FavoritesDataView(View):
+    def get(self, request):
+        slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:50]
+        produse = Product.objects.filter(slug__in=slugs)
+        data = [_product_card_data(p) for p in produse]
+        return JsonResponse({"produse": data})
 
 
-def search_data(request):
-    q = request.GET.get("q", "").strip()
-    categorie = request.GET.get("categorie", "").strip()
-    nota_min = request.GET.get("nota_min", "").strip()
+class SearchDataView(View):
+    def get(self, request):
+        q = request.GET.get("q", "").strip()
+        categorie = request.GET.get("categorie", "").strip()
+        nota_min = request.GET.get("nota_min", "").strip()
 
-    qs = Product.objects.all()
-    if q:
-        qs = qs.filter(Q(nume__icontains=q) | Q(brand__icontains=q))
-    if categorie:
-        qs = qs.filter(categorie=categorie)
-    if nota_min:
-        try:
-            qs = qs.filter(nota_mea__gte=int(nota_min))
-        except ValueError:
-            pass
+        qs = Product.objects.all()
+        if q:
+            qs = qs.filter(Q(nume__icontains=q) | Q(brand__icontains=q))
+        if categorie:
+            qs = qs.filter(categorie=categorie)
+        if nota_min:
+            try:
+                qs = qs.filter(nota_mea__gte=int(nota_min))
+            except ValueError:
+                pass
 
-    data = [_product_card_data(p) for p in qs.order_by("-data_postarii")[:24]]
-    return JsonResponse({"produse": data})
+        data = [_product_card_data(p) for p in qs.order_by("-data_postarii")[:24]]
+        return JsonResponse({"produse": data})
 
 
 class AboutView(TemplateView):
