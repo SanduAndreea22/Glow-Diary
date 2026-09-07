@@ -1,9 +1,38 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.urls import reverse
 from django.utils.text import slugify
 
 NOTA_CHOICES = [(i, str(i)) for i in range(1, 6)]
+
+MAX_SLUG_ATTEMPTS = 20
+
+
+def _save_with_unique_slug(instance, base_text, save_fn):
+    """
+    Generează un slug unic pornind de la `base_text` și salvează `instance`
+    prin `save_fn`. Retry pe IntegrityError (nu doar check-then-set) ca să
+    evite race condition-ul la creare simultană cu același nume.
+    """
+    base_slug = slugify(base_text)[:170]
+    model_cls = type(instance)
+    slug = instance.slug or base_slug
+    suffix = 2
+
+    for _ in range(MAX_SLUG_ATTEMPTS):
+        instance.slug = slug
+        try:
+            with transaction.atomic():
+                save_fn()
+            return
+        except IntegrityError:
+            slug = f"{base_slug}-{suffix}"
+            suffix += 1
+
+    raise IntegrityError(
+        f"Nu am putut genera un slug unic pentru {model_cls.__name__} după "
+        f"{MAX_SLUG_ATTEMPTS} încercări."
+    )
 
 CATEGORIE_CHOICES = [
     ("ruj", "Ruj"),
@@ -53,14 +82,12 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(f"{self.brand}-{self.nume}")[:170]
-            slug = base_slug
-            i = 2
-            while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{i}"
-                i += 1
-            self.slug = slug
-        super().save(*args, **kwargs)
+            _save_with_unique_slug(
+                self, f"{self.brand}-{self.nume}",
+                lambda: models.Model.save(self, *args, **kwargs),
+            )
+        else:
+            super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("reviews:product_detail", kwargs={"slug": self.slug})
@@ -107,14 +134,12 @@ class Collection(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(self.nume)[:170]
-            slug = base_slug
-            i = 2
-            while Collection.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{i}"
-                i += 1
-            self.slug = slug
-        super().save(*args, **kwargs)
+            _save_with_unique_slug(
+                self, self.nume,
+                lambda: models.Model.save(self, *args, **kwargs),
+            )
+        else:
+            super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("reviews:collection_detail", kwargs={"slug": self.slug})

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Pagina nu există · Glow Diary by Deea{% endblock %}
+
+{% block content %}
+<div class="static-body">
+  <div class="static-title">Hmm, nu găsesc pagina asta 💔</div>
+  <p class="static-text">
+    Fie linkul e greșit, fie produsul a fost șters. Hai înapoi la feed.
+  </p>
+  <a href="{% url 'reviews:feed' %}" class="submit-btn" style="display:inline-block;text-decoration:none;">Înapoi la feed</a>
+</div>
+{% endblock %}

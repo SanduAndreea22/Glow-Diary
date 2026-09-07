@@ -2,6 +2,16 @@
 var GlowFavorites = {
   KEY: "glow-diary-favorites",
 
+  /* Escapare defensivă înainte de a injecta text în innerHTML (chiar dacă azi
+     datele vin doar din câmpuri completate de Deea în admin, nu din input
+     de vizitator). */
+  escapeHtml: function (str) {
+    var map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+    return String(str == null ? "" : str).replace(/[&<>"']/g, function (c) {
+      return map[c];
+    });
+  },
+
   getAll: function () {
     try {
       return JSON.parse(localStorage.getItem(this.KEY) || "[]");

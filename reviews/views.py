@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.db.models import Count, Q
@@ -12,13 +13,28 @@ from .forms import CommentForm, ContactForm
 from .models import CATEGORIE_CHOICES, Collection, Product
 
 RATE_LIMIT_SECONDS = 60
+GLOBAL_RATE_LIMIT_MAX = 5
+GLOBAL_RATE_LIMIT_WINDOW = 600  # 10 minute
+
+FEED_STATS_CACHE_TTL = 300  # 5 minute
 
 
 def _client_ip(request):
-    forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    if getattr(settings, "TRUST_X_FORWARDED_FOR", False):
+        forwarded = request.META.get("HTTP_X_FORWARDED_FOR")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR", "unknown")
+
+
+def _global_rate_limited(ip, scope):
+    """Limitează nr. de postări (orice produs/pagină) per IP într-o fereastră mai lungă."""
+    key = f"rl-global:{scope}:{ip}"
+    count = cache.get(key, 0)
+    if count >= GLOBAL_RATE_LIMIT_MAX:
+        return True
+    cache.set(key, count + 1, GLOBAL_RATE_LIMIT_WINDOW)
+    return False
 
 
 def _cu_numar_pareri(qs):
@@ -41,6 +57,18 @@ def _produsul_lunii():
         .first()
     )
     return top.id if top else None
+
+
+def _feed_stats():
+    """Cache scurt pentru statisticile din header-ul feed-ului (produsul lunii, total)."""
+    stats = cache.get("feed-stats")
+    if stats is None:
+        stats = {
+            "produsul_lunii_id": _produsul_lunii(),
+            "total_produse": Product.objects.count(),
+        }
+        cache.set("feed-stats", stats, FEED_STATS_CACHE_TTL)
+    return stats
 
 
 class FeedView(ListView):
@@ -72,8 +100,9 @@ class FeedView(ListView):
         ctx["q"] = self.request.GET.get("q", "")
         ctx["categorie_activa"] = self.request.GET.get("categorie", "")
         ctx["nota_min_activa"] = self.request.GET.get("nota_min", "")
-        ctx["produsul_lunii_id"] = _produsul_lunii()
-        ctx["total_produse"] = Product.objects.count()
+        stats = _feed_stats()
+        ctx["produsul_lunii_id"] = stats["produsul_lunii_id"]
+        ctx["total_produse"] = stats["total_produse"]
         return ctx
 
 
@@ -99,11 +128,19 @@ class ProductDetailView(DetailView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = CommentForm(request.POST)
+        ip = _client_ip(request)
 
-        cache_key = f"comment-rl:{_client_ip(request)}:{self.object.pk}"
+        cache_key = f"comment-rl:{ip}:{self.object.pk}"
         if cache.get(cache_key):
             messages.error(
                 request, "Ai comentat recent la acest produs — mai încearcă puțin."
+            )
+            return redirect(self.object.get_absolute_url())
+
+        if _global_rate_limited(ip, "comment"):
+            messages.error(
+                request,
+                "Ai lăsat destule păreri pentru moment — mai încearcă peste câteva minute.",
             )
             return redirect(self.object.get_absolute_url())
 
@@ -117,6 +154,11 @@ class ProductDetailView(DetailView):
             messages.success(request, "Mulțumesc pentru părere! ✨")
             return redirect(self.object.get_absolute_url())
 
+        if not form.errors.get("comentariu") and not form.errors.get("nume"):
+            # eroare "ascunsă" (honeypot) — mesaj generic, fără să dezvăluim mecanismul
+            messages.error(request, "Nu am putut trimite comentariul — mai încearcă o dată.")
+            return redirect(self.object.get_absolute_url())
+
         return self.render_to_response(self.get_context_data(form=form))
 
 
@@ -126,7 +168,10 @@ class CollectionListView(ListView):
     context_object_name = "colectii"
 
     def get_queryset(self):
-        return Collection.objects.filter(produse__isnull=False).distinct()
+        return (
+            Collection.objects.annotate(produse_count=Count("produse", distinct=True))
+            .filter(produse_count__gt=0)
+        )
 
 
 class CollectionDetailView(DetailView):
@@ -145,7 +190,7 @@ class FavoritesView(TemplateView):
 
 
 def favorites_data(request):
-    slugs = [s for s in request.GET.get("slugs", "").split(",") if s]
+    slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:50]
     produse = Product.objects.filter(slug__in=slugs)
     data = [
         {
@@ -178,9 +223,14 @@ class ContactView(TemplateView):
         return ctx
 
     def post(self, request, *args, **kwargs):
-        cache_key = f"contact-rl:{_client_ip(request)}"
+        ip = _client_ip(request)
+        cache_key = f"contact-rl:{ip}"
         if cache.get(cache_key):
             messages.error(request, "Ai trimis deja un mesaj recent — revin eu cât pot.")
+            return redirect("reviews:contact")
+
+        if _global_rate_limited(ip, "contact"):
+            messages.error(request, "Ai trimis destule mesaje pentru moment — mai încearcă peste câteva minute.")
             return redirect("reviews:contact")
 
         form = ContactForm(request.POST)
@@ -188,6 +238,10 @@ class ContactView(TemplateView):
             form.save()
             cache.set(cache_key, True, RATE_LIMIT_SECONDS)
             messages.success(request, "Mesajul tău a ajuns la mine, mulțumesc! 💌")
+            return redirect("reviews:contact")
+
+        if not form.errors.get("mesaj") and not form.errors.get("email"):
+            messages.error(request, "Nu am putut trimite mesajul — mai încearcă o dată.")
             return redirect("reviews:contact")
 
         return self.render_to_response(self.get_context_data(form=form))
