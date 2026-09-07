@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Glow Diary by Deea{% endblock %}</title>
-<meta name="description" content="{% block meta_description %}Recenzii reale de makeup — produsele pe care le-am cumpărat, testat și notat eu. Real products. My honest take.{% endblock %}">
+<meta name="description" content="{% block meta_description %}Recenzii reale de makeup, scrise de mine — produsele pe care le-am cumpărat, le-am testat și le-am notat chiar eu. Real products. My honest take.{% endblock %}">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23FF6FA5'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle' fill='white'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
 
 <meta property="og:site_name" content="Glow Diary by Deea">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{% block og_title %}Glow Diary by Deea{% endblock %}">
-<meta property="og:description" content="{% block og_description %}Real products. My honest take. — recenzii de makeup testate chiar de mine.{% endblock %}">
+<meta property="og:description" content="{% block og_description %}Real products. My honest take — recenzii de makeup testate chiar de mine.{% endblock %}">
 <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}{% endblock %}">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 <meta name="twitter:card" content="summary_large_image">

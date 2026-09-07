@@ -6,6 +6,7 @@
 {% block content %}
 <div class="feed-title">Ultimele încercări</div>
 <div class="feed-tag">Real products. My honest take.</div>
+<p class="feed-intro">Machiajul pe care l-am cumpărat, l-am testat și l-am evaluat eu — fără PR-uri, fără sponsorizări. Vezi și <a href="{% url 'reviews:collections' %}">colecțiile mele curate →</a></p>
 
 <form class="search-bar" method="get">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7A1E3D" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -32,7 +33,7 @@
     <div class="post-photo">
       {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
       <div class="seal">TESTED BY DEEA</div>
-      {% if produs.id == produsul_lunii_id %}<div class="sticker">⭐ produsul lunii</div>{% endif %}
+      {% if produs.id == produsul_lunii_id %}<div class="sticker">⭐ PRODUSUL LUNII</div>{% endif %}
     </div>
     <div class="post-body">
       <div class="post-brand">{{ produs.brand }}</div>
