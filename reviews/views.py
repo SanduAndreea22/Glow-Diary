@@ -1,3 +1,4 @@
+import hashlib
 import io
 from datetime import timedelta
 
@@ -184,11 +185,15 @@ class ProductStoryImageView(View):
     def get(self, request, slug):
         produs = get_object_or_404(Product, slug=slug)
         host = request.get_host()
-        # Cheia include poza + nota, ca imaginea din cache să nu rămână
-        # învechită dacă Deea schimbă poza produsului sau nota din admin.
+        # Cheia include poza, nota și un hash pe brand/nume (ambele desenate
+        # pe imagine) — ca imaginea din cache să nu rămână învechită dacă
+        # Deea corectează o greșeală de tastare sau schimbă poza/nota.
+        content_hash = hashlib.md5(
+            f"{produs.brand}|{produs.nume}".encode()
+        ).hexdigest()[:12]
         cache_key = (
             f"story-img:{produs.slug}:{produs.poza.name if produs.poza else ''}"
-            f":{produs.nota_mea}:{host}"
+            f":{produs.nota_mea}:{content_hash}:{host}"
         )
         png_bytes = cache.get(cache_key)
         if png_bytes is None:

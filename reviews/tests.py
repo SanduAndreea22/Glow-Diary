@@ -1,8 +1,11 @@
+from unittest import mock
+
 from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
 from .models import Collection, Comment, Product
+from .story_image import render_story_png
 
 
 class ProductSlugTests(TestCase):
@@ -195,18 +198,27 @@ class StoryImageTests(TestCase):
 
     def test_a_doua_cerere_foloseste_cache(self):
         url = reverse("reviews:product_story_image", args=[self.produs.slug])
-        self.client.get(url)
-        cache_key = (
-            f"story-img:{self.produs.slug}:"
-            f"{self.produs.poza.name if self.produs.poza else ''}"
-            f":{self.produs.nota_mea}:testserver"
+        with mock.patch(
+            "reviews.views.render_story_png", wraps=render_story_png
+        ) as spy:
+            r1 = self.client.get(url)
+            r2 = self.client.get(url)
+        self.assertEqual(spy.call_count, 1)
+        self.assertEqual(
+            b"".join(r1.streaming_content), b"".join(r2.streaming_content)
         )
-        cached = cache.get(cache_key)
-        self.assertIsNotNone(cached)
+
+    def test_editarea_produsului_invalideaza_cache_ul(self):
+        url = reverse("reviews:product_story_image", args=[self.produs.slug])
+        r1 = self.client.get(url)
+        continut_initial = b"".join(r1.streaming_content)
+
+        self.produs.nume = "Nume complet diferit"
+        self.produs.save()
 
         r2 = self.client.get(url)
-        self.assertEqual(r2.status_code, 200)
-        self.assertEqual(b"".join(r2.streaming_content), cached)
+        continut_dupa_editare = b"".join(r2.streaming_content)
+        self.assertNotEqual(continut_initial, continut_dupa_editare)
 
 
 class StaticPagesTests(TestCase):
