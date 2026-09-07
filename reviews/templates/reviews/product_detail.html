@@ -126,16 +126,48 @@
     var label = document.getElementById('share-btn-label');
     if (!btn) return;
     var original = label.textContent;
+
+    var showState = function (text, cls, duration) {
+      label.textContent = text;
+      btn.classList.add(cls);
+      setTimeout(function () {
+        label.textContent = original;
+        btn.classList.remove(cls);
+      }, duration);
+    };
+
+    var legacyCopy = function (url) {
+      var input = document.createElement('input');
+      input.value = url;
+      input.style.position = 'fixed';
+      input.style.opacity = '0';
+      document.body.appendChild(input);
+      input.select();
+      var ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (e) {
+        ok = false;
+      }
+      document.body.removeChild(input);
+      return ok;
+    };
+
     btn.addEventListener('click', function () {
       var url = btn.getAttribute('data-url');
-      navigator.clipboard.writeText(url).then(function () {
-        label.textContent = 'Copiat! ✓';
-        btn.classList.add('copied');
-        setTimeout(function () {
-          label.textContent = original;
-          btn.classList.remove('copied');
-        }, 1800);
-      });
+
+      var fallback = function () {
+        var ok = legacyCopy(url);
+        showState(ok ? 'Copiat! ✓' : 'N-a mers — selectează linkul manual', ok ? 'copied' : 'copy-failed', 2400);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () {
+          showState('Copiat! ✓', 'copied', 1800);
+        }).catch(fallback);
+      } else {
+        fallback();
+      }
     });
   })();
 </script>

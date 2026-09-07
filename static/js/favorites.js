@@ -45,14 +45,20 @@ var GlowFavorites = {
 
   wireButtons: function (selector) {
     var self = this;
+    var syncTitle = function (btn, isFav) {
+      btn.title = isFav ? "Elimină din favorite" : "Salvează la favorite";
+    };
     document.querySelectorAll(selector).forEach(function (btn) {
       var slug = btn.getAttribute("data-slug");
       if (!slug) return;
-      if (self.has(slug)) btn.classList.add("active");
+      var isFav = self.has(slug);
+      btn.classList.toggle("active", isFav);
+      syncTitle(btn, isFav);
       btn.addEventListener("click", function (e) {
         e.preventDefault();
         var isFav = self.toggle(slug);
         btn.classList.toggle("active", isFav);
+        syncTitle(btn, isFav);
         btn.dispatchEvent(new CustomEvent("favchange", { detail: { isFav: isFav } }));
       });
     });

@@ -242,6 +242,7 @@ img{max-width:100%;display:block;}
 .share-btn:hover{background:var(--pink);color:var(--white);}
 .share-btn:active{transform:scale(0.96);}
 .share-btn.copied{background:var(--gold);color:var(--maroon);}
+.share-btn.copy-failed{background:#FBD7D7;color:#8A1F1F;}
 .share-btn.active{background:var(--pink);color:var(--white);}
 .d-brand{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.05em;}
 .d-name{font-size:23px;font-weight:800;margin-top:4px;font-family:'Unbounded';}
