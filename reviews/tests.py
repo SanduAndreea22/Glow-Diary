@@ -139,6 +139,76 @@ class FavoritesApiTests(TestCase):
         self.assertEqual(r.json()["produse"][0]["slug"], produs.slug)
 
 
+class SearchDataApiTests(TestCase):
+    def setUp(self):
+        self.p1 = Product.objects.create(
+            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie="blush",
+            nota_mea=5, parerea_mea="Text.",
+        )
+        self.p2 = Product.objects.create(
+            nume="Gloss Bomb", brand="Fenty Beauty", categorie="gloss",
+            nota_mea=4, parerea_mea="Text.",
+        )
+
+    def test_cautare_dupa_brand(self):
+        r = self.client.get(reverse("reviews:search_data"), {"q": "fenty"})
+        self.assertEqual(r.status_code, 200)
+        slugs = [p["slug"] for p in r.json()["produse"]]
+        self.assertEqual(slugs, [self.p2.slug])
+
+    def test_fara_query_intoarce_toate_produsele(self):
+        r = self.client.get(reverse("reviews:search_data"))
+        self.assertEqual(len(r.json()["produse"]), 2)
+
+    def test_filtru_categorie(self):
+        r = self.client.get(reverse("reviews:search_data"), {"categorie": "gloss"})
+        slugs = [p["slug"] for p in r.json()["produse"]]
+        self.assertEqual(slugs, [self.p2.slug])
+
+    def test_filtru_nota_min_invalida_e_ignorata(self):
+        r = self.client.get(reverse("reviews:search_data"), {"nota_min": "abc"})
+        self.assertEqual(len(r.json()["produse"]), 2)
+
+
+class StoryImageTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.produs = Product.objects.create(
+            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie="blush",
+            nota_mea=5, parerea_mea="Text.",
+        )
+
+    def test_genereaza_png_descarcabil(self):
+        r = self.client.get(
+            reverse("reviews:product_story_image", args=[self.produs.slug])
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r["Content-Type"], "image/png")
+        self.assertIn("attachment", r["Content-Disposition"])
+        self.assertTrue(b"".join(r.streaming_content).startswith(b"\x89PNG"))
+
+    def test_produs_inexistent_da_404(self):
+        r = self.client.get(
+            reverse("reviews:product_story_image", args=["nu-exista"])
+        )
+        self.assertEqual(r.status_code, 404)
+
+    def test_a_doua_cerere_foloseste_cache(self):
+        url = reverse("reviews:product_story_image", args=[self.produs.slug])
+        self.client.get(url)
+        cache_key = (
+            f"story-img:{self.produs.slug}:"
+            f"{self.produs.poza.name if self.produs.poza else ''}"
+            f":{self.produs.nota_mea}:testserver"
+        )
+        cached = cache.get(cache_key)
+        self.assertIsNotNone(cached)
+
+        r2 = self.client.get(url)
+        self.assertEqual(r2.status_code, 200)
+        self.assertEqual(b"".join(r2.streaming_content), cached)
+
+
 class StaticPagesTests(TestCase):
     def test_despre_si_contact_incarca(self):
         self.assertEqual(self.client.get(reverse("reviews:about")).status_code, 200)

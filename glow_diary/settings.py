@@ -249,3 +249,13 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
+
+    # Pe orice host care termină SSL la un proxy din față și retrimite
+    # cererea ca HTTP simplu către aplicație (comun pe PaaS-uri, inclusiv
+    # PythonAnywhere), Django crede că request-ul e nesecurizat și
+    # SECURE_SSL_REDIRECT redirecționează la infinit. TRUST_X_FORWARDED_PROTO
+    # e opt-in, ca SECURE_PROXY_SSL_HEADER să nu fie activat orbește —
+    # verifică întâi (manual, pe domeniul real) că proxy-ul chiar trimite
+    # X-Forwarded-Proto, altfel oricine poate falsifica headerul.
+    if env_bool("TRUST_X_FORWARDED_PROTO", default=False):
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

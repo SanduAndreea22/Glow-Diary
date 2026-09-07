@@ -21,8 +21,16 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ("nume", "brand", "categorie", "nota_mea", "data_postarii")
     list_filter = ("categorie", "nota_mea")
     search_fields = ("nume", "brand", "nuanta")
-    prepopulated_fields = {"slug": ("brand", "nume")}
     inlines = [ProductImageInline, CommentInline]
+
+    def get_prepopulated_fields(self, request, obj=None):
+        # Doar la creare — altfel JS-ul de prepopulare rescrie slug-ul live
+        # dacă Deea editează brand/nume la un produs existent, ceea ce ar
+        # schimba URL-ul lui (linkuri deja distribuite s-ar rupe).
+        return {} if obj else {"slug": ("brand", "nume")}
+
+    def get_readonly_fields(self, request, obj=None):
+        return ("slug",) if obj else ()
 
 
 @admin.register(Comment)
@@ -36,9 +44,14 @@ class CommentAdmin(admin.ModelAdmin):
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
     list_display = ("nume", "data_creare")
-    prepopulated_fields = {"slug": ("nume",)}
     filter_horizontal = ("produse",)
     search_fields = ("nume", "descriere")
+
+    def get_prepopulated_fields(self, request, obj=None):
+        return {} if obj else {"slug": ("nume",)}
+
+    def get_readonly_fields(self, request, obj=None):
+        return ("slug",) if obj else ()
 
 
 admin.site.site_header = "Glow Diary by Deea"

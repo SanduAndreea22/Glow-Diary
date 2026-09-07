@@ -1,0 +1,3 @@
+DejaVu Sans / DejaVu Sans Bold — Bitstream Vera License + Public Domain
+contributions (DejaVu fonts team). Free to use, modify and redistribute.
+https://dejavu-fonts.github.io/License.html

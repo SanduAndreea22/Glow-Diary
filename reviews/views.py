@@ -1,3 +1,4 @@
+import io
 from datetime import timedelta
 
 from django.conf import settings
@@ -19,6 +20,7 @@ GLOBAL_RATE_LIMIT_MAX = 5
 GLOBAL_RATE_LIMIT_WINDOW = 600  # 10 minute
 
 FEED_STATS_CACHE_TTL = 300  # 5 minute
+STORY_IMAGE_CACHE_TTL = 60 * 60 * 24  # 24h — randarea cu Pillow e costisitoare
 
 
 def _client_ip(request):
@@ -179,8 +181,18 @@ class ProductDetailView(DetailView):
 
 def product_story_image(request, slug):
     produs = get_object_or_404(Product, slug=slug)
-    buf = render_story_png(produs, request.get_host())
-    response = FileResponse(buf, content_type="image/png")
+    host = request.get_host()
+    # Cheia include poza + nota, ca imaginea din cache să nu rămână învechită
+    # dacă Deea schimbă poza produsului sau nota din admin.
+    cache_key = (
+        f"story-img:{produs.slug}:{produs.poza.name if produs.poza else ''}"
+        f":{produs.nota_mea}:{host}"
+    )
+    png_bytes = cache.get(cache_key)
+    if png_bytes is None:
+        png_bytes = render_story_png(produs, host).getvalue()
+        cache.set(cache_key, png_bytes, STORY_IMAGE_CACHE_TTL)
+    response = FileResponse(io.BytesIO(png_bytes), content_type="image/png")
     response["Content-Disposition"] = f'attachment; filename="{produs.slug}-story.png"'
     return response
 

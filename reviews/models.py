@@ -55,7 +55,7 @@ class Product(models.Model):
     nume = models.CharField("Nume produs", max_length=150)
     brand = models.CharField("Brand", max_length=100)
     categorie = models.CharField(
-        "Categorie", max_length=30, choices=CATEGORIE_CHOICES
+        "Categorie", max_length=30, choices=CATEGORIE_CHOICES, db_index=True
     )
     nuanta = models.CharField(
         "Nuanță", max_length=100, blank=True,

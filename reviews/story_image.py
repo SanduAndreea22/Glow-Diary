@@ -4,7 +4,9 @@ de descărcat și postat direct de vizitatoare."""
 
 import io
 import textwrap
+from pathlib import Path
 
+from django.conf import settings
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1080, 1920
@@ -17,12 +19,20 @@ GOLD = (232, 184, 75)
 PEACH = (255, 233, 214)
 WHITE = (255, 255, 255)
 
-FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-FONT_REGULAR = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+# Fonturile sunt bundle-uite în repo (static/fonts/) în loc să depindă de o
+# cale absolută de sistem — nu e garantat că același font e instalat la
+# aceeași cale pe orice host de producție.
+FONT_BOLD = Path(settings.BASE_DIR) / "static" / "fonts" / "DejaVuSans-Bold.ttf"
+FONT_REGULAR = Path(settings.BASE_DIR) / "static" / "fonts" / "DejaVuSans.ttf"
 
 
 def _font(path, size):
-    return ImageFont.truetype(path, size)
+    try:
+        return ImageFont.truetype(str(path), size)
+    except OSError:
+        # Nu blocăm generarea imaginii dacă fontul lipsește dintr-un motiv
+        # sau altul pe host — mai bine text cu fontul implicit decât 500.
+        return ImageFont.load_default(size=size)
 
 
 def _center_text(draw, y, text, font, fill):

@@ -5,7 +5,7 @@ URL configuration for glow_diary project.
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.urls import include, path
 
 urlpatterns = [
@@ -18,8 +18,12 @@ def _service_worker(request):
     # Servit chiar la /sw.js (nu sub /static/, și nu printr-un redirect —
     # browserele resping un script de service worker obținut printr-un
     # redirect) ca scope-ul lui să acopere tot site-ul, nu doar /static/.
-    with open(settings.BASE_DIR / "static" / "sw.js", "rb") as f:
-        return HttpResponse(f.read(), content_type="application/javascript")
+    sw_path = settings.BASE_DIR / "static" / "sw.js"
+    try:
+        content = sw_path.read_bytes()
+    except FileNotFoundError:
+        raise Http404("sw.js lipsește.")
+    return HttpResponse(content, content_type="application/javascript")
 
 
 urlpatterns += [path("sw.js", _service_worker, name="service_worker")]

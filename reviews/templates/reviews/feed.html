@@ -29,28 +29,7 @@
 
 <div class="card-grid" id="card-grid">
 {% for produs in produse %}
-<div class="post-wrap">
-  <a href="{{ produs.get_absolute_url }}" class="post">
-    <div class="post-photo">
-      {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
-      <div class="seal">TESTED BY DEEA</div>
-      {% if produs.id == produsul_lunii_id %}<div class="sticker">⭐ PRODUSUL LUNII</div>{% endif %}
-    </div>
-    <div class="post-body">
-      <div class="post-brand">{{ produs.brand }}</div>
-      <div class="post-name">{{ produs.nume }}</div>
-      <div class="post-cat">{{ produs.get_categorie_display }}</div>
-      {% if produs.nuanta %}<div class="post-shade">Nuanță: {{ produs.nuanta }}</div>{% endif %}
-      {% if produs.sursa %}<div class="post-source">Cumpărat de la {{ produs.sursa }}</div>{% endif %}
-      <span class="stars">{{ produs.stele }}</span>
-      <div class="post-meta">{{ produs.data_postarii|naturaltime }}{% if produs.comment_count %} · 💬 {{ produs.comment_count }} păreri{% endif %}</div>
-      <div class="post-snippet">{{ produs.parerea_mea|truncatewords:20 }}</div>
-    </div>
-  </a>
-  <button type="button" class="card-fav" data-slug="{{ produs.slug }}" aria-label="Salvează la favorite">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.6c0 4-4.4 7.3-8.8 10.4C7.6 15.9 3.2 12.6 3.2 8.6 3.2 5.9 5.3 4 7.8 4c1.5 0 2.9.7 3.7 1.9C12.3 4.7 13.7 4 15.2 4c2.5 0 4.6 1.9 4.6 4.6z"/></svg>
-  </button>
-</div>
+  {% include "reviews/_product_card.html" with produs=produs produsul_lunii_id=produsul_lunii_id show_details=True snippet_words=20 %}
 {% empty %}
 <div class="empty-state">Niciun produs găsit. Încearcă alt filtru sau altă căutare.</div>
 {% endfor %}
