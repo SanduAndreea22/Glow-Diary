@@ -1,14 +1,25 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ produs.nume }} — {{ produs.brand }} · Glow Diary by Deea{% endblock %}
+{% block meta_description %}{{ produs.parerea_mea|truncatewords:25 }}{% endblock %}
+{% block og_title %}{{ produs.nume }} — {{ produs.brand }} ({{ produs.nota_mea }}/5) · Glow Diary by Deea{% endblock %}
+{% block og_description %}{{ produs.parerea_mea|truncatewords:25 }}{% endblock %}
+{% block og_image %}{% if produs.poza %}{{ request.scheme }}://{{ request.get_host }}{{ produs.poza.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="hero-product">
   {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
-  <div class="seal">tested by deea</div>
+  <div class="seal">TESTED BY DEEA</div>
 </div>
 <div class="detail-body">
-  <a href="{% url 'reviews:feed' %}" class="back-link">&larr; înapoi la feed</a>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <a href="{% url 'reviews:feed' %}" class="back-link">&larr; înapoi la feed</a>
+    <button type="button" class="share-btn" id="share-btn" data-url="{{ request.build_absolute_uri }}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9"/></svg>
+      <span id="share-btn-label">Copiază linkul</span>
+    </button>
+  </div>
   <div class="d-brand" style="margin-top:12px;">{{ produs.brand }}</div>
   <div class="d-name">{{ produs.nume }}</div>
   <div class="post-cat">{{ produs.get_categorie_display }}</div>
@@ -39,11 +50,9 @@
     <input class="field" type="text" name="nume" value="{{ form.nume.value|default:'' }}" placeholder="Numele tău (opțional)">
 
     <div class="star-pick">
-      {% for value, label in form.fields.nota.choices %}
-        {% if value %}
-        <input type="radio" name="nota" id="star{{ value }}" value="{{ value }}" {% if form.nota.value|stringformat:"s" == value|stringformat:"s" %}checked{% endif %}>
+      {% for value in "54321" %}
+        <input type="radio" name="nota" id="star{{ value }}" value="{{ value }}" {% if form.nota.value|stringformat:"s" == value %}checked{% endif %}>
         <label for="star{{ value }}">★</label>
-        {% endif %}
       {% endfor %}
     </div>
 
@@ -68,4 +77,26 @@
   <div class="no-comments">Fii prima care lasă o părere despre acest produs.</div>
   {% endfor %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    var btn = document.getElementById('share-btn');
+    var label = document.getElementById('share-btn-label');
+    if (!btn) return;
+    var original = label.textContent;
+    btn.addEventListener('click', function () {
+      var url = btn.getAttribute('data-url');
+      navigator.clipboard.writeText(url).then(function () {
+        label.textContent = 'Copiat! ✓';
+        btn.classList.add('copied');
+        setTimeout(function () {
+          label.textContent = original;
+          btn.classList.remove('copied');
+        }, 1800);
+      });
+    });
+  })();
+</script>
 {% endblock %}

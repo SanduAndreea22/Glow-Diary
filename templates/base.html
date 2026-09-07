@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Glow Diary by Deea{% endblock %}</title>
+<meta name="description" content="{% block meta_description %}Recenzii reale de makeup — produsele pe care le-am cumpărat, testat și notat eu. Real products. My honest take.{% endblock %}">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23FF6FA5'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle' fill='white'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
+
+<meta property="og:site_name" content="Glow Diary by Deea">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{% block og_title %}Glow Diary by Deea{% endblock %}">
+<meta property="og:description" content="{% block og_description %}Real products. My honest take. — recenzii de makeup testate chiar de mine.{% endblock %}">
+<meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}{% endblock %}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta name="twitter:card" content="summary_large_image">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -12,7 +24,7 @@
 
 <div class="screen">
   <div class="topbar">
-    <a href="{% url 'reviews:feed' %}" class="logo">glow<span>diary</span><small>by deea</small></a>
+    <a href="{% url 'reviews:feed' %}" class="logo">glow<span>diary</span><small>by Deea</small></a>
     <div class="nav-links">
       <a href="{% url 'reviews:feed' %}" class="{% if request.resolver_match.url_name == 'feed' %}active{% endif %}">Acasă</a>
       <a href="{% url 'reviews:about' %}" class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}">Despre</a>
@@ -33,5 +45,16 @@
 
 <footer class="site-footer">Glow Diary by Deea · Real products. My honest take.</footer>
 
+<script>
+  document.querySelectorAll('.messages li').forEach(function (el) {
+    setTimeout(function () {
+      el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(-6px)';
+      setTimeout(function () { el.remove(); }, 400);
+    }, 4000);
+  });
+</script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>
