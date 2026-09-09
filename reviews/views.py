@@ -50,13 +50,22 @@ def _global_rate_limited(ip, scope):
     return count > GLOBAL_RATE_LIMIT_MAX
 
 
+SORT_OPTIONS = {
+    "recent": ("-data_postarii",),
+    "nota": ("-nota_mea", "-data_postarii"),
+}
+DEFAULT_SORT = "recent"
+
+
 def _filtreaza_produse(qs, request):
-    """Filtrele comune (căutare/categorie/notă minimă), aplicate identic pe
-    feed-ul cu reload și pe căutarea live din /api/search/ — un singur loc,
-    ca cele două să nu poată desincroniza."""
+    """Filtrele comune (căutare/categorie/notă minimă/sursă/sortare), aplicate
+    identic pe feed-ul cu reload și pe căutarea live din /api/search/ — un
+    singur loc, ca cele două să nu poată desincroniza."""
     q = request.GET.get("q", "").strip()
     categorie = request.GET.get("categorie", "").strip()
     nota_min = request.GET.get("nota_min", "").strip()
+    sursa = request.GET.get("sursa", "").strip()
+    sort = request.GET.get("sort", "").strip()
 
     if q:
         qs = qs.filter(Q(nume__icontains=q) | Q(brand__icontains=q))
@@ -67,7 +76,10 @@ def _filtreaza_produse(qs, request):
             qs = qs.filter(nota_mea__gte=int(nota_min))
         except ValueError:
             pass
-    return qs
+    if sursa:
+        qs = qs.filter(sursa=sursa)
+
+    return qs.order_by(*SORT_OPTIONS.get(sort, SORT_OPTIONS[DEFAULT_SORT]))
 
 
 def _cu_numar_pareri(qs):
@@ -120,6 +132,17 @@ class FeedView(ListView):
         ctx["q"] = self.request.GET.get("q", "")
         ctx["categorie_activa"] = self.request.GET.get("categorie", "")
         ctx["nota_min_activa"] = self.request.GET.get("nota_min", "")
+        ctx["sursa_activa"] = self.request.GET.get("sursa", "")
+        ctx["sort_activ"] = self.request.GET.get("sort", "") or DEFAULT_SORT
+        ctx["surse"] = (
+            Product.objects.exclude(sursa="")
+            .order_by("sursa")
+            .values_list("sursa", flat=True)
+            .distinct()
+        )
+        ctx["filtre_active"] = bool(
+            ctx["nota_min_activa"] or ctx["sursa_activa"] or self.request.GET.get("sort", "")
+        )
         stats = _feed_stats()
         ctx["produsul_lunii_id"] = stats["produsul_lunii_id"]
         ctx["total_produse"] = stats["total_produse"]
@@ -287,7 +310,7 @@ class FavoritesDataView(View):
 class SearchDataView(View):
     def get(self, request):
         qs = _filtreaza_produse(Product.objects.all(), request)
-        data = [_product_card_data(p) for p in qs.order_by("-data_postarii")[:24]]
+        data = [_product_card_data(p) for p in qs[:24]]
         return JsonResponse({"produse": data})
 
 

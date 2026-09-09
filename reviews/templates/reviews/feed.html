@@ -14,17 +14,60 @@
   <input type="text" name="q" id="search-input" value="{{ q }}" placeholder="Caută produs sau brand...">
   {% if categorie_activa %}<input type="hidden" name="categorie" value="{{ categorie_activa }}">{% endif %}
   {% if nota_min_activa %}<input type="hidden" name="nota_min" value="{{ nota_min_activa }}">{% endif %}
+  {% if sursa_activa %}<input type="hidden" name="sursa" value="{{ sursa_activa }}">{% endif %}
+  {% if sort_activ != "recent" %}<input type="hidden" name="sort" value="{{ sort_activ }}">{% endif %}
   <button type="submit">Caută</button>
 </form>
 
 <div class="filters">
-  <a href="?{% if q %}q={{ q }}&{% endif %}" class="chip{% if not categorie_activa %} active{% endif %}">Toate</a>
+  <a href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if nota_min_activa %}nota_min={{ nota_min_activa }}&{% endif %}{% if sursa_activa %}sursa={{ sursa_activa|urlencode }}&{% endif %}{% if sort_activ != "recent" %}sort={{ sort_activ }}&{% endif %}" class="chip{% if not categorie_activa %} active{% endif %}">Toate</a>
   {% for value, label in categorii %}
-  <a href="?{% if q %}q={{ q }}&{% endif %}categorie={{ value }}{% if nota_min_activa %}&nota_min={{ nota_min_activa }}{% endif %}"
+  <a href="?{% if q %}q={{ q|urlencode }}&{% endif %}categorie={{ value }}{% if nota_min_activa %}&nota_min={{ nota_min_activa }}{% endif %}{% if sursa_activa %}&sursa={{ sursa_activa|urlencode }}{% endif %}{% if sort_activ != "recent" %}&sort={{ sort_activ }}{% endif %}"
      class="chip{% if categorie_activa == value %} active{% endif %}">{{ label }}</a>
   {% endfor %}
-  <a href="?{% if q %}q={{ q }}&{% endif %}{% if categorie_activa %}categorie={{ categorie_activa }}&{% endif %}nota_min=4"
-     class="chip chip-rating{% if nota_min_activa == '4' %} active{% endif %}">★ Notă 4+</a>
+  <button type="button" id="filter-toggle" class="chip chip-rating filter-toggle{% if filtre_active %} active{% endif %}">⚙️ Filtrează{% if filtre_active %} ✓{% endif %}</button>
+</div>
+
+<div class="filter-panel" id="filter-panel">
+  <form method="get">
+    {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+    {% if categorie_activa %}<input type="hidden" name="categorie" value="{{ categorie_activa }}">{% endif %}
+
+    <div class="filter-row">
+      <label for="filter-nota">Notă minimă</label>
+      <select name="nota_min" id="filter-nota">
+        <option value=""{% if not nota_min_activa %} selected{% endif %}>Orice notă</option>
+        <option value="3"{% if nota_min_activa == "3" %} selected{% endif %}>3+ stele</option>
+        <option value="4"{% if nota_min_activa == "4" %} selected{% endif %}>4+ stele</option>
+        <option value="5"{% if nota_min_activa == "5" %} selected{% endif %}>5 stele</option>
+      </select>
+    </div>
+
+    {% if surse %}
+    <div class="filter-row">
+      <label for="filter-sursa">Sursă</label>
+      <select name="sursa" id="filter-sursa">
+        <option value=""{% if not sursa_activa %} selected{% endif %}>Orice sursă</option>
+        {% for sursa in surse %}
+        <option value="{{ sursa }}"{% if sursa_activa == sursa %} selected{% endif %}>{{ sursa }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div class="filter-row">
+      <label for="filter-sort">Sortează</label>
+      <select name="sort" id="filter-sort">
+        <option value="recent"{% if sort_activ == "recent" %} selected{% endif %}>Cele mai noi</option>
+        <option value="nota"{% if sort_activ == "nota" %} selected{% endif %}>Nota cea mai mare</option>
+      </select>
+    </div>
+
+    <div class="filter-actions">
+      <button type="submit" class="submit-btn">Aplică filtrele</button>
+      {% if filtre_active %}<a href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if categorie_activa %}categorie={{ categorie_activa }}{% endif %}" class="filter-reset">Resetează</a>{% endif %}
+    </div>
+  </form>
 </div>
 
 <div class="card-grid" id="card-grid">
@@ -71,6 +114,15 @@
   });
 
   (function () {
+    var toggle = document.getElementById('filter-toggle');
+    var panel = document.getElementById('filter-panel');
+    if (!toggle || !panel) return;
+    toggle.addEventListener('click', function () {
+      panel.classList.toggle('open');
+    });
+  })();
+
+  (function () {
     var input = document.getElementById('search-input');
     var grid = document.getElementById('card-grid');
     var pagination = document.getElementById('pagination-nav');
@@ -84,10 +136,14 @@
     var currentParams = function (q) {
       var params = new URLSearchParams();
       if (q) params.set('q', q);
-      var categorie = document.querySelector('input[name="categorie"]');
-      var notaMin = document.querySelector('input[name="nota_min"]');
+      var categorie = document.querySelector('[name="categorie"]');
+      var notaMin = document.querySelector('[name="nota_min"]');
+      var sursa = document.querySelector('[name="sursa"]');
+      var sort = document.querySelector('[name="sort"]');
       if (categorie) params.set('categorie', categorie.value);
-      if (notaMin) params.set('nota_min', notaMin.value);
+      if (notaMin && notaMin.value) params.set('nota_min', notaMin.value);
+      if (sursa && sursa.value) params.set('sursa', sursa.value);
+      if (sort && sort.value) params.set('sort', sort.value);
       return params;
     };
 

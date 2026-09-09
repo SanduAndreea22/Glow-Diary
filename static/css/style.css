@@ -132,6 +132,32 @@ img{max-width:100%;display:block;}
 /* Chip-ul de notă e un tip diferit de filtru (rating, nu categorie) — o mică
    separare vizuală de restul rândului, ca să nu fie citit ca încă o categorie. */
 .chip-rating{margin-left:6px;padding-left:12px;border-left:1.5px dashed var(--line);}
+.filter-toggle{appearance:none;}
+.filter-panel{
+  display:none;
+  margin:0 22px 16px;
+  background:var(--white);
+  border:2px solid var(--line);
+  border-radius:18px;
+  padding:16px;
+}
+.filter-panel.open{display:block;}
+.filter-row{margin-bottom:12px;}
+.filter-row label{
+  display:block;font-size:11px;font-weight:700;
+  color:var(--maroon);opacity:0.6;
+  text-transform:uppercase;letter-spacing:0.03em;
+  margin-bottom:5px;
+}
+.filter-row select{
+  width:100%;appearance:none;
+  background:var(--cream);border:1.5px solid var(--line);border-radius:12px;
+  padding:9px 12px;font-size:13px;color:var(--maroon);font-family:'DM Sans';
+}
+.filter-row select:focus{border-color:var(--pink);outline:none;}
+.filter-actions{display:flex;align-items:center;gap:14px;margin-top:4px;}
+.filter-actions .submit-btn{margin-top:0;}
+.filter-reset{font-size:12px;font-weight:600;color:var(--pink);}
 .card-grid{padding:0 22px;}
 /* .card-grid capătă display:grid de la 760px în sus (mai jos) — fără regula
    asta, elementul.hidden = true nu are niciun efect vizual pe ecrane largi,

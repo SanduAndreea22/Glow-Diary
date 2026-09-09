@@ -38,11 +38,11 @@ class FeedViewTests(TestCase):
     def setUp(self):
         self.p1 = Product.objects.create(
             nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie="blush",
-            nota_mea=5, parerea_mea="Text.",
+            nota_mea=5, parerea_mea="Text.", sursa="Sephora",
         )
         self.p2 = Product.objects.create(
             nume="Gloss Bomb", brand="Fenty Beauty", categorie="gloss",
-            nota_mea=4, parerea_mea="Text.",
+            nota_mea=4, parerea_mea="Text.", sursa="Douglas",
         )
 
     def test_feed_incarca(self):
@@ -50,6 +50,16 @@ class FeedViewTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Rare Beauty")
         self.assertContains(r, "Fenty Beauty")
+
+    def test_feed_filtru_sursa(self):
+        r = self.client.get(reverse("reviews:feed"), {"sursa": "Sephora"})
+        self.assertContains(r, "Rare Beauty")
+        self.assertNotContains(r, "Fenty Beauty")
+
+    def test_feed_panoul_de_filtre_listeaza_sursele_existente(self):
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertContains(r, "Sephora")
+        self.assertContains(r, "Douglas")
 
     def test_feed_cautare(self):
         r = self.client.get(reverse("reviews:feed"), {"q": "fenty"})
@@ -156,12 +166,27 @@ class SearchDataApiTests(TestCase):
     def setUp(self):
         self.p1 = Product.objects.create(
             nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie="blush",
-            nota_mea=5, parerea_mea="Text.",
+            nota_mea=5, parerea_mea="Text.", sursa="Sephora",
         )
         self.p2 = Product.objects.create(
             nume="Gloss Bomb", brand="Fenty Beauty", categorie="gloss",
-            nota_mea=4, parerea_mea="Text.",
+            nota_mea=4, parerea_mea="Text.", sursa="Douglas",
         )
+
+    def test_filtru_sursa(self):
+        r = self.client.get(reverse("reviews:search_data"), {"sursa": "Sephora"})
+        slugs = [p["slug"] for p in r.json()["produse"]]
+        self.assertEqual(slugs, [self.p1.slug])
+
+    def test_sortare_dupa_nota(self):
+        r = self.client.get(reverse("reviews:search_data"), {"sort": "nota"})
+        slugs = [p["slug"] for p in r.json()["produse"]]
+        self.assertEqual(slugs, [self.p1.slug, self.p2.slug])
+
+    def test_sortare_implicita_dupa_cele_mai_noi(self):
+        r = self.client.get(reverse("reviews:search_data"))
+        slugs = [p["slug"] for p in r.json()["produse"]]
+        self.assertEqual(slugs, [self.p2.slug, self.p1.slug])
 
     def test_cautare_dupa_brand(self):
         r = self.client.get(reverse("reviews:search_data"), {"q": "fenty"})
