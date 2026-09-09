@@ -20,7 +20,7 @@
     <textarea class="field" name="mesaj" rows="5" placeholder="Scrie-mi mesajul tău...">{{ form.mesaj.value|default:'' }}</textarea>
     {% if form.mesaj.errors %}<div class="no-comments" style="color:#8A1F1F;">{{ form.mesaj.errors.0 }}</div>{% endif %}
 
-    <button type="submit" class="submit-btn">Trimite</button>
+    <button type="submit" class="submit-btn">Trimite mesajul</button>
   </form>
 </div>
 {% endblock %}

@@ -168,7 +168,7 @@ class ProductDetailView(DetailView):
         cache_key = f"comment-rl:{ip}:{self.object.pk}"
         if not cache.add(cache_key, True, RATE_LIMIT_SECONDS):
             messages.error(
-                request, "Ai comentat recent la acest produs — mai încearcă puțin."
+                request, "Ai comentat recent la acest produs — mai încearcă peste un minut."
             )
             return redirect(self.object.get_absolute_url())
 
