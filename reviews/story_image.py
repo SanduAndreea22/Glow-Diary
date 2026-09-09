@@ -3,11 +3,14 @@ un produs — poza lui, brand, nume, notă și sigiliul TESTED BY DEEA — gata
 de descărcat și postat direct de vizitatoare."""
 
 import io
+import logging
 import textwrap
 from pathlib import Path
 
 from django.conf import settings
 from PIL import Image, ImageDraw, ImageFont
+
+logger = logging.getLogger(__name__)
 
 W, H = 1080, 1920
 
@@ -32,6 +35,10 @@ def _font(path, size):
     except OSError:
         # Nu blocăm generarea imaginii dacă fontul lipsește dintr-un motiv
         # sau altul pe host — mai bine text cu fontul implicit decât 500.
+        # Logăm totuși, altfel un font lipsă/corupt după un deploy prost ar
+        # rămâne nedetectat la nesfârșit (toate imaginile de Story ar arăta
+        # tăcut cu fontul implicit, urât, fără ca nimeni să afle).
+        logger.warning("Fontul %s nu a putut fi încărcat — folosesc fontul implicit.", path)
         return ImageFont.load_default(size=size)
 
 

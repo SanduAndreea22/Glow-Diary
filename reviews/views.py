@@ -7,8 +7,8 @@ from django.contrib import messages
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.cache import cache
 from django.db.models import Count, Q
-from django.http import FileResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.http import FileResponse, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views import View
 from django.views.generic import DetailView, ListView, TemplateView
@@ -48,6 +48,26 @@ def _global_rate_limited(ip, scope):
         cache.set(key, 1, GLOBAL_RATE_LIMIT_WINDOW)
         return False
     return count > GLOBAL_RATE_LIMIT_MAX
+
+
+def _filtreaza_produse(qs, request):
+    """Filtrele comune (căutare/categorie/notă minimă), aplicate identic pe
+    feed-ul cu reload și pe căutarea live din /api/search/ — un singur loc,
+    ca cele două să nu poată desincroniza."""
+    q = request.GET.get("q", "").strip()
+    categorie = request.GET.get("categorie", "").strip()
+    nota_min = request.GET.get("nota_min", "").strip()
+
+    if q:
+        qs = qs.filter(Q(nume__icontains=q) | Q(brand__icontains=q))
+    if categorie:
+        qs = qs.filter(categorie=categorie)
+    if nota_min:
+        try:
+            qs = qs.filter(nota_mea__gte=int(nota_min))
+        except ValueError:
+            pass
+    return qs
 
 
 def _cu_numar_pareri(qs):
@@ -92,20 +112,7 @@ class FeedView(ListView):
 
     def get_queryset(self):
         qs = _cu_numar_pareri(Product.objects.all())
-        q = self.request.GET.get("q", "").strip()
-        categorie = self.request.GET.get("categorie", "").strip()
-        nota_min = self.request.GET.get("nota_min", "").strip()
-
-        if q:
-            qs = qs.filter(Q(nume__icontains=q) | Q(brand__icontains=q))
-        if categorie:
-            qs = qs.filter(categorie=categorie)
-        if nota_min:
-            try:
-                qs = qs.filter(nota_mea__gte=int(nota_min))
-            except ValueError:
-                pass
-        return qs
+        return _filtreaza_produse(qs, self.request)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -209,6 +216,16 @@ class ProductStoryImageView(View):
         )
         png_bytes = cache.get(cache_key)
         if png_bytes is None:
+            # Randarea propriu-zisă (Pillow) e de departe cel mai costisitor
+            # request din site — limităm doar cazurile de cache miss (nu și
+            # descărcările repetate ale unei imagini deja randate), ca cineva
+            # care parcurge sistematic toate sluglurile să nu poată forța
+            # randări simultane nelimitate.
+            if _global_rate_limited(_client_ip(request), "story-render"):
+                return HttpResponse(
+                    "Prea multe imagini generate deodată — mai încearcă peste câteva minute.",
+                    status=429,
+                )
             png_bytes = render_story_png(produs, host).getvalue()
             cache.set(cache_key, png_bytes, STORY_IMAGE_CACHE_TTL)
         response = FileResponse(io.BytesIO(png_bytes), content_type="image/png")
@@ -269,21 +286,7 @@ class FavoritesDataView(View):
 
 class SearchDataView(View):
     def get(self, request):
-        q = request.GET.get("q", "").strip()
-        categorie = request.GET.get("categorie", "").strip()
-        nota_min = request.GET.get("nota_min", "").strip()
-
-        qs = Product.objects.all()
-        if q:
-            qs = qs.filter(Q(nume__icontains=q) | Q(brand__icontains=q))
-        if categorie:
-            qs = qs.filter(categorie=categorie)
-        if nota_min:
-            try:
-                qs = qs.filter(nota_mea__gte=int(nota_min))
-            except ValueError:
-                pass
-
+        qs = _filtreaza_produse(Product.objects.all(), request)
         data = [_product_card_data(p) for p in qs.order_by("-data_postarii")[:24]]
         return JsonResponse({"produse": data})
 
@@ -325,3 +328,10 @@ class ContactView(TemplateView):
             return redirect("reviews:contact")
 
         return self.render_to_response(self.get_context_data(form=form))
+
+
+def csrf_failure(request, reason=""):
+    """CSRF_FAILURE_VIEW — pagină în stilul site-ului, nu default-ul Django,
+    pentru cazul (sesiune expirată / cookies blocate) în care un formular
+    public eșuează la verificarea CSRF."""
+    return render(request, "403_csrf.html", status=403)

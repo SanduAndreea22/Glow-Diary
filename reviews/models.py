@@ -71,7 +71,9 @@ class Product(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(5)],
     )
     parerea_mea = models.TextField("Părerea mea")
-    data_postarii = models.DateTimeField("Data postării", auto_now_add=True)
+    data_postarii = models.DateTimeField(
+        "Data postării", auto_now_add=True, db_index=True
+    )
     slug = models.SlugField(max_length=180, unique=True, blank=True)
 
     class Meta:
@@ -176,7 +178,7 @@ class Comment(models.Model):
 class ContactMessage(models.Model):
     nume = models.CharField("Nume", max_length=100, blank=True)
     email = models.EmailField("Email")
-    mesaj = models.TextField("Mesaj")
+    mesaj = models.TextField("Mesaj", max_length=4000)
     data = models.DateTimeField("Data", auto_now_add=True)
     citit = models.BooleanField("Citit", default=False)
 

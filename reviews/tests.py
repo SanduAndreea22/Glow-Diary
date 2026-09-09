@@ -4,10 +4,10 @@ from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Collection, Comment, Product
+from .models import Collection, Comment, ContactMessage, Product
 from .story_image import render_story_png
 
-# Testele fac cereri HTTP simple (fără TLS) — fără asta, ele pică cu 301 quando
+# Testele fac cereri HTTP simple (fără TLS) — fără asta, ele pică cu 301 când
 # rulate în afara lui DEBUG=True (unde SECURE_SSL_REDIRECT devine implicit True),
 # indiferent ce e setat în .env la momentul rulării.
 _no_ssl_redirect = override_settings(SECURE_SSL_REDIRECT=False)
@@ -244,3 +244,21 @@ class StaticPagesTests(TestCase):
             "nume": "Test", "email": "test@test.com", "mesaj": "Salut!", "website": "",
         })
         self.assertRedirects(r, reverse("reviews:contact"))
+        self.assertEqual(ContactMessage.objects.count(), 1)
+
+    def test_contact_honeypot_respinge_mesajul(self):
+        cache.clear()
+        r = self.client.post(reverse("reviews:contact"), {
+            "nume": "Bot", "email": "bot@spam.com", "mesaj": "spam",
+            "website": "http://spam.com",
+        })
+        self.assertEqual(ContactMessage.objects.count(), 0)
+
+    def test_contact_rate_limit_per_ip(self):
+        cache.clear()
+        data = {"nume": "Ana", "email": "ana@test.com", "mesaj": "Salut!", "website": ""}
+        self.client.post(reverse("reviews:contact"), data)
+        self.client.post(reverse("reviews:contact"), {
+            "nume": "Alta", "email": "alta@test.com", "mesaj": "Salut din nou!", "website": "",
+        })
+        self.assertEqual(ContactMessage.objects.count(), 1)

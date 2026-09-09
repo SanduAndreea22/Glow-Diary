@@ -3,7 +3,21 @@ from django import forms
 from .models import Comment, ContactMessage, NOTA_CHOICES
 
 
-class CommentForm(forms.ModelForm):
+class HoneypotFormMixin(forms.Form):
+    """Câmp ascuns comun anti-spam pe formularele publice (comentariu, contact):
+    boții completează orice câmp, oamenii nu văd (și deci nu completează) unul
+    ascuns prin CSS."""
+
+    website = forms.CharField(required=False, widget=forms.HiddenInput())
+
+    def clean_website(self):
+        value = self.cleaned_data.get("website")
+        if value:
+            raise forms.ValidationError("Spam detectat.")
+        return value
+
+
+class CommentForm(HoneypotFormMixin, forms.ModelForm):
     """Formular public, fără cont, pentru comentarii pe pagina de produs."""
 
     nota = forms.TypedChoiceField(
@@ -12,8 +26,6 @@ class CommentForm(forms.ModelForm):
         coerce=int,
         required=False,
     )
-    # honeypot: câmp ascuns prin CSS; boturile îl completează, oamenii nu.
-    website = forms.CharField(required=False, widget=forms.HiddenInput())
 
     comentariu = forms.CharField(
         label="Comentariu",
@@ -29,12 +41,6 @@ class CommentForm(forms.ModelForm):
             "nume": forms.TextInput(attrs={"placeholder": "Numele tău (opțional)"}),
         }
 
-    def clean_website(self):
-        value = self.cleaned_data.get("website")
-        if value:
-            raise forms.ValidationError("Spam detectat.")
-        return value
-
     def clean_comentariu(self):
         comentariu = self.cleaned_data.get("comentariu", "").strip()
         if not comentariu:
@@ -42,9 +48,7 @@ class CommentForm(forms.ModelForm):
         return comentariu
 
 
-class ContactForm(forms.ModelForm):
-    website = forms.CharField(required=False, widget=forms.HiddenInput())
-
+class ContactForm(HoneypotFormMixin, forms.ModelForm):
     email = forms.EmailField(
         label="Email",
         widget=forms.EmailInput(attrs={"placeholder": "emailul tău"}),
@@ -55,6 +59,7 @@ class ContactForm(forms.ModelForm):
     )
     mesaj = forms.CharField(
         label="Mesaj",
+        max_length=4000,
         widget=forms.Textarea(attrs={"placeholder": "Scrie-mi mesajul tău...", "rows": 5}),
         error_messages={"required": "Scrie-mi câteva rânduri, ca să știu despre ce e vorba."},
     )
@@ -65,9 +70,3 @@ class ContactForm(forms.ModelForm):
         widgets = {
             "nume": forms.TextInput(attrs={"placeholder": "Numele tău (opțional)"}),
         }
-
-    def clean_website(self):
-        value = self.cleaned_data.get("website")
-        if value:
-            raise forms.ValidationError("Spam detectat.")
-        return value

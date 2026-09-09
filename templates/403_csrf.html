@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Sesiune expirată · Glow Diary by Deea{% endblock %}
+
+{% block content %}
+<div class="static-body">
+  <div class="static-title">Ups, a expirat sesiunea 🕰️</div>
+  <p class="static-text">
+    Ai stat prea mult pe pagina asta cu formularul deschis (sau browserul blochează cookie-urile) și
+    trimiterea n-a mai fost recunoscută ca sigură. Nimic grav — dă înapoi și încearcă din nou.
+  </p>
+  <a href="{% url 'reviews:feed' %}" class="submit-btn" style="display:inline-block;text-decoration:none;">Înapoi la feed</a>
+</div>
+{% endblock %}

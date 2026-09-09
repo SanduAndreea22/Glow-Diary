@@ -44,9 +44,6 @@ DEBUG = env_bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", default="localhost,127.0.0.1")
 
-# Domeniul public al site-ului, folosit pentru linkuri absolute (ex. în emailuri).
-SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000")
-
 
 # Application definition
 
@@ -72,6 +69,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "glow_diary.urls"
+
+CSRF_FAILURE_VIEW = "reviews.views.csrf_failure"
 
 TEMPLATES = [
     {
@@ -237,6 +236,11 @@ ADMIN_URL = os.environ.get("ADMIN_URL", "admin/").lstrip("/")
 if not ADMIN_URL.endswith("/"):
     ADMIN_URL += "/"
 
+
+# Niciun script din proiect nu are nevoie să citească din JS cookie-ul CSRF
+# (formularele trimit tokenul din câmpul ascuns randat de {% csrf_token %},
+# nu din JS) — HttpOnly e hardening gratuit, activ și local.
+CSRF_COOKIE_HTTPONLY = True
 
 # Setări de securitate active doar când DEBUG=False (producție), ca să nu
 # strice dezvoltarea locală peste HTTP simplu.
