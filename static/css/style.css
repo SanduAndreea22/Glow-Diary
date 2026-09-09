@@ -329,6 +329,7 @@ img{max-width:100%;display:block;}
 select.field{appearance:none;}
 .star-pick{display:flex;flex-direction:row-reverse;gap:5px;margin-top:10px;justify-content:flex-end;}
 .star-pick input{position:absolute;opacity:0;width:0;height:0;}
+.star-pick input:focus-visible + label{outline:2px solid var(--pink);outline-offset:3px;border-radius:50%;}
 .star-pick label{font-size:22px;color:var(--line);cursor:pointer;line-height:1;display:inline-block;transition:color 0.15s ease, transform 0.1s ease;}
 .star-pick input:checked ~ label,
 .star-pick label:hover,

@@ -1,11 +1,16 @@
 from unittest import mock
 
 from django.core.cache import cache
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import Collection, Comment, Product
 from .story_image import render_story_png
+
+# Testele fac cereri HTTP simple (fără TLS) — fără asta, ele pică cu 301 quando
+# rulate în afara lui DEBUG=True (unde SECURE_SSL_REDIRECT devine implicit True),
+# indiferent ce e setat în .env la momentul rulării.
+_no_ssl_redirect = override_settings(SECURE_SSL_REDIRECT=False)
 
 
 class ProductSlugTests(TestCase):
@@ -28,6 +33,7 @@ class ProductSlugTests(TestCase):
         self.assertNotEqual(p1.slug, p2.slug)
 
 
+@_no_ssl_redirect
 class FeedViewTests(TestCase):
     def setUp(self):
         self.p1 = Product.objects.create(
@@ -61,6 +67,7 @@ class FeedViewTests(TestCase):
         self.assertNotContains(r, "Fenty Beauty")
 
 
+@_no_ssl_redirect
 class ProductDetailAndCommentTests(TestCase):
     def setUp(self):
         cache.clear()
@@ -105,6 +112,7 @@ class ProductDetailAndCommentTests(TestCase):
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 1)
 
 
+@_no_ssl_redirect
 class CollectionTests(TestCase):
     def test_colectie_fara_produse_nu_apare_in_lista(self):
         Collection.objects.create(nume="Goală")
@@ -127,6 +135,7 @@ class CollectionTests(TestCase):
         self.assertContains(r, "Test")
 
 
+@_no_ssl_redirect
 class FavoritesApiTests(TestCase):
     def test_slug_necunoscut_da_lista_goala(self):
         r = self.client.get(reverse("reviews:favorites_data"), {"slugs": "nu-exista"})
@@ -142,6 +151,7 @@ class FavoritesApiTests(TestCase):
         self.assertEqual(r.json()["produse"][0]["slug"], produs.slug)
 
 
+@_no_ssl_redirect
 class SearchDataApiTests(TestCase):
     def setUp(self):
         self.p1 = Product.objects.create(
@@ -173,6 +183,7 @@ class SearchDataApiTests(TestCase):
         self.assertEqual(len(r.json()["produse"]), 2)
 
 
+@_no_ssl_redirect
 class StoryImageTests(TestCase):
     def setUp(self):
         cache.clear()
@@ -221,6 +232,7 @@ class StoryImageTests(TestCase):
         self.assertNotEqual(continut_initial, continut_dupa_editare)
 
 
+@_no_ssl_redirect
 class StaticPagesTests(TestCase):
     def test_despre_si_contact_incarca(self):
         self.assertEqual(self.client.get(reverse("reviews:about")).status_code, 200)

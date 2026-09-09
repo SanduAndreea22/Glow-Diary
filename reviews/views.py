@@ -34,13 +34,20 @@ def _client_ip(request):
 
 
 def _global_rate_limited(ip, scope):
-    """Limitează nr. de postări (orice produs/pagină) per IP într-o fereastră mai lungă."""
+    """Limitează nr. de postări (orice produs/pagină) per IP într-o fereastră mai lungă.
+
+    `add` + `incr` (nu `get` + `set`) ca să fie atomic — două cereri simultane
+    de la același IP nu pot amândouă „vedea" contorul vechi și trece de limită.
+    """
     key = f"rl-global:{scope}:{ip}"
-    count = cache.get(key, 0)
-    if count >= GLOBAL_RATE_LIMIT_MAX:
-        return True
-    cache.set(key, count + 1, GLOBAL_RATE_LIMIT_WINDOW)
-    return False
+    if cache.add(key, 1, GLOBAL_RATE_LIMIT_WINDOW):
+        return False
+    try:
+        count = cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, GLOBAL_RATE_LIMIT_WINDOW)
+        return False
+    return count > GLOBAL_RATE_LIMIT_MAX
 
 
 def _cu_numar_pareri(qs):
@@ -149,14 +156,17 @@ class ProductDetailView(DetailView):
         form = CommentForm(request.POST)
         ip = _client_ip(request)
 
+        # cache.add e atomic: „ocupă" lacătul doar dacă nu exista deja — spre
+        # deosebire de get+set, două cereri simultane nu pot trece amândouă.
         cache_key = f"comment-rl:{ip}:{self.object.pk}"
-        if cache.get(cache_key):
+        if not cache.add(cache_key, True, RATE_LIMIT_SECONDS):
             messages.error(
                 request, "Ai comentat recent la acest produs — mai încearcă puțin."
             )
             return redirect(self.object.get_absolute_url())
 
         if _global_rate_limited(ip, "comment"):
+            cache.delete(cache_key)
             messages.error(
                 request,
                 "Ai lăsat destule păreri pentru moment — mai încearcă peste câteva minute.",
@@ -169,9 +179,11 @@ class ProductDetailView(DetailView):
             if not comment.nume:
                 comment.nume = "anonim"
             comment.save()
-            cache.set(cache_key, True, RATE_LIMIT_SECONDS)
             messages.success(request, "Mulțumesc pentru părere! ✨")
             return redirect(self.object.get_absolute_url())
+
+        # nu a fost o postare reală (validare eșuată/honeypot) — eliberăm lacătul
+        cache.delete(cache_key)
 
         if not form.errors.get("comentariu") and not form.errors.get("nume"):
             # eroare "ascunsă" (honeypot) — mesaj generic, fără să dezvăluim mecanismul
@@ -291,20 +303,22 @@ class ContactView(TemplateView):
     def post(self, request, *args, **kwargs):
         ip = _client_ip(request)
         cache_key = f"contact-rl:{ip}"
-        if cache.get(cache_key):
+        if not cache.add(cache_key, True, RATE_LIMIT_SECONDS):
             messages.error(request, "Ai trimis deja un mesaj recent — revin eu cât pot.")
             return redirect("reviews:contact")
 
         if _global_rate_limited(ip, "contact"):
+            cache.delete(cache_key)
             messages.error(request, "Ai trimis destule mesaje pentru moment — mai încearcă peste câteva minute.")
             return redirect("reviews:contact")
 
         form = ContactForm(request.POST)
         if form.is_valid():
             form.save()
-            cache.set(cache_key, True, RATE_LIMIT_SECONDS)
             messages.success(request, "Mesajul tău a ajuns la mine, mulțumesc! 💌")
             return redirect("reviews:contact")
+
+        cache.delete(cache_key)
 
         if not form.errors.get("mesaj") and not form.errors.get("email"):
             messages.error(request, "Nu am putut trimite mesajul — mai încearcă o dată.")
