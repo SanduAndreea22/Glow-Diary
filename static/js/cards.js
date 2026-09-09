@@ -17,7 +17,7 @@ var GlowCards = {
             '<div class="post-cat">' + esc(p.categorie) + "</div>" +
             (p.nuanta ? '<div class="post-shade">Nuanță: ' + esc(p.nuanta) + "</div>" : "") +
             (p.sursa ? '<div class="post-source">Cumpărat de la ' + esc(p.sursa) + "</div>" : "") +
-            '<span class="stars">' + esc(p.stele) + "</span>" +
+            '<div class="post-rating"><span class="stars">' + esc(p.stele) + '</span><span class="post-rating-label">nota mea</span></div>' +
             (p.postat ? '<div class="post-meta">' + esc(p.postat) + "</div>" : "") +
             '<div class="post-snippet">' + esc(p.snippet) + "</div>" +
           "</div>" +

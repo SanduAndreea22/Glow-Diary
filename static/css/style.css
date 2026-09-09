@@ -188,6 +188,11 @@ img{max-width:100%;display:block;}
 .post-shade{font-size:11.5px;color:var(--maroon);opacity:0.6;margin-top:2px;}
 .post-source{font-size:10.5px;color:var(--pink);font-weight:600;margin-top:2px;}
 .stars{color:var(--gold);font-size:13px;letter-spacing:1px;margin-top:6px;display:block;}
+/* Fără eticheta asta, stelele de pe card puteau fi citite ca o medie a
+   vizitatoarelor (ca pe orice alt site) — sunt nota personală a Deei. */
+.post-rating{display:flex;align-items:baseline;gap:5px;}
+.post-rating .stars{margin-top:6px;}
+.post-rating-label{font-size:10px;font-weight:600;color:var(--maroon);opacity:0.5;}
 .post-snippet{font-size:12.5px;color:var(--maroon);opacity:0.75;margin-top:7px;line-height:1.5;}
 .post-meta{font-size:11px;color:var(--maroon);opacity:0.55;margin-top:6px;font-weight:600;}
 
@@ -368,7 +373,9 @@ select.field{appearance:none;}
 .comment-item:last-child{border-bottom:none;}
 .comment-top{display:flex;justify-content:space-between;align-items:baseline;}
 .comment-name{font-size:13px;font-weight:700;}
-.comment-stars{color:var(--gold);font-size:12px;}
+/* Roz, nu auriu — auriul rămâne exclusiv pentru "nota mea" a Deei, ca cele
+   două să nu se confunde dintr-o privire pe pagina de produs. */
+.comment-stars{color:var(--pink);font-size:12px;}
 .comment-text{font-size:12.5px;color:var(--maroon);opacity:0.75;margin-top:4px;line-height:1.5;}
 .no-comments{font-size:12.5px;color:var(--maroon);opacity:0.55;padding:10px 0;}
 
