@@ -53,6 +53,8 @@
 
 <footer class="site-footer">Glow Diary by Deea · Real products. My honest take.</footer>
 
+<div id="glow-toast" class="glow-toast" hidden></div>
+
 <script>
   (function () {
     var toggle = document.getElementById('nav-toggle');
@@ -69,6 +71,25 @@
       });
     });
   })();
+
+  /* Confirmare vizuală scurtă (toast), independentă de mesajele Django —
+     folosită pentru acțiuni client-side (wishlist, descărcare) care nu trec
+     printr-un request/redirect și deci n-ar avea altfel niciun feedback
+     textual pe telefon, unde tooltip-urile pe hover nu există. */
+  window.GlowToast = {
+    show: function (text) {
+      var el = document.getElementById('glow-toast');
+      if (!el) return;
+      el.textContent = text;
+      el.hidden = false;
+      requestAnimationFrame(function () { el.classList.add('show'); });
+      clearTimeout(el._hideTimer);
+      el._hideTimer = setTimeout(function () {
+        el.classList.remove('show');
+        setTimeout(function () { el.hidden = true; }, 300);
+      }, 2200);
+    }
+  };
 
   document.querySelectorAll('.messages li').forEach(function (el) {
     setTimeout(function () {

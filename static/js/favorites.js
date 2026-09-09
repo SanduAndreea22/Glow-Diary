@@ -79,6 +79,11 @@ var GlowFavorites = {
         btn.classList.toggle("active", isFav);
         syncTitle(btn, isFav);
         if (isFav) self.burst(btn);
+        // Pe telefon (fără hover) title-ul de mai sus nu se vede niciodată —
+        // toast-ul e singura confirmare textuală vizibilă a acțiunii.
+        if (window.GlowToast) {
+          GlowToast.show(isFav ? "Salvat la favorite ✓" : "Eliminat din favorite");
+        }
         btn.dispatchEvent(new CustomEvent("favchange", { detail: { isFav: isFav } }));
       });
     });

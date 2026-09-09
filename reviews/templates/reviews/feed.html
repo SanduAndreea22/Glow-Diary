@@ -24,7 +24,7 @@
      class="chip{% if categorie_activa == value %} active{% endif %}">{{ label }}</a>
   {% endfor %}
   <a href="?{% if q %}q={{ q }}&{% endif %}{% if categorie_activa %}categorie={{ categorie_activa }}&{% endif %}nota_min=4"
-     class="chip{% if nota_min_activa == '4' %} active{% endif %}">Notă 4+</a>
+     class="chip chip-rating{% if nota_min_activa == '4' %} active{% endif %}">★ Notă 4+</a>
 </div>
 
 <div class="card-grid" id="card-grid">
@@ -77,15 +77,27 @@
     if (!input || !grid) return;
 
     var originalGrid = grid.innerHTML;
+    var originalUrl = window.location.pathname + window.location.search;
     var originalPaginationDisplay = pagination ? pagination.style.display : null;
     var timer = null;
 
-    var runSearch = function (q) {
-      var params = new URLSearchParams({ q: q });
+    var currentParams = function (q) {
+      var params = new URLSearchParams();
+      if (q) params.set('q', q);
       var categorie = document.querySelector('input[name="categorie"]');
       var notaMin = document.querySelector('input[name="nota_min"]');
       if (categorie) params.set('categorie', categorie.value);
       if (notaMin) params.set('nota_min', notaMin.value);
+      return params;
+    };
+
+    var runSearch = function (q) {
+      var params = currentParams(q);
+
+      // Reflectăm căutarea live în URL (fără reload) — altfel un refresh sau
+      // un link trimis mai departe pierde căutarea și revine la feed-ul plin.
+      var qs = params.toString();
+      history.replaceState(null, '', qs ? '?' + qs : window.location.pathname);
 
       fetch('{% url "reviews:search_data" %}?' + params.toString())
         .then(function (r) { return r.json(); })
@@ -106,6 +118,7 @@
       if (!q) {
         grid.innerHTML = originalGrid;
         if (pagination) pagination.style.display = originalPaginationDisplay || '';
+        history.replaceState(null, '', originalUrl);
         GlowFavorites.wireButtons('.card-fav');
         return;
       }

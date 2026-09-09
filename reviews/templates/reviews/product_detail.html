@@ -31,7 +31,7 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9"/></svg>
         <span id="share-btn-label">Copiază linkul</span>
       </button>
-      <a class="share-btn" href="{% url 'reviews:product_story_image' slug=produs.slug %}" download>
+      <a class="share-btn" id="story-download-btn" href="{% url 'reviews:product_story_image' slug=produs.slug %}" download>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
         Descarcă pentru Story
       </a>
@@ -66,6 +66,7 @@
 
     <input class="field" type="text" name="nume" value="{{ form.nume.value|default:'' }}" placeholder="Numele tău (opțional)">
 
+    <div class="star-pick-label">Notă (opțional)</div>
     <div class="star-pick">
       {% for value in "54321" %}
         <input type="radio" name="nota" id="star{{ value }}" value="{{ value }}" {% if form.nota.value|stringformat:"s" == value %}checked{% endif %}>
@@ -121,6 +122,17 @@
       favBtn.addEventListener('favchange', syncLabel);
     }
     GlowFavorites.wireButtons('.card-fav');
+  })();
+
+  (function () {
+    // Click pe <a download> nu declanșează nicio schimbare vizibilă pe pagină —
+    // fără asta, cineva ar putea da clic și să nu observe că s-a întâmplat ceva.
+    var downloadBtn = document.getElementById('story-download-btn');
+    if (downloadBtn && window.GlowToast) {
+      downloadBtn.addEventListener('click', function () {
+        GlowToast.show('Se descarcă cardul de Story ✨');
+      });
+    }
   })();
 
   (function () {

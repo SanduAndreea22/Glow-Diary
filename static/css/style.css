@@ -129,7 +129,16 @@ img{max-width:100%;display:block;}
   color:var(--white);
   opacity:1;
 }
+/* Chip-ul de notă e un tip diferit de filtru (rating, nu categorie) — o mică
+   separare vizuală de restul rândului, ca să nu fie citit ca încă o categorie. */
+.chip-rating{margin-left:6px;padding-left:12px;border-left:1.5px dashed var(--line);}
 .card-grid{padding:0 22px;}
+/* .card-grid capătă display:grid de la 760px în sus (mai jos) — fără regula
+   asta, elementul.hidden = true nu are niciun efect vizual pe ecrane largi,
+   pentru că regula proprie de display:grid a site-ului are prioritate peste
+   [hidden]{display:none} implicit al browserului (skeleton-ul de pe Favorite
+   rămânea vizibil la nesfârșit pe desktop/tabletă). */
+.card-grid[hidden]{display:none;}
 .post-wrap{position:relative;margin:0 0 16px;}
 .post{
   margin:0;
@@ -327,7 +336,8 @@ img{max-width:100%;display:block;}
 }
 .field:focus{border-color:var(--pink);}
 select.field{appearance:none;}
-.star-pick{display:flex;flex-direction:row-reverse;gap:5px;margin-top:10px;justify-content:flex-end;}
+.star-pick-label{margin-top:10px;font-size:11px;color:var(--maroon);opacity:0.55;text-align:right;}
+.star-pick{display:flex;flex-direction:row-reverse;gap:5px;margin-top:4px;justify-content:flex-end;}
 .star-pick input{position:absolute;opacity:0;width:0;height:0;}
 .star-pick input:focus-visible + label{outline:2px solid var(--pink);outline-offset:3px;border-radius:50%;}
 .star-pick label{font-size:22px;color:var(--line);cursor:pointer;line-height:1;display:inline-block;transition:color 0.15s ease, transform 0.1s ease;}
@@ -390,6 +400,20 @@ select.field{appearance:none;}
 .messages li.success::before{content:"✨";}
 .messages li.error{background:#FBD7D7;color:#8A1F1F;}
 .messages li.error::before{content:"💌";}
+
+/* Toast (confirmări scurte pentru acțiuni client-side: wishlist, descărcare) */
+.glow-toast{
+  position:fixed;left:50%;bottom:24px;
+  transform:translate(-50%,12px);
+  opacity:0;
+  background:var(--maroon);color:var(--cream);
+  font-size:12.5px;font-weight:600;
+  padding:11px 20px;border-radius:100px;
+  box-shadow:0 8px 24px rgba(122,30,61,0.3);
+  z-index:100;max-width:88vw;text-align:center;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+}
+.glow-toast.show{opacity:1;transform:translate(-50%,0);}
 @keyframes msg-in{
   0%{opacity:0;transform:translateY(-8px) scale(0.97);}
   100%{opacity:1;transform:translateY(0) scale(1);}
