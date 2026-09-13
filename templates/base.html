@@ -6,6 +6,8 @@
 <meta name="color-scheme" content="light dark">
 <title>{% block title %}Glow Diary by Deea{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}Recenzii reale de makeup, scrise de mine — produsele pe care le-am cumpărat, le-am testat și le-am notat chiar eu. Real products. My honest take.{% endblock %}">
+{% if google_site_verification %}<meta name="google-site-verification" content="{{ google_site_verification }}">{% endif %}
+<link rel="canonical" href="{% block canonical_url %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23FF6FA5'/%3E%3Ctext x='50' y='68' font-size='55' text-anchor='middle' fill='white'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="{% static 'img/icon-192.png' %}">

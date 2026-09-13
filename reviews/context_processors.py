@@ -8,3 +8,9 @@ def social_links(request):
         "instagram_url": getattr(settings, "INSTAGRAM_URL", ""),
         "tiktok_url": getattr(settings, "TIKTOK_URL", ""),
     }
+
+
+def seo(request):
+    return {
+        "google_site_verification": getattr(settings, "GOOGLE_SITE_VERIFICATION", ""),
+    }

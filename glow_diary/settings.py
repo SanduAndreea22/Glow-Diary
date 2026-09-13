@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django.contrib.sitemaps",
     "reviews",
     "axes",
     # django-cleanup ultimul — se agață de post_delete/pre_save pe orice
@@ -109,6 +110,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "reviews.context_processors.social_links",
+                "reviews.context_processors.seo",
             ],
         },
     },
@@ -303,6 +305,12 @@ INSTAGRAM_URL = os.environ.get(
     "INSTAGRAM_URL", "https://www.instagram.com/s_andreea_22"
 )
 TIKTOK_URL = os.environ.get("TIKTOK_URL", "")
+
+# Codul de verificare a domeniului din Google Search Console (metoda
+# meta tag) — necompletat, tag-ul nu apare deloc în <head>. Deea îl
+# generează din contul ei Google la adăugarea proprietății și îl pune în
+# .env, fără cod nou.
+GOOGLE_SITE_VERIFICATION = os.environ.get("GOOGLE_SITE_VERIFICATION", "")
 
 
 # Niciun script din proiect nu are nevoie să citească din JS cookie-ul CSRF
