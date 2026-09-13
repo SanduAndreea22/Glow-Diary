@@ -23,6 +23,8 @@
   {% if sort_activ != "recent" %}<input type="hidden" name="sort" value="{{ sort_activ }}">{% endif %}
   <button type="submit">Caută</button>
 </form>
+<button type="button" id="filter-toggle" class="filter-toggle-btn{% if filtre_active %} active{% endif %}">⚙️ Filtrează{% if filtre_active %} ✓{% endif %}</button>
+</div>
 
 <div class="filters">
   <a href="?{{ querystring_fara_categorie }}" class="chip{% if not categorie_activa %} active{% endif %}">Toate</a>
@@ -34,8 +36,6 @@
   <span class="chip chip-disabled" title="Încă niciun produs în această categorie">{{ label }}</span>
   {% endif %}
   {% endfor %}
-  <button type="button" id="filter-toggle" class="chip chip-rating filter-toggle{% if filtre_active %} active{% endif %}">⚙️ Filtrează{% if filtre_active %} ✓{% endif %}</button>
-</div>
 </div>
 
 <div class="filter-panel" id="filter-panel">
