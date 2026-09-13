@@ -36,7 +36,7 @@ def verifica_fonturile_story(app_configs, **kwargs):
     citește garantat. Mai bine un `manage.py check` care eșuează vizibil
     la un deploy cu fonturi lipsă."""
     erori = []
-    for nume_fisier in ("DejaVuSans-Bold.ttf", "DejaVuSans.ttf"):
+    for nume_fisier in ("DejaVuSans-Bold.ttf", "DejaVuSans.ttf", "Fraunces-Black.ttf", "Fraunces-Italic.ttf"):
         cale = settings.BASE_DIR / "static" / "fonts" / nume_fisier
         if not cale.is_file():
             erori.append(

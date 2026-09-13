@@ -1,3 +1,7 @@
 DejaVu Sans / DejaVu Sans Bold — Bitstream Vera License + Public Domain
 contributions (DejaVu fonts team). Free to use, modify and redistribute.
 https://dejavu-fonts.github.io/License.html
+
+Fraunces (Black, Italic) — SIL Open Font License 1.1 (Google Fonts /
+Fraunces Type Design Team). Free to use, modify and redistribute.
+https://github.com/googlefonts/fraunces
