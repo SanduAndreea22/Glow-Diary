@@ -111,6 +111,9 @@ def _feed_stats():
         stats = {
             "produsul_lunii_id": _produsul_lunii(),
             "total_produse": Product.objects.count(),
+            "categorii_cu_produse": set(
+                Product.objects.values_list("categorie", flat=True).distinct()
+            ),
         }
         cache.set("feed-stats", stats, FEED_STATS_CACHE_TTL)
     return stats
@@ -129,6 +132,7 @@ class FeedView(ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["categorii"] = CATEGORIE_CHOICES
+        ctx["categorii_cu_produse"] = _feed_stats()["categorii_cu_produse"]
         ctx["q"] = self.request.GET.get("q", "")
         ctx["categorie_activa"] = self.request.GET.get("categorie", "")
         ctx["nota_min_activa"] = self.request.GET.get("nota_min", "")

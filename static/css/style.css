@@ -132,6 +132,9 @@ img{max-width:100%;display:block;}
 /* Chip-ul de notă e un tip diferit de filtru (rating, nu categorie) — o mică
    separare vizuală de restul rândului, ca să nu fie citit ca încă o categorie. */
 .chip-rating{margin-left:6px;padding-left:12px;border-left:1.5px dashed var(--line);}
+/* Categorii fără niciun produs — vizibile (nu dispar din listă), dar clar
+   neinteractive, ca să nu invite la click-uri care duc la stare goală. */
+.chip-disabled{opacity:0.35;cursor:default;}
 .filter-toggle{appearance:none;}
 .filter-panel{
   display:none;
