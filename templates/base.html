@@ -108,6 +108,11 @@
     }
   };
 
+  var messagesBanner = document.querySelector('.messages');
+  if (messagesBanner) {
+    messagesBanner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   document.querySelectorAll('.messages li').forEach(function (el) {
     setTimeout(function () {
       el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
