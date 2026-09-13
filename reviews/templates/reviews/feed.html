@@ -6,7 +6,7 @@
 {% block content %}
 <div class="feed-title">Ultimele încercări</div>
 <div class="feed-tag">Real products. My honest take.</div>
-<p class="feed-intro">Machiajul pe care l-am cumpărat, l-am testat și l-am evaluat eu — fără PR-uri, fără sponsorizări. Las-o și pe-a ta la orice produs, fără cont. Vezi și <a href="{% url 'reviews:collections' %}">colecțiile mele curate →</a></p>
+<p class="feed-intro">Machiajul pe care l-am cumpărat, l-am testat și l-am evaluat eu — fără PR-uri, fără sponsorizări. Las-o și pe-a ta la orice produs, fără cont. Vezi și <a href="{% url 'reviews:collections' %}">colecțiile mele curate →</a>{% if instagram_url %} sau <a href="{{ instagram_url }}" target="_blank" rel="noopener noreferrer">urmărește-mă pe Instagram →</a>{% endif %}</p>
 {% if arata_contor_produse %}
 <div class="stat-chip">✨ {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} până acum</div>
 {% elif ultima_actualizare %}

@@ -6,6 +6,7 @@
 {% block content %}
 <div class="feed-title">Favoritele tale</div>
 <div class="feed-tag">Produsele care ți-au plăcut, la un click distanță — fără cont, fără bătaie de cap.</div>
+<p class="favorites-note">Salvate doar în acest browser, pe acest dispozitiv — pe altul, lista pornește goală.</p>
 
 <div id="favorites-skeleton" class="card-grid">
   <div class="skeleton-card"></div>
@@ -15,6 +16,7 @@
 <div id="favorites-empty" class="empty-state" hidden>
   <div class="empty-state-icon">🤍</div>
   Nu ai salvat încă niciun produs. Apasă pe inimioară de pe orice postare ca s-o adaugi aici.
+  <div><a href="{% url 'reviews:feed' %}" class="submit-btn submit-btn-link">Descoperă produse →</a></div>
 </div>
 {% endblock %}
 
