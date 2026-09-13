@@ -4,6 +4,7 @@ DEEA — gata de descărcat și postat direct de vizitatoare."""
 
 import io
 import logging
+import re
 import textwrap
 from pathlib import Path
 
@@ -11,6 +12,19 @@ from django.conf import settings
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 logger = logging.getLogger(__name__)
+
+# Fonturile bundle-uite (Fraunces/DejaVu) n-au glyph-uri pentru emoji sau
+# simboluri exotice — un 🍉 sau ™ scris de Deea într-o părere ar apărea ca
+# un pătrățel gol („tofu") în loc de text. Randăm doar caracterele pe care
+# știm sigur că aceste fonturi le acoperă (litere românești, cifre,
+# punctuație uzuală); orice altceva e scos înainte de desenare.
+_UNSUPPORTED_CHARS_RE = re.compile(
+    r"[^A-Za-zĂÂÎȘȚăâîșțŞŢşţ0-9 .,!?'\"«»\-–—:;()%…„”+&/]"
+)
+
+
+def _safe_text(text):
+    return re.sub(r" {2,}", " ", _UNSUPPORTED_CHARS_RE.sub("", text)).strip()
 
 W, H = 1080, 1920
 
@@ -200,11 +214,11 @@ def build_story_image(product, host):
 
     draw = ImageDraw.Draw(base)
     brand_font = _font(FONT_BOLD, 34)
-    brand_text = _truncate_to_width(draw, product.brand.upper(), brand_font, W - 140)
+    brand_text = _truncate_to_width(draw, _safe_text(product.brand).upper(), brand_font, W - 140)
     y += _center_text(draw, y, brand_text, brand_font, PINK) + 18
 
     name_font = _font(FONT_DISPLAY, 56)
-    for line in _wrap_truncated(product.nume, width=20, max_lines=2):
+    for line in _wrap_truncated(_safe_text(product.nume), width=20, max_lines=2):
         y += _center_text(draw, y, line, name_font, MAROON) + 8
     y += 26
 
@@ -217,7 +231,7 @@ def build_story_image(product, host):
             MAROON, None, outline=MAROON,
         ) + 34
 
-    quote_lines = _wrap_truncated(product.parerea_mea, width=30, max_lines=3)
+    quote_lines = _wrap_truncated(_safe_text(product.parerea_mea), width=30, max_lines=3)
     if quote_lines:
         if len(quote_lines) == 1:
             quote_lines[0] = f"„{quote_lines[0]}”"

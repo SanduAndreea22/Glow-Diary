@@ -14,7 +14,7 @@ from PIL import Image
 from .forms import MAX_UPLOAD_IMAGINE_BYTES, CommentForm
 from .image_utils import MAX_PIXELI_ACCEPTATI, PozaPreaMareError
 from .models import Collection, Comment, ContactMessage, Product, Tag
-from .story_image import render_story_png
+from .story_image import _safe_text, build_story_image, render_story_png
 from .templatetags.glow_extras import stars_svg
 
 # Testele fac cereri HTTP simple (fără TLS) — fără asta, ele pică cu 301 când
@@ -526,6 +526,27 @@ class StoryImageTests(TestCase):
         r2 = self.client.get(url)
         continut_dupa_editare = b"".join(r2.streaming_content)
         self.assertNotEqual(continut_initial, continut_dupa_editare)
+
+    def test_emoji_din_parere_e_scos_nu_arata_ca_patratel_gol(self):
+        # Fonturile bundle-uite (Fraunces/DejaVu) n-au glyph-uri de emoji —
+        # fără sanitizare, un 🍉 scris într-o părere reală apărea ca un
+        # pătrățel gol ("tofu") pe imaginea generată.
+        self.assertNotIn("🍉", _safe_text("Mi-a plăcut 🍉 mult."))
+
+    def test_safe_text_pastreaza_punctuatia_uzuala_din_denumiri(self):
+        # + & / apar des în denumiri reale (ex: "PHA+BHA") — nu trebuie
+        # scoase odată cu emoji-urile.
+        self.assertEqual(
+            _safe_text('Toner PHA+BHA & Ser "de zi"/noapte'),
+            'Toner PHA+BHA & Ser "de zi"/noapte',
+        )
+
+    def test_genereaza_imaginea_fara_eroare_cu_emoji_in_parere(self):
+        produs = Product.objects.create(
+            nume="Watermelon Glow Toner", brand="Glow Recipe", categorie="altele",
+            nota_mea=5, parerea_mea="Mi-a plăcut mult 🍉 și are PHA+BHA.",
+        )
+        build_story_image(produs, "glowdiary.pythonanywhere.com")
 
 
 @_no_ssl_redirect
