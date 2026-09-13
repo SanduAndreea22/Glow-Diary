@@ -38,7 +38,7 @@ def filtreaza_produse(qs, request):
         qs = qs.filter(categorie=categorie)
     if nota_min:
         try:
-            qs = qs.filter(nota_mea__gte=int(nota_min))
+            qs = qs.filter(nota_mea=int(nota_min))
         except ValueError:
             pass
     if sursa:

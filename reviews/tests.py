@@ -267,10 +267,10 @@ class FeedViewTests(TestCase):
         self.assertContains(r, "Rare Beauty")
         self.assertNotContains(r, "Fenty Beauty")
 
-    def test_feed_filtru_nota_minima(self):
-        r = self.client.get(reverse("reviews:feed"), {"nota_min": "5"})
-        self.assertContains(r, "Rare Beauty")
-        self.assertNotContains(r, "Fenty Beauty")
+    def test_feed_filtru_nota_e_exact_nu_minim(self):
+        r = self.client.get(reverse("reviews:feed"), {"nota_min": "4"})
+        self.assertContains(r, "Fenty Beauty")
+        self.assertNotContains(r, "Rare Beauty")
 
 
 @_no_ssl_redirect
