@@ -141,6 +141,10 @@ img{max-width:100%;display:block;}
   border:none;background:none;color:var(--pink);font-weight:700;font-size:12px;
   font-family:'DM Sans';cursor:pointer;flex-shrink:0;
 }
+/* Căutarea e deja live (vezi JS-ul de mai jos) — butonul rămâne în HTML
+   doar ca fallback fără JS; .js-live-search e adăugată de JS abia după ce
+   confirmă că filtrarea live chiar funcționează. */
+.search-bar.js-live-search .search-submit-btn{display:none;}
 .filters{
   position:relative;
   display:flex;gap:8px;margin:0 22px 16px;
@@ -349,6 +353,10 @@ img{max-width:100%;display:block;}
 .post-rating-label{font-size:10px;font-weight:600;color:var(--maroon);opacity:0.5;}
 .post-snippet{font-size:12.5px;color:var(--maroon);opacity:0.75;margin-top:7px;line-height:1.5;}
 .post-meta{font-size:11px;color:var(--maroon);opacity:0.55;margin-top:6px;font-weight:600;}
+/* Cardul întreg e deja link, dar fără text explicit era doar o convenție
+   dedusă — un indiciu scris scurtează ghicitul, mai ales pe mobil, unde
+   nu există hover care să sugereze "apăsabil". */
+.post-cta{font-size:11px;font-weight:700;color:var(--pink);margin-top:8px;}
 
 .card-fav{
   position:absolute;top:calc(var(--post-photo-h) - 42px);right:12px;
@@ -407,6 +415,7 @@ img{max-width:100%;display:block;}
 .collection-name{font-size:15px;font-weight:700;font-family:'Fraunces';}
 .collection-desc{font-size:12px;color:var(--maroon);opacity:0.65;margin-top:3px;}
 .collection-count{font-size:10.5px;color:var(--pink);font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:0.03em;}
+.collection-cta{font-size:11px;font-weight:700;color:var(--pink);margin-top:6px;opacity:0.85;}
 .pagination{display:flex;justify-content:center;align-items:center;gap:6px;margin:16px 22px 0;flex-wrap:wrap;}
 .page-pill,.page-arrow{
   display:flex;align-items:center;justify-content:center;
@@ -479,6 +488,11 @@ img{max-width:100%;display:block;}
   background:none;border:1.5px solid var(--line);color:var(--maroon);opacity:0.7;
 }
 .share-btn-secondary:hover{background:var(--pink-soft);opacity:1;color:var(--maroon);}
+/* Detaliile (format, dimensiune) erau doar în title="" — invizibil pe
+   touch, unde nu există hover. Text vizibil mereu, pe a doua linie. */
+.story-btn{align-items:center;}
+.story-btn-text{display:flex;flex-direction:column;line-height:1.35;text-align:left;}
+.story-btn-caption{font-size:9px;font-weight:600;opacity:0.7;}
 .d-brand{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.05em;margin-top:12px;}
 .d-name{font-size:23px;font-weight:800;margin-top:4px;font-family:'Fraunces';}
 .d-shade{font-size:12.5px;color:var(--maroon);opacity:0.65;margin-top:5px;}
@@ -584,6 +598,13 @@ select.field{appearance:none;}
   cursor:pointer;
 }
 .submit-btn:hover{background:var(--maroon);}
+/* Nu spune dacă apare imediat sau trece prin moderare — de fapt apare
+   imediat (Comment.aprobat=True implicit), deci spunem asta explicit. */
+.comment-moderation-note{font-size:11px;color:var(--maroon);opacity:0.55;margin-top:10px;}
+/* "Trimite părerea" e probabil cea mai valoroasă acțiune pentru comunitate
+   — merită să iasă în evidență față de un buton generic de tip "Aplică
+   filtrele" (aceeași clasă .submit-btn), nu doar aceeași pastilă mică. */
+.submit-btn-comment{width:100%;padding:14px 22px;font-size:14.5px;margin-top:8px;}
 /* .submit-btn e gândit pentru <button> — pe paginile de eroare (403/404) e
    folosit și ca link <a>, care are nevoie explicit de inline-block ca să
    accepte padding-ul, plus fără sublinierea implicită a linkurilor. */

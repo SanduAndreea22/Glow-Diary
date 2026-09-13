@@ -20,6 +20,7 @@
       <div class="post-meta">{{ produs.data_postarii|naturaltime }}{% if produs.comment_count %} · 💬 {{ produs.comment_count }} păreri{% endif %}</div>
       {% endif %}
       <div class="post-snippet">{{ produs.parerea_mea|truncatewords:snippet_words }}</div>
+      <div class="post-cta">Vezi recenzia →</div>
     </div>
   </a>
   <button type="button" class="card-fav" data-slug="{{ produs.slug }}" aria-label="Salvează la favorite">

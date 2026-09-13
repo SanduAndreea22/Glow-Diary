@@ -42,6 +42,7 @@ var GlowCards = {
             '<div class="post-rating"><span class="stars">' + GlowStars.render(p.nota) + '</span><span class="post-rating-label">nota mea</span></div>' +
             (p.postat ? '<div class="post-meta">' + esc(p.postat) + (p.comment_count ? " · 💬 " + esc(p.comment_count) + " păreri" : "") + "</div>" : "") +
             '<div class="post-snippet">' + esc(p.snippet) + "</div>" +
+            '<div class="post-cta">Vezi recenzia →</div>' +
           "</div>" +
         "</a>" +
         '<button type="button" class="card-fav' + favClass + '" data-slug="' + esc(p.slug) + '" aria-label="Salvează la favorite">' +

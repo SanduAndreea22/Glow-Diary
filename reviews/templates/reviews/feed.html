@@ -17,7 +17,7 @@
 {% endif %}
 
 <div class="search-filters-row">
-<form class="search-bar" method="get">
+<form class="search-bar" method="get" id="search-bar">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7A1E3D" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
   <input type="text" name="q" id="search-input" value="{{ q }}" placeholder="Caută produs sau brand...">
   {% if categorie_activa %}<input type="hidden" name="categorie" value="{{ categorie_activa }}">{% endif %}
@@ -26,7 +26,7 @@
   {% if tag_activ %}<input type="hidden" name="tag" value="{{ tag_activ }}">{% endif %}
   {% if pret_max_activ %}<input type="hidden" name="pret_max" value="{{ pret_max_activ }}">{% endif %}
   {% if sort_activ != "recent" %}<input type="hidden" name="sort" value="{{ sort_activ }}">{% endif %}
-  <button type="submit">Caută</button>
+  <button type="submit" class="search-submit-btn">Caută</button>
 </form>
 <button type="button" id="filter-toggle" class="filter-toggle-btn{% if filtre_active %} active{% endif %}">⚙️ Filtrează{% if filtre_active %} ✓{% endif %}</button>
 </div>
@@ -185,7 +185,14 @@
     var input = document.getElementById('search-input');
     var grid = document.getElementById('card-grid');
     var pagination = document.getElementById('pagination-nav');
+    var searchBar = document.getElementById('search-bar');
     if (!input || !grid) return;
+
+    // Butonul "Caută" rămâne în HTML (fallback dacă JS-ul ăsta nu rulează),
+    // dar odată ce știm sigur că filtrarea live funcționează, ascundem
+    // butonul — altfel stă degeaba lângă o căutare care oricum răspunde
+    // deja la fiecare tastă.
+    if (searchBar) searchBar.classList.add('js-live-search');
 
     var originalGrid = grid.innerHTML;
     var originalUrl = window.location.pathname + window.location.search;
