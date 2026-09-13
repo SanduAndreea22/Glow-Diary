@@ -16,7 +16,7 @@
 {% if galerie|length > 1 %}
 <div class="gallery-strip">
   {% for poza in galerie %}
-  <img src="{{ poza.url }}" class="thumb{% if forloop.first %} active{% endif %}" data-full="{{ poza.url }}" alt="{{ produs.nume }} — poza {{ forloop.counter }}">
+  <img src="{{ poza.url }}" class="thumb{% if forloop.first %} active{% endif %}" data-full="{{ poza.url }}" alt="{{ produs.nume }} — poza {{ forloop.counter }}" loading="lazy">
   {% endfor %}
 </div>
 {% endif %}

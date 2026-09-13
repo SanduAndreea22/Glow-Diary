@@ -28,7 +28,7 @@ var GlowCards = {
       '<div class="post-wrap">' +
         '<a href="' + esc(p.url) + '" class="post">' +
           '<div class="post-photo">' +
-            (p.poza ? '<img src="' + esc(p.poza) + '" alt="' + esc(p.nume) + '">' : "💄") +
+            (p.poza ? '<img src="' + esc(p.poza) + '" alt="' + esc(p.nume) + '" loading="lazy">' : "💄") +
             '<div class="seal">TESTED BY DEEA</div>' +
             (p.produsul_lunii ? '<div class="sticker">⭐ PRODUSUL LUNII</div>' : "") +
           "</div>" +

@@ -34,6 +34,8 @@ Apoi:
 - site: http://127.0.0.1:8000/
 - admin (adaugă produse noi): http://127.0.0.1:8000/admin/ (sau ruta din `ADMIN_URL`)
 
+**Notă:** după 5 încercări greșite de parolă de pe aceeași adresă IP, login-ul se blochează automat 1 oră (django-axes — protecție împotriva ghicitului repetat de parolă). Dacă te blochezi singură din greșeală, așteaptă ora sau, local, rulează `python manage.py axes_reset`.
+
 ## Variabile de mediu
 
 Toate valorile sensibile/specifice mediului vin din `.env` (local) sau din variabilele de mediu setate direct pe server (producție) — vezi `.env.example` pentru lista completă cu explicații. Cele mai importante:
@@ -66,6 +68,14 @@ Toate valorile sensibile/specifice mediului vin din `.env` (local) sau din varia
 Din Django admin → Products → Add product: nume, brand, categorie, nuanță (opțional), sursă (de unde a fost cumpărat), poză, nota ta (1-5) și părerea ta. Slug-ul se generează automat din brand + nume. Poți adăuga și poze suplimentare de galerie direct din aceeași pagină (secțiunea „Imagine galerie" de sub formular). Pozele mari (poze de telefon) sunt redimensionate automat la salvare, nu e nevoie să le micșorezi manual înainte.
 
 Pentru mai multe produse deodată: butonul „Adaugă mai multe produse" de lângă „Add product" deschide un formular cu mai multe rânduri (fără poză — aceea rămâne de adăugat individual, per produs, după).
+
+### Verdict (secțiunea din formular)
+
+Pe lângă notă și părere, un produs poate avea: **preț** (lei — opțional, dar exact ce vine să afle cineva care se întreabă dacă merită banii), **îl recumpăr** (Da/Nu, lăsat necompletat cât timp nu te-ai hotărât — completat, arată sigiliu auriu pe card), **cât ține** (text liber, ex. „8 ore") și **recomandat pentru** (text liber, ex. „ten gras"). Toate opționale.
+
+### Tag-uri și filtrare după preț
+
+**Tag-uri** — atribute libere de filtrare (tip de ten, ingrediente etc.), gestionate din admin → Tags: se pot adăuga/șterge oricând, fără cod. Un produs poate avea mai multe tag-uri (secțiunea „Filtrare" din formularul de produs). Feed-ul are un filtru dedicat pe tag, plus un filtru de **preț maxim** — ambele combinabile cu restul filtrelor existente (categorie, notă minimă, sursă, sortare).
 
 ## Colecții curate
 
@@ -102,6 +112,16 @@ Fiecare produs are o secțiune de comentarii publice (fără cont). Protecție a
 - **rate limiting** — un vizitator (după IP) poate comenta o dată la 60s pe același produs
 
 Fiecare comentariu are un flag `aprobat` (implicit `True`) — poate fi debifat din admin pentru a ascunde un comentariu din public fără să fie șters (moderare manuală opțională).
+
+O vizitatoare poate atașa opțional și o poză cu produsul la comentariu (validată la upload: max. 5MB, rezoluție rezonabilă — vezi `CommentForm.clean_imagine`).
+
+## Recap anual
+
+`/recap/<an>/` generează automat un „best of anul" din datele existente (nu conținut scris separat): media notelor, total cheltuit, produse recumpărate, top 3 produse după notă, cele mai comentate, brandul și categoria preferată, cel mai scump produs. Sub un prag minim de produse postate în anul respectiv, arată un mesaj prietenos în loc de statistici goale.
+
+## Dark mode
+
+Automat, după preferința sistemului de operare al vizitatoarei (`prefers-color-scheme`, fără toggle manual în interfață). Acoperă tot CSS-ul site-ului; imaginile de Story rămân neschimbate (sunt PNG-uri generate server-side cu Pillow, nu randate din CSS).
 
 ## Note
 

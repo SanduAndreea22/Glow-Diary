@@ -10,7 +10,7 @@
 {% for colectie in colectii %}
 <a href="{{ colectie.get_absolute_url }}" class="collection-card">
   <div class="collection-cover">
-    {% if colectie.coperta %}<img src="{{ colectie.coperta.url }}" alt="{{ colectie.nume }}">{% else %}✨{% endif %}
+    {% if colectie.coperta %}<img src="{{ colectie.coperta.url }}" alt="{{ colectie.nume }}" loading="lazy">{% else %}✨{% endif %}
   </div>
   <div class="collection-body">
     <div class="collection-name">{{ colectie.nume }}</div>

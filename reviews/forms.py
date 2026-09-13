@@ -1,6 +1,8 @@
 from django import forms
 from django.utils.text import slugify
+from PIL import Image
 
+from .image_utils import MAX_PIXELI_ACCEPTATI
 from .models import (
     MAX_SLUG_ATTEMPTS,
     NOTA_CHOICES,
@@ -9,6 +11,12 @@ from .models import (
     ContactMessage,
     Product,
 )
+
+# Endpoint public, fără autentificare — Django nu respinge automat fișiere
+# mari (FILE_UPLOAD_MAX_MEMORY_SIZE e doar pragul de spooling pe disc, nu
+# un refuz), deci fără plafonul ăsta un vizitator anonim putea încărca
+# fișiere oricât de mari, limitat doar de rate-limiting-ul de pe formular.
+MAX_UPLOAD_IMAGINE_BYTES = 5 * 1024 * 1024
 
 
 class HoneypotFormMixin(forms.Form):
@@ -65,6 +73,31 @@ class CommentForm(HoneypotFormMixin, forms.ModelForm):
         if not comentariu:
             raise forms.ValidationError("Scrie câteva cuvinte despre experiența ta.")
         return comentariu
+
+    def clean_imagine(self):
+        imagine = self.cleaned_data.get("imagine")
+        if not imagine:
+            return imagine
+
+        if imagine.size > MAX_UPLOAD_IMAGINE_BYTES:
+            raise forms.ValidationError(
+                "Poza e prea mare (peste 5MB) — încearcă una mai mică."
+            )
+
+        try:
+            imagine.seek(0)
+            with Image.open(imagine) as img:
+                latime, inaltime = img.size
+        except Exception:
+            raise forms.ValidationError("Fișierul nu pare să fie o imagine validă.")
+        finally:
+            imagine.seek(0)
+
+        if latime * inaltime > MAX_PIXELI_ACCEPTATI:
+            raise forms.ValidationError(
+                "Poza are o rezoluție neobișnuit de mare — încearcă una mai mică."
+            )
+        return imagine
 
 
 class ContactForm(HoneypotFormMixin, forms.ModelForm):

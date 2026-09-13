@@ -5,6 +5,9 @@ from django.views import View
 from ..models import Product
 from ..queries import cu_numar_pareri, feed_stats, filtreaza_produse
 
+MAX_SLUGURI_FAVORITE = 50  # cât poate ține realist localStorage-ul de Favorite
+MAX_REZULTATE_CAUTARE = 24  # destul pentru câteva "ecrane" de scroll pe /api/search/
+
 
 def _product_card_data(p, produsul_lunii_id=None):
     # comment_count și produsul_lunii trebuie să existe și aici, nu doar în
@@ -32,7 +35,7 @@ def _product_card_data(p, produsul_lunii_id=None):
 
 class FavoritesDataView(View):
     def get(self, request):
-        slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:50]
+        slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:MAX_SLUGURI_FAVORITE]
         produse = cu_numar_pareri(Product.objects.filter(slug__in=slugs, activ=True))
         produsul_lunii_id = feed_stats()["produsul_lunii_id"]
         data = [_product_card_data(p, produsul_lunii_id) for p in produse]
@@ -43,5 +46,5 @@ class SearchDataView(View):
     def get(self, request):
         qs = filtreaza_produse(cu_numar_pareri(Product.objects.filter(activ=True)), request)
         produsul_lunii_id = feed_stats()["produsul_lunii_id"]
-        data = [_product_card_data(p, produsul_lunii_id) for p in qs[:24]]
+        data = [_product_card_data(p, produsul_lunii_id) for p in qs[:MAX_REZULTATE_CAUTARE]]
         return JsonResponse({"produse": data})

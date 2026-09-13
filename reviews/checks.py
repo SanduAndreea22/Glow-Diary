@@ -1,5 +1,31 @@
+import os
+
 from django.conf import settings
-from django.core.checks import Error, register
+from django.core.checks import Error, Warning, register
+
+
+@register(deploy=True)
+def verifica_redis_in_productie(app_configs, **kwargs):
+    """Fără REDIS_URL setat, rate limiting-ul (honeypot/comentarii/contact,
+    bazat pe LocMemCache — per-proces) devine inconsistent între workeri cu
+    mai mult de un proces, lăsând un spammer să ocolească limita
+    distribuindu-se pe workeri diferiți. E deja documentat în checklist-ul
+    din README, dar un `manage.py check --deploy` care avertizează vizibil
+    e mai sigur decât un pas de checklist care poate fi omis din greșeală."""
+    if settings.DEBUG or os.environ.get("REDIS_URL"):
+        return []
+    return [
+        Warning(
+            "REDIS_URL nu e setat, deși DEBUG=False.",
+            hint=(
+                "Rate limiting-ul (bazat pe cache LocMemCache, per-proces) "
+                "devine inconsistent între workeri dacă rulezi mai mult de "
+                "un proces (gunicorn/uwsgi). Setează REDIS_URL pentru cache "
+                "partajat real."
+            ),
+            id="reviews.W001",
+        )
+    ]
 
 
 @register()

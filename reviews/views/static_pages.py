@@ -43,7 +43,9 @@ class ContactView(TemplateView):
 
         cache.delete(cache_key)
 
-        if not form.errors.get("mesaj") and not form.errors.get("email"):
+        if form.errors.get("website"):
+            # honeypot completat — verificat explicit (nu prin excludere pe
+            # celelalte câmpuri), vezi motivul detaliat în ProductDetailView.post.
             messages.error(request, "Nu am putut trimite mesajul — mai încearcă o dată.")
             return redirect("reviews:contact")
 

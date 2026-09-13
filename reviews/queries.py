@@ -16,6 +16,12 @@ FEED_STATS_CACHE_TTL = 300  # 5 minute
 # un semnal care nu depinde de volum.
 MIN_PRODUSE_PENTRU_CONTOR = 10
 
+# Prag separat de MIN_PRODUSE_PENTRU_CONTOR de mai sus — sunt două decizii
+# de produs diferite (când arătăm un contor pe Acasă vs. când un an are
+# destule date pentru un recap), care doar coincid numeric acum. Ținute
+# separat ca să poată diverge oricând fără să afecteze cealaltă decizie.
+MIN_PRODUSE_PENTRU_RECAP = 10
+
 SORT_OPTIONS = {
     "recent": ("-data_postarii",),
     "nota": ("-nota_mea", "-data_postarii"),
@@ -24,9 +30,10 @@ DEFAULT_SORT = "recent"
 
 
 def filtreaza_produse(qs, request):
-    """Filtrele comune (căutare/categorie/notă minimă/sursă/sortare), aplicate
-    identic pe feed-ul cu reload și pe căutarea live din /api/search/ — un
-    singur loc, ca cele două să nu poată desincroniza."""
+    """Filtrele comune (căutare/categorie/notă minimă/sursă/tag/preț
+    maxim/sortare), aplicate identic pe feed-ul cu reload și pe căutarea
+    live din /api/search/ — un singur loc, ca cele două să nu poată
+    desincroniza."""
     q = request.GET.get("q", "").strip()
     categorie = request.GET.get("categorie", "").strip()
     nota_min = request.GET.get("nota_min", "").strip()
@@ -58,9 +65,14 @@ def filtreaza_produse(qs, request):
 
 
 def cu_numar_pareri(qs):
+    # Fără .order_by() propriu — aproape toți apelanții re-sortează oricum
+    # imediat după (feed, recap), iar Product.Meta.ordering ("-data_postarii")
+    # acoperă implicit cazurile care nu o fac (colecții, favorite). O ordine
+    # bagată aici ar fi înșelătoare: pare intenționată, dar e aproape mereu
+    # înlocuită de apelant.
     return qs.annotate(
         comment_count=Count("comentarii", filter=Q(comentarii__aprobat=True))
-    ).order_by("-data_postarii")
+    )
 
 
 def produsul_lunii():

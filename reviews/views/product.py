@@ -14,7 +14,6 @@ from django.views.generic import DetailView
 
 from ..forms import CommentForm
 from ..models import Product
-from ..queries import cu_numar_pareri
 from ..story_image import render_story_png
 from ..throttling import RATE_LIMIT_SECONDS, client_ip, global_rate_limited
 
@@ -56,9 +55,13 @@ class ProductDetailView(DetailView):
             img.imagine for img in galerie if img.imagine
         ]
         ctx["galerie"] = pozele
-        ctx["similare"] = cu_numar_pareri(
+        # Randate cu show_details=False (_product_card.html) — comment_count
+        # nici măcar nu se afișează acolo, deci cu_numar_pareri() ar calcula
+        # un JOIN/Count degeaba pentru fiecare produs similar.
+        ctx["similare"] = (
             Product.objects.filter(activ=True, categorie=self.object.categorie)
             .exclude(pk=self.object.pk)
+            .order_by("-data_postarii")
         )[:3]
         return ctx
 
@@ -141,8 +144,12 @@ class ProductDetailView(DetailView):
         # nu a fost o postare reală (validare eșuată/honeypot) — eliberăm lacătul
         cache.delete(cache_key)
 
-        if not any(form.errors.get(f) for f in ("comentariu", "nume", "imagine")):
-            # eroare "ascunsă" (honeypot) — mesaj generic, fără să dezvăluim mecanismul
+        if form.errors.get("website"):
+            # honeypot completat — verificat explicit, ÎNAINTEA oricărei alte
+            # ramificații: dacă am verifica prin excludere (```not any(...)```
+            # pe celelalte câmpuri), un bot care completează honeypot-ul ȘI
+            # lasă comentariul gol ar lua ramura de eroare normală, nu cea
+            # "silențioasă" — dezvăluind indirect structura de validare.
             messages.error(request, "Nu am putut trimite comentariul — mai încearcă o dată.")
             return redirect(self.object.get_absolute_url())
 

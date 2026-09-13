@@ -31,11 +31,45 @@ jobs:
           python-version: "3.11"
 
       - name: Instalează dependențele
-        run: pip install -r requirements.txt
+        run: pip install -r requirements-dev.txt
 
-      - name: Rulează testele
+      - name: Rulează testele cu coverage
         env:
           SECRET_KEY: doar-pentru-ci-niciodata-folosita-in-productie
           DEBUG: "True"
+          ALLOWED_HOSTS: localhost,127.0.0.1
+        run: coverage run manage.py test
+
+      - name: Verifică pragul minim de coverage
+        run: coverage report
+
+  static-smoke:
+    # Job separat, cu DEBUG=False — jobul "test" de mai sus rulează cu
+    # DEBUG=True, deci nu exercită niciodată ManifestStaticFilesStorage
+    # (activă doar cu DEBUG=False, vezi settings.py). Fără acest job, o
+    # referință {% static %} la un fișier inexistent ar trece testele în CI
+    # dar ar pica 500 în producție.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalează dependențele
+        run: pip install -r requirements.txt
+
+      - name: Colectează fișierele statice (ca la un deploy real)
+        env:
+          SECRET_KEY: doar-pentru-ci-niciodata-folosita-in-productie
+          DEBUG: "False"
+          ALLOWED_HOSTS: localhost,127.0.0.1
+        run: python manage.py collectstatic --noinput
+
+      - name: Rulează testele cu DEBUG=False (manifest de statice activ)
+        env:
+          SECRET_KEY: doar-pentru-ci-niciodata-folosita-in-productie
+          DEBUG: "False"
           ALLOWED_HOSTS: localhost,127.0.0.1
         run: python manage.py test

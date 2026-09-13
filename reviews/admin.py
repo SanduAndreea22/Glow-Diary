@@ -158,5 +158,6 @@ admin.site.index_title = "Administrare recenzii"
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
     list_display = ("nume", "email", "citit", "data")
+    list_editable = ("citit",)
     list_filter = ("citit",)
     search_fields = ("nume", "email", "mesaj")

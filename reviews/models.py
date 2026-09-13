@@ -120,6 +120,7 @@ class Product(models.Model):
     )
     tag_uri = models.ManyToManyField(
         Tag, blank=True, related_name="produse", verbose_name="Tag-uri",
+        help_text="Atribute libere de filtrare (tip de ten, ingrediente etc.) — opțional.",
     )
     data_postarii = models.DateTimeField(
         "Data postării", auto_now_add=True, db_index=True
@@ -165,6 +166,9 @@ class Product(models.Model):
 
     @property
     def stele(self):
+        # Nefolosit intern — randarea reală a stelelor (server + client) se
+        # face prin `stars_svg`/`GlowStars.render`. Păstrat doar ca API
+        # public (text simplu ★/☆), pentru orice consumator extern viitor.
         return "★" * self.nota_mea + "☆" * (5 - self.nota_mea)
 
 
@@ -233,12 +237,17 @@ class Comment(models.Model):
     )
     comentariu = models.TextField("Comentariu", max_length=600)
     imagine = models.ImageField(
-        "Poză (opțional)", upload_to="comentarii/", blank=True, null=True,
+        # Doar `blank=True` — la fel ca Product.poza/ProductImage.imagine/
+        # Collection.coperta. Fără `null=True` (înlăturat aici), un
+        # ImageField "fără fișier" e mereu "" (string gol), niciodată NULL —
+        # o singură reprezentare pentru "fără poză" în toate modelele,
+        # nu două diferite fără motiv funcțional.
+        "Poză (opțional)", upload_to="comentarii/", blank=True,
         help_text="O poză cu produsul la tine, dacă vrei să o arăți alături de părere.",
     )
     data = models.DateTimeField("Data", auto_now_add=True)
     aprobat = models.BooleanField(
-        "Aprobat", default=True,
+        "Aprobat", default=True, db_index=True,
         help_text="Debifează pentru a ascunde comentariul din public fără să-l ștergi.",
     )
 
@@ -254,6 +263,7 @@ class Comment(models.Model):
 
     @property
     def stele(self):
+        # Nefolosit intern — vezi nota de la Product.stele.
         return "★" * self.nota if self.nota else ""
 
 

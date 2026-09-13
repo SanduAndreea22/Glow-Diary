@@ -6,3 +6,11 @@ exclude = ["*/migrations/*"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
 ignore = ["E501"]
+
+[tool.coverage.run]
+source = ["reviews", "glow_diary"]
+omit = ["*/migrations/*", "*/tests.py"]
+
+[tool.coverage.report]
+fail_under = 80
+exclude_lines = ["pragma: no cover"]

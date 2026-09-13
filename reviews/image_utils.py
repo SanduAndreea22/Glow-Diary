@@ -8,6 +8,19 @@ logger = logging.getLogger(__name__)
 
 MAX_DIMENSIUNE_IMPLICITA = 1600
 
+# Prag de pixeli decodați, verificat explicit înainte de resize — nu ne
+# bazăm doar pe DecompressionBombError-ul implicit din Pillow (care doar
+# avertizează, fără să oprească nimic, sub dublul MAX_IMAGE_PIXELS). 40MP
+# acoperă orice poză reală de telefon/aparat foto; peste asta tratăm
+# fișierul ca pe o posibilă decompression bomb și refuzăm să-l procesăm.
+MAX_PIXELI_ACCEPTATI = 40_000_000
+
+
+class PozaPreaMareError(ValueError):
+    """Rezoluție decodată peste `MAX_PIXELI_ACCEPTATI` — ridicată explicit
+    (nu înghițită de `except Exception` de mai jos) ca poza să NU fie
+    salvată netratată, spre deosebire de o eroare normală de decodare."""
+
 
 def optimizeaza_poza(camp_fisier, max_dimensiune=MAX_DIMENSIUNE_IMPLICITA):
     """Redimensionează o poză abia încărcată (nu una deja salvată — vezi
@@ -23,6 +36,14 @@ def optimizeaza_poza(camp_fisier, max_dimensiune=MAX_DIMENSIUNE_IMPLICITA):
         camp_fisier.seek(0)
         imagine = Image.open(camp_fisier)
         format_imagine = (imagine.format or "JPEG").upper()
+
+        if imagine.width * imagine.height > MAX_PIXELI_ACCEPTATI:
+            camp_fisier.seek(0)
+            raise PozaPreaMareError(
+                f"Poză cu rezoluție neobișnuit de mare "
+                f"({imagine.width}x{imagine.height}px) — refuzată."
+            )
+
         if max(imagine.size) <= max_dimensiune:
             camp_fisier.seek(0)
             return
@@ -46,6 +67,10 @@ def optimizeaza_poza(camp_fisier, max_dimensiune=MAX_DIMENSIUNE_IMPLICITA):
         buffer = io.BytesIO()
         imagine.save(buffer, format=format_imagine, **opțiuni_salvare)
         camp_fisier.file = ContentFile(buffer.getvalue())
+    except PozaPreaMareError:
+        # Propagă mai departe — spre deosebire de erorile de mai jos, asta
+        # nu trebuie „înghițită" cu poza originală salvată netratată.
+        raise
     except Exception:
         # O poză care nu poate fi procesată (fișier corupt, format neașteptat)
         # nu trebuie să blocheze salvarea produsului — mai bine poza

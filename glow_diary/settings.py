@@ -56,6 +56,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     "reviews",
+    "axes",
+    # django-cleanup ultimul — se agață de post_delete/pre_save pe orice
+    # FileField/ImageField (Product.poza, ProductImage.imagine,
+    # Collection.coperta, Comment.imagine) și șterge fișierul fizic de pe
+    # disc odată cu rândul/la înlocuirea unei poze existente. Fără el,
+    # fișierele rămâneau orfane la nesfârșit (Django nu face asta implicit).
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 MIDDLEWARE = [
@@ -66,7 +73,26 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Ultimul — django-axes cere asta explicit, ca să vadă rezultatul final
+    # al autentificării înainte de a decide dacă blochează.
+    "axes.middleware.AxesMiddleware",
 ]
+
+AUTHENTICATION_BACKENDS = [
+    # Primul — django-axes trebuie să intercepteze login-ul înaintea
+    # backend-ului implicit, ca să poată bloca după N încercări eșuate.
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# Un singur cont admin controlează tot site-ul (produse, comentarii,
+# mesaje) — fără lockout, parola era limitată doar de
+# MinimumLengthValidator(12), fără nicio blocare după încercări eșuate
+# repetate (brute-force nelimitat, deși lent).
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1  # oră
+AXES_LOCKOUT_PARAMETERS = ["ip_address"]
+AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = False
 
 ROOT_URLCONF = "glow_diary.urls"
 
@@ -145,6 +171,15 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Praguri de upload declarate explicit (nu lăsate pe implicitul „ascuns" al
+# Django) — FILE_UPLOAD_MAX_MEMORY_SIZE e doar pragul de spooling pe disc
+# pentru un fișier (nu un refuz), iar respingerea reală a pozelor prea mari
+# de pe formularul public de comentarii se face în CommentForm.clean_imagine
+# (MAX_UPLOAD_IMAGINE_BYTES). Valorile de mai jos rămân cele implicite din
+# Django — sunt declarate ca să fie clar că alegerea e conștientă.
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440
 
 # Nume de fișier cu hash (style.a1b2c3.css) generate la `collectstatic` —
 # fără asta, vizitatoarele care revin pot vedea CSS/JS învechit din cache-ul

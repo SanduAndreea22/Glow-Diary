@@ -1,4 +1,5 @@
 import io
+import os
 import tempfile
 from unittest import mock
 
@@ -10,6 +11,8 @@ from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 
+from .forms import MAX_UPLOAD_IMAGINE_BYTES, CommentForm
+from .image_utils import MAX_PIXELI_ACCEPTATI, PozaPreaMareError
 from .models import Collection, Comment, ContactMessage, Product, Tag
 from .story_image import render_story_png
 from .templatetags.glow_extras import stars_svg
@@ -64,6 +67,47 @@ class ImageOptimizationTests(TestCase):
         )
         with Image.open(produs.poza.path) as img:
             self.assertEqual(img.size, (400, 300))
+
+    def test_poza_peste_pragul_de_pixeli_e_respinsa(self):
+        # Latură ~= sqrt(prag) * 1.2, ca să depășească clar MAX_PIXELI_ACCEPTATI
+        # fără să depindă de o valoare hardcodată a constantei.
+        latura = int((MAX_PIXELI_ACCEPTATI ** 0.5) * 1.2)
+        with self.assertRaises(PozaPreaMareError):
+            Product.objects.create(
+                nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+                poza=_poza_falsa(latura, latura),
+            )
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class OrphanFileCleanupTests(TestCase):
+    """django-cleanup — fără el, fișierele fizice rămâneau orfane pe disc
+    la ștergere/înlocuire (Django nu face asta implicit pentru FileField)."""
+
+    def test_fisierul_e_sters_la_stergerea_definitiva(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            poza=_poza_falsa(400, 300), activ=False,  # deja ascuns => delete() șterge cu adevărat
+        )
+        cale = produs.poza.path
+        self.assertTrue(os.path.isfile(cale))
+        # django-cleanup rulează ștergerea fișierului în transaction.on_commit
+        # — fără captureOnCommitCallbacks, hook-ul nu se declanșează deloc
+        # în interiorul tranzacției (derulate înapoi, nu comise) a unui TestCase.
+        with self.captureOnCommitCallbacks(execute=True):
+            produs.delete()
+        self.assertFalse(os.path.isfile(cale))
+
+    def test_fisierul_vechi_e_sters_la_inlocuirea_pozei(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            poza=_poza_falsa(400, 300),
+        )
+        cale_veche = produs.poza.path
+        produs.poza = _poza_falsa(200, 200, nume="noua.jpg")
+        with self.captureOnCommitCallbacks(execute=True):
+            produs.save()
+        self.assertFalse(os.path.isfile(cale_veche))
 
 
 @_no_ssl_redirect
@@ -305,6 +349,18 @@ class ProductDetailAndCommentTests(TestCase):
         })
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 0)
 
+    def test_honeypot_cu_comentariu_gol_ramane_mesaj_generic(self):
+        # Bot care completează honeypot-ul ȘI lasă comentariul gol — verifică
+        # explicit că ramura "silențioasă" (mesaj generic) ia prioritate,
+        # nu ramura normală de eroare de validare (care ar dezvălui indirect
+        # structura de validare unui bot).
+        r = self.client.post(self.produs.get_absolute_url(), {
+            "nume": "Bot", "nota": "1", "comentariu": "", "website": "http://spam.com",
+        }, follow=True)
+        self.assertEqual(Comment.objects.filter(product=self.produs).count(), 0)
+        text_mesaje = [str(m) for m in r.context["messages"]]
+        self.assertTrue(any("Nu am putut trimite comentariul" in m for m in text_mesaje))
+
     def test_comentariu_gol_respins(self):
         self.client.post(self.produs.get_absolute_url(), {
             "nume": "Cineva", "nota": "5", "comentariu": "", "website": "",
@@ -494,6 +550,16 @@ class StaticPagesTests(TestCase):
         })
         self.assertEqual(ContactMessage.objects.count(), 0)
 
+    def test_contact_honeypot_cu_mesaj_gol_ramane_mesaj_generic(self):
+        cache.clear()
+        r = self.client.post(reverse("reviews:contact"), {
+            "nume": "Bot", "email": "bot@spam.com", "mesaj": "",
+            "website": "http://spam.com",
+        }, follow=True)
+        self.assertEqual(ContactMessage.objects.count(), 0)
+        text_mesaje = [str(m) for m in r.context["messages"]]
+        self.assertTrue(any("Nu am putut trimite mesajul" in m for m in text_mesaje))
+
     def test_contact_rate_limit_per_ip(self):
         cache.clear()
         data = {"nume": "Ana", "email": "ana@test.com", "mesaj": "Salut!", "website": ""}
@@ -670,6 +736,32 @@ class ComentariuCuPozaTests(TestCase):
         })
         self.assertRedirects(r, self.produs.get_absolute_url())
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 1)
+
+    def test_poza_peste_5mb_e_respinsa_de_formular(self):
+        # Test direct pe formular (nu prin HTTP): encoder-ul multipart al
+        # clientului de test trimite conținutul real al fișierului (mic),
+        # ignorând un `.size` suprascris manual — clean_imagine citește
+        # `imagine.size`, deci verificăm exact asta, la nivel de formular.
+        poza_marcata_mare = _poza_falsa(10, 10, nume="mica.jpg")
+        poza_marcata_mare.size = MAX_UPLOAD_IMAGINE_BYTES + 1
+        form = CommentForm(
+            data={"comentariu": "Poză uriașă.", "website": ""},
+            files={"imagine": poza_marcata_mare},
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("prea mare", str(form.errors["imagine"]))
+
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_poza_cu_rezolutie_extrema_e_respinsa(self):
+        # Peste MAX_PIXELI_ACCEPTATI (40MP) — tratată ca posibilă decompression bomb.
+        poza_bomba = _poza_falsa(7000, 6000, nume="bomba.jpg")
+        r = self.client.post(self.produs.get_absolute_url(), {
+            "nume": "Ana", "nota": "5", "comentariu": "Poză cu rezoluție extremă.",
+            "website": "", "imagine": poza_bomba,
+        })
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(Comment.objects.filter(product=self.produs).count(), 0)
+        self.assertContains(r, "rezoluție neobișnuit de mare")
 
 
 @_no_ssl_redirect

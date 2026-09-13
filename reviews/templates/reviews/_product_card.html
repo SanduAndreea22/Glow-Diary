@@ -2,7 +2,7 @@
 <div class="post-wrap">
   <a href="{{ produs.get_absolute_url }}" class="post">
     <div class="post-photo">
-      {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
+      {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}" loading="lazy">{% else %}💄{% endif %}
       <div class="seal">TESTED BY DEEA</div>
       {% if produsul_lunii_id and produs.id == produsul_lunii_id %}<div class="sticker">⭐ PRODUSUL LUNII</div>{% endif %}
     </div>
