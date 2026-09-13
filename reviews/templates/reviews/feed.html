@@ -13,6 +13,7 @@
 <div class="stat-chip">✨ Actualizat {{ ultima_actualizare|naturaltime|lower }}</div>
 {% endif %}
 
+<div class="search-filters-row">
 <form class="search-bar" method="get">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7A1E3D" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
   <input type="text" name="q" id="search-input" value="{{ q }}" placeholder="Caută produs sau brand...">
@@ -34,6 +35,7 @@
   {% endif %}
   {% endfor %}
   <button type="button" id="filter-toggle" class="chip chip-rating filter-toggle{% if filtre_active %} active{% endif %}">⚙️ Filtrează{% if filtre_active %} ✓{% endif %}</button>
+</div>
 </div>
 
 <div class="filter-panel" id="filter-panel">
