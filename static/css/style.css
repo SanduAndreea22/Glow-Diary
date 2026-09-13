@@ -131,16 +131,19 @@ img{max-width:100%;display:block;}
 .filters{
   position:relative;
   display:flex;gap:8px;margin:0 22px 16px;
-  overflow-x:auto;padding-bottom:2px;
-  /* Bara nativă de scroll a browserului — pe Windows/Linux rămâne mereu
-     vizibilă (spre deosebire de stilul overlay, ascuns automat, de pe
-     macOS), o dungă gri urâtă sub chip-uri. Săgeata roz + gradientul de
-     mai sus rămân singurul indiciu vizual că mai e conținut de descoperit;
-     scroll-ul tot funcționează normal (touch/trackpad/click-drag). */
-  scrollbar-width:none;
-  -ms-overflow-style:none;
+  overflow-x:auto;padding-bottom:6px;
+  /* Bara nativă de scroll a browserului era gri implicit, urâtă — dar a o
+     ascunde complet (cum am făcut prima oară) elimină și singurul mod în
+     care cineva cu mouse obișnuit (fără touchpad/touch) putea derula rândul
+     prin drag pe bară. O stilizăm în schimb, subțire și roz, ca să arate
+     intenționat și să rămână complet funcțională. */
+  scrollbar-width:thin;
+  scrollbar-color:var(--pink-soft) transparent;
 }
-.filters::-webkit-scrollbar{display:none;}
+.filters::-webkit-scrollbar{height:6px;}
+.filters::-webkit-scrollbar-track{background:transparent;}
+.filters::-webkit-scrollbar-thumb{background:var(--pink-soft);border-radius:100px;}
+.filters::-webkit-scrollbar-thumb:hover{background:var(--pink);}
 /* Indicator că mai sunt categorii ascunse la dreapta, dincolo de scroll —
    fără el, rândul tăiat la margine arăta ca o listă completă, nu ca una
    parțial ascunsă. Pin-uite (position:absolute), deci nu se mișcă odată
@@ -367,10 +370,13 @@ img{max-width:100%;display:block;}
 }
 .hero-product img{width:100%;height:100%;object-fit:cover;}
 .gallery-strip{
-  display:flex;gap:8px;padding:12px 22px 0;overflow-x:auto;
-  scrollbar-width:none;-ms-overflow-style:none;
+  display:flex;gap:8px;padding:12px 22px 6px;overflow-x:auto;
+  scrollbar-width:thin;scrollbar-color:var(--pink-soft) transparent;
 }
-.gallery-strip::-webkit-scrollbar{display:none;}
+.gallery-strip::-webkit-scrollbar{height:6px;}
+.gallery-strip::-webkit-scrollbar-track{background:transparent;}
+.gallery-strip::-webkit-scrollbar-thumb{background:var(--pink-soft);border-radius:100px;}
+.gallery-strip::-webkit-scrollbar-thumb:hover{background:var(--pink);}
 .gallery-strip .thumb{
   width:56px;height:56px;object-fit:cover;border-radius:12px;flex-shrink:0;
   border:2px solid transparent;opacity:0.6;cursor:pointer;
