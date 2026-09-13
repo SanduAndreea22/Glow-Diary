@@ -36,6 +36,7 @@
   <span class="chip chip-disabled" title="Încă niciun produs în această categorie">{{ label }}</span>
   {% endif %}
   {% endfor %}
+  <button type="button" class="filters-scroll-btn" id="filters-scroll-btn" aria-label="Mai multe categorii">›</button>
 </div>
 
 <div class="filter-panel" id="filter-panel">
@@ -136,6 +137,7 @@
 
   (function () {
     var row = document.querySelector('.filters');
+    var scrollBtn = document.getElementById('filters-scroll-btn');
     if (!row) return;
     var update = function () {
       var hasMore = row.scrollWidth - row.clientWidth - row.scrollLeft > 4;
@@ -144,6 +146,11 @@
     update();
     row.addEventListener('scroll', update);
     window.addEventListener('resize', update);
+    if (scrollBtn) {
+      scrollBtn.addEventListener('click', function () {
+        row.scrollBy({ left: row.clientWidth * 0.6, behavior: 'smooth' });
+      });
+    }
   })();
 
   (function () {

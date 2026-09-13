@@ -157,10 +157,14 @@ img{max-width:100%;display:block;}
   pointer-events:none;
   opacity:0;transition:opacity 0.2s ease;
 }
-.filters::after{
+.filters-scroll-btn{
   /* Cerc plin, contrast puternic pe orice fundal — nu o simplă nuanțare
-     de text, care se pierde ușor cu ochiul. */
-  content:"›";
+     de text, care se pierde ușor cu ochiul. Element real (nu pseudo), ca
+     să fie efectiv apăsabil — altfel arată ca un buton dar nu face nimic.
+     position:absolute în interiorul lui .filters (care e position:relative
+     și overflow-x:auto) îl fixează vizual la marginea dreaptă a rândului,
+     fără să se miște odată cu chip-urile care scrolează pe sub el. */
+  appearance:none;border:none;font-family:inherit;
   position:absolute;top:50%;right:2px;
   transform:translateY(-50%);
   width:24px;height:24px;
@@ -170,10 +174,11 @@ img{max-width:100%;display:block;}
   color:var(--white);
   font-size:15px;font-weight:800;line-height:1;
   box-shadow:0 2px 6px rgba(122,30,61,0.3);
-  pointer-events:none;
-  opacity:0;transition:opacity 0.2s ease;
+  cursor:pointer;
+  opacity:0;pointer-events:none;transition:opacity 0.2s ease;
 }
-.filters.has-more::before,.filters.has-more::after{opacity:1;}
+.filters.has-more::before{opacity:1;}
+.filters.has-more .filters-scroll-btn{opacity:1;pointer-events:auto;}
 .chip{
   flex-shrink:0;
   font-size:12px;font-weight:600;
