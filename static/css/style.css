@@ -89,6 +89,11 @@ img{max-width:100%;display:block;}
   background:var(--pink-soft);color:var(--maroon);
   font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:100px;
 }
+.stat-chip-link{
+  background:var(--gold);
+  transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+.stat-chip-link:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(122,30,61,0.18);}
 .search-filters-row{
   display:flex;align-items:center;gap:8px;
   margin:0 22px 14px;
@@ -306,10 +311,30 @@ img{max-width:100%;display:block;}
   padding:3px 9px;border-radius:100px;
   margin-top:6px;
 }
+/* Distinct de .post-cat (categoria e mereu adevărată, "îl recumpăr" e o
+   judecată a Deei) — auriu, ca sigiliul TESTED BY DEEA, nu roz/maro ca
+   restul badge-urilor de sistem. */
+.badge-recumpar{
+  display:inline-block;
+  font-size:10px;font-weight:700;
+  background:var(--gold);color:var(--maroon);
+  padding:3px 9px;border-radius:100px;
+  margin-top:6px;margin-left:5px;
+}
 .post-name{font-size:15px;font-weight:700;margin-top:2px;font-family:'Fraunces';}
 .post-shade{font-size:11.5px;color:var(--maroon);opacity:0.6;margin-top:2px;}
 .post-source{font-size:10.5px;color:var(--pink);font-weight:600;margin-top:2px;}
-.stars{color:var(--gold);font-size:13px;letter-spacing:1px;margin-top:6px;display:block;}
+.stars{color:var(--gold);font-size:13px;margin-top:6px;display:block;}
+/* Stelele SVG (pline/goale/jumătate) moștenesc `color` de la elementul
+   părinte (.stars, .comment-stars, .d-rating-visitors etc.) prin
+   currentColor — un singur set de reguli valabil peste tot unde apar. */
+.stars-svg{display:inline-flex;align-items:center;gap:1px;vertical-align:middle;}
+.star-ico{width:1em;height:1em;flex-shrink:0;display:block;}
+.star-ico-empty{opacity:0.45;}
+.star-ico-half{position:relative;width:1em;height:1em;display:inline-block;flex-shrink:0;}
+.star-ico-half svg{position:absolute;top:0;left:0;width:100%;height:100%;}
+.star-ico-half .star-ico-empty{opacity:0.45;}
+.star-ico-half .star-ico-half-fill{clip-path:inset(0 50% 0 0);}
 /* Fără eticheta asta, stelele de pe card puteau fi citite ca o medie a
    vizitatoarelor (ca pe orice alt site) — sunt nota personală a Deei. */
 .post-rating{display:flex;align-items:baseline;gap:5px;}
@@ -450,6 +475,25 @@ img{max-width:100%;display:block;}
 .d-brand{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.05em;margin-top:12px;}
 .d-name{font-size:23px;font-weight:800;margin-top:4px;font-family:'Fraunces';}
 .d-shade{font-size:12.5px;color:var(--maroon);opacity:0.65;margin-top:5px;}
+.tag-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.tag-chip{
+  font-size:10.5px;font-weight:600;color:var(--maroon);opacity:0.75;
+  background:var(--pink-soft);padding:4px 11px;border-radius:100px;
+}
+/* Structurat, nu proză — răspunde direct la "merită banii?" fără să
+   trebuiască să citești tot paragraful liber de mai jos. */
+.verdict-card{
+  margin-top:16px;background:var(--white);border:2px solid var(--line);
+  border-radius:16px;padding:14px 16px;
+}
+.verdict-card-title{
+  font-size:11px;font-weight:700;color:var(--maroon);opacity:0.55;
+  text-transform:uppercase;letter-spacing:0.03em;margin-bottom:10px;
+}
+.verdict-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));gap:12px 16px;}
+.verdict-item{display:flex;flex-direction:column;gap:2px;}
+.verdict-label{font-size:10.5px;color:var(--maroon);opacity:0.55;}
+.verdict-value{font-size:13.5px;font-weight:700;color:var(--maroon);}
 .d-rating{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   margin-top:14px;padding:13px 15px;
@@ -546,7 +590,17 @@ select.field{appearance:none;}
    două să nu se confunde dintr-o privire pe pagina de produs. */
 .comment-stars{color:var(--pink);font-size:12px;}
 .comment-text{font-size:12.5px;color:var(--maroon);opacity:0.75;margin-top:4px;line-height:1.5;}
+.comment-photo-link{display:inline-block;margin-top:8px;}
+.comment-photo{
+  width:84px;height:84px;object-fit:cover;border-radius:14px;
+  border:2px solid var(--line);
+}
 .no-comments{font-size:12.5px;color:var(--maroon);opacity:0.55;padding:10px 0;}
+.comment-photo-label{
+  display:block;margin-top:10px;font-size:11.5px;font-weight:600;
+  color:var(--maroon);opacity:0.6;
+}
+.field-file{padding:8px 12px;font-size:11.5px;}
 .form-error{color:#8A1F1F;}
 
 /* Seal (TESTED BY DEEA) */
@@ -693,4 +747,62 @@ footer.site-footer{
   footer.site-footer{max-width:1040px;}
   .card-grid{grid-template-columns:repeat(3, 1fr);}
   .hero-product{height:400px;}
+}
+
+/* Rezumatul anului ("wrapped") */
+.recap-hero{
+  margin:4px 22px 18px;padding:28px 20px;text-align:center;
+  background:var(--maroon);border-radius:22px;color:var(--cream);
+}
+.recap-hero-number{font-family:'Fraunces';font-size:52px;font-weight:800;line-height:1;color:var(--gold);}
+.recap-hero-label{font-size:13px;margin-top:8px;opacity:0.85;}
+.recap-grid{
+  display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+  gap:12px;margin:0 22px 16px;
+}
+.recap-stat{
+  background:var(--white);border:2px solid var(--line);border-radius:18px;
+  padding:14px 16px;
+}
+.recap-stat-label{font-size:10.5px;font-weight:700;color:var(--maroon);opacity:0.55;text-transform:uppercase;letter-spacing:0.03em;}
+.recap-stat-value{font-size:17px;font-weight:800;font-family:'Fraunces';color:var(--maroon);margin-top:6px;display:flex;align-items:center;gap:6px;}
+.recap-stat-sub{font-size:11.5px;color:var(--maroon);opacity:0.65;margin-top:3px;}
+.recap-stat-sub a{color:var(--pink);font-weight:600;}
+.recap-footer-link{padding:8px 22px 4px;}
+
+/* Dark mode — după preferința sistemului, fără buton de comutare manuală.
+   --cream/--white (suprafețe deschise) și --maroon/--pink-soft (text/panouri
+   închise) sunt gândite ca perechi de contrast opuse — le inversăm împreună,
+   ca fiecare pereche existentă în CSS să rămână la fel de lizibilă, doar cu
+   sensul întors. --pink și --gold nu se schimbă: la luminozitate medie,
+   funcționează la fel de bine pe fundal deschis sau închis. */
+@media (prefers-color-scheme: dark){
+  :root{
+    --cream:#1C1014;
+    --white:#2A1720;
+    --maroon:#F3DDE6;
+    --pink:#FF86B3;
+    --pink-soft:#3A1F2C;
+    --line:#4E2C3C;
+  }
+  body{background:#120A0D;}
+
+  /* Excepții: suprafețe gândite ca „bandou închis la culoare" intenționat
+     (nu doar fundal obișnuit care se întâmplă să fie maro) — rămân închise
+     și pe tema întunecată, altfel s-ar inversa în benzi deschise pe o
+     pagină deja închisă, pierzând exact contrastul pentru care există. */
+  footer.site-footer,
+  .recap-hero,
+  .milestone-banner-inner,
+  .glow-toast{
+    background:#3A1220;color:#F8E9EE;
+  }
+  .recap-hero-number{color:var(--gold);}
+  footer.site-footer .footer-social a{color:#FFD6E8;}
+  footer.site-footer .footer-social a:hover{color:var(--gold);}
+
+  /* Insigne pe fundal auriu — auriul nu urmează tema, deci textul de pe
+     el trebuie să rămână mereu închis la culoare, indiferent ce devine
+     --maroon (text-ul obișnuit) în dark mode. */
+  .sticker,.badge-recumpar,.share-btn.copied{color:#3D2408;}
 }

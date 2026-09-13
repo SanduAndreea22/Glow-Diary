@@ -54,9 +54,11 @@ class CommentForm(HoneypotFormMixin, forms.ModelForm):
         error_messages={"required": "Scrie câteva cuvinte despre experiența ta."},
     )
 
+    imagine = forms.ImageField(label="Poză (opțional)", required=False)
+
     class Meta:
         model = Comment
-        fields = ["nume", "nota", "comentariu"]
+        fields = ["nume", "nota", "comentariu", "imagine"]
 
     def clean_comentariu(self):
         comentariu = self.cleaned_data.get("comentariu", "").strip()

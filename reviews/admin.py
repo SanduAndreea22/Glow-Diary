@@ -3,13 +3,13 @@ from django.shortcuts import redirect, render
 from django.urls import path
 
 from .forms import CollectionAdminForm, ProductAdminForm, ProductBulkFormSet
-from .models import Collection, Comment, ContactMessage, Product, ProductImage
+from .models import Collection, Comment, ContactMessage, Product, ProductImage, Tag
 
 
 class CommentInline(admin.TabularInline):
     model = Comment
     extra = 0
-    fields = ("nume", "nota", "comentariu", "aprobat", "data")
+    fields = ("nume", "nota", "comentariu", "imagine", "aprobat", "data")
     readonly_fields = ("data",)
 
 
@@ -28,12 +28,27 @@ def restaureaza_produse(modeladmin, request, queryset):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
-    list_display = ("nume", "brand", "categorie", "nota_mea", "activ", "data_postarii")
-    list_filter = ("activ", "categorie", "nota_mea")
+    list_display = (
+        "nume", "brand", "categorie", "nota_mea", "pret", "il_recumpar", "activ", "data_postarii",
+    )
+    list_filter = ("activ", "categorie", "nota_mea", "il_recumpar", "tag_uri")
     search_fields = ("nume", "brand", "nuanta")
+    filter_horizontal = ("tag_uri",)
     inlines = [ProductImageInline, CommentInline]
     change_list_template = "admin/reviews/product/change_list.html"
     actions = ["delete_selected", restaureaza_produse]
+    fieldsets = (
+        (None, {
+            "fields": (
+                "nume", "brand", "categorie", "nuanta", "sursa", "poza", "slug",
+            ),
+        }),
+        ("Verdict", {
+            "fields": ("nota_mea", "parerea_mea", "pret", "il_recumpar", "tine_cat", "pentru_cine"),
+        }),
+        ("Filtrare", {"fields": ("tag_uri",)}),
+        ("Vizibilitate", {"fields": ("activ",)}),
+    )
 
     def get_prepopulated_fields(self, request, obj=None):
         # Doar la creare — altfel JS-ul de prepopulare rescrie slug-ul live
@@ -104,10 +119,21 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ("product", "nume", "nota", "aprobat", "data")
+    list_display = ("product", "nume", "nota", "are_poza", "aprobat", "data")
     list_filter = ("aprobat", "nota")
     search_fields = ("nume", "comentariu")
     autocomplete_fields = ["product"]
+
+    @admin.display(description="Poză", boolean=True)
+    def are_poza(self, obj):
+        return bool(obj.imagine)
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ("nume", "slug")
+    search_fields = ("nume",)
+    prepopulated_fields = {"slug": ("nume",)}
 
 
 @admin.register(Collection)

@@ -7,10 +7,12 @@ from .api import FavoritesDataView, SearchDataView
 from .collections import CollectionDetailView, CollectionListView
 from .feed import FeedView
 from .product import ProductDetailView, ProductStoryImageView
+from .recap import AnRecapView
 from .static_pages import AboutView, ContactView, FavoritesView, csrf_failure
 
 __all__ = [
     "AboutView",
+    "AnRecapView",
     "CollectionDetailView",
     "CollectionListView",
     "ContactView",

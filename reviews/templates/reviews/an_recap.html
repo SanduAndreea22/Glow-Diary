@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static glow_extras %}
+
+{% block title %}Rezumatul anului {{ an }} · Glow Diary by Deea{% endblock %}
+{% block meta_description %}Ce am testat în {{ an }} pe Glow Diary — pe scurt, în cifre.{% endblock %}
+
+{% block content %}
+<div class="feed-title">Rezumatul anului {{ an }}</div>
+<div class="feed-tag">Ce am testat, pe scurt — generat automat din recenziile de aici.</div>
+
+{% if not are_destule_date %}
+<div class="empty-state">
+  <div class="empty-state-icon">🎁</div>
+  {% if total_produse %}
+  Anul {{ an }} are deocamdată doar {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} — prea puține pentru un rezumat cu sens. Revino mai încolo!
+  {% else %}
+  N-am testat încă niciun produs în {{ an }}.
+  {% endif %}
+  <div><a href="{% url 'reviews:feed' %}" class="submit-btn submit-btn-link">Vezi ultimele încercări →</a></div>
+</div>
+{% else %}
+
+<div class="recap-hero">
+  <div class="recap-hero-number">{{ total_produse }}</div>
+  <div class="recap-hero-label">produse testate în {{ an }}</div>
+</div>
+
+<div class="recap-grid">
+  {% if medie_generala %}
+  <div class="recap-stat">
+    <div class="recap-stat-label">Nota medie</div>
+    <div class="recap-stat-value"><span class="stars">{% stars_svg medie_generala %}</span> {{ medie_generala }}</div>
+  </div>
+  {% endif %}
+
+  {% if brand_preferat %}
+  <div class="recap-stat">
+    <div class="recap-stat-label">Brandul preferat</div>
+    <div class="recap-stat-value">{{ brand_preferat.brand }}</div>
+    <div class="recap-stat-sub">{{ brand_preferat.total }} produs{% if brand_preferat.total != 1 %}e{% endif %} testat{% if brand_preferat.total != 1 %}e{% endif %}</div>
+  </div>
+  {% endif %}
+
+  {% if categorie_preferata %}
+  <div class="recap-stat">
+    <div class="recap-stat-label">Categoria cea mai testată</div>
+    <div class="recap-stat-value">{{ categorie_preferata }}</div>
+    <div class="recap-stat-sub">{{ categorie_preferata_total }} produse</div>
+  </div>
+  {% endif %}
+
+  {% if total_cheltuit %}
+  <div class="recap-stat">
+    <div class="recap-stat-label">Cheltuit pe produsele testate</div>
+    <div class="recap-stat-value">{{ total_cheltuit }} lei</div>
+  </div>
+  {% endif %}
+
+  <div class="recap-stat">
+    <div class="recap-stat-label">Le-aș recumpăra</div>
+    <div class="recap-stat-value">{{ recumparate_total }} din {{ total_produse }}</div>
+  </div>
+
+  {% if cel_mai_scump %}
+  <div class="recap-stat">
+    <div class="recap-stat-label">Cel mai scump produs</div>
+    <div class="recap-stat-value">{{ cel_mai_scump.pret }} lei</div>
+    <div class="recap-stat-sub"><a href="{{ cel_mai_scump.get_absolute_url }}">{{ cel_mai_scump.brand }} — {{ cel_mai_scump.nume }}</a></div>
+  </div>
+  {% endif %}
+</div>
+
+{% if top_produse %}
+<div class="divider divider-inset"></div>
+<div class="feed-title feed-title-sub">Cel mai bine notate</div>
+<div class="card-grid">
+  {% for produs in top_produse %}
+    {% include "reviews/_product_card.html" with produs=produs show_details=False snippet_words=14 %}
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if cele_mai_comentate %}
+<div class="divider divider-inset"></div>
+<div class="feed-title feed-title-sub">Cele mai comentate de voi</div>
+<div class="card-grid">
+  {% for produs in cele_mai_comentate %}
+    {% include "reviews/_product_card.html" with produs=produs show_details=True snippet_words=14 %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="recap-footer-link"><a href="{% url 'reviews:feed' %}" class="back-link">&larr; înapoi la ultimele încercări</a></div>
+{% endif %}
+{% endblock %}

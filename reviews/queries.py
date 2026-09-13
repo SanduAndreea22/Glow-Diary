@@ -2,12 +2,13 @@
 căutare/favorite) — un singur loc, ca ele să nu poată desincroniza."""
 
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
 
 from django.core.cache import cache
 from django.db.models import Count, Q
 from django.utils import timezone
 
-from .models import Product
+from .models import Product, Tag
 
 FEED_STATS_CACHE_TTL = 300  # 5 minute
 # Sub acest prag, un contor de tip "X produse testate" atrage atenția exact
@@ -30,6 +31,8 @@ def filtreaza_produse(qs, request):
     categorie = request.GET.get("categorie", "").strip()
     nota_min = request.GET.get("nota_min", "").strip()
     sursa = request.GET.get("sursa", "").strip()
+    tag = request.GET.get("tag", "").strip()
+    pret_max = request.GET.get("pret_max", "").strip()
     sort = request.GET.get("sort", "").strip()
 
     if q:
@@ -43,6 +46,13 @@ def filtreaza_produse(qs, request):
             pass
     if sursa:
         qs = qs.filter(sursa=sursa)
+    if tag:
+        qs = qs.filter(tag_uri__slug=tag)
+    if pret_max:
+        try:
+            qs = qs.filter(pret__lte=Decimal(pret_max))
+        except InvalidOperation:
+            pass
 
     return qs.order_by(*SORT_OPTIONS.get(sort, SORT_OPTIONS[DEFAULT_SORT]))
 
@@ -78,10 +88,13 @@ def feed_stats():
         ultimul = active.order_by("-data_postarii").values_list(
             "data_postarii", flat=True
         ).first()
+        an_curent = timezone.now().year
         stats = {
             "produsul_lunii_id": produsul_lunii(),
             "total_produse": active.count(),
             "ultima_actualizare": ultimul,
+            "an_curent": an_curent,
+            "an_curent_total": active.filter(data_postarii__year=an_curent).count(),
             "categorii_cu_produse": set(
                 active.values_list("categorie", flat=True).distinct()
             ),
@@ -90,6 +103,12 @@ def feed_stats():
                 .order_by("sursa")
                 .values_list("sursa", flat=True)
                 .distinct()
+            ),
+            "tag_uri": list(
+                Tag.objects.filter(produse__in=active)
+                .distinct()
+                .order_by("nume")
+                .values_list("slug", "nume")
             ),
         }
         cache.set("feed-stats", stats, FEED_STATS_CACHE_TTL)

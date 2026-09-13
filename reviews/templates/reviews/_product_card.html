@@ -1,4 +1,4 @@
-{% load humanize %}
+{% load humanize glow_extras %}
 <div class="post-wrap">
   <a href="{{ produs.get_absolute_url }}" class="post">
     <div class="post-photo">
@@ -10,11 +10,12 @@
       <div class="post-brand">{{ produs.brand }}</div>
       <div class="post-name">{{ produs.nume }}</div>
       <div class="post-cat">{{ produs.get_categorie_display }}</div>
+      {% if produs.il_recumpar %}<div class="badge-recumpar">↻ Îl recumpăr</div>{% endif %}
       {% if show_details %}
       {% if produs.nuanta %}<div class="post-shade">Nuanță: {{ produs.nuanta }}</div>{% endif %}
       {% if produs.sursa %}<div class="post-source">Cumpărat de la {{ produs.sursa }}</div>{% endif %}
       {% endif %}
-      <div class="post-rating"><span class="stars">{{ produs.stele }}</span><span class="post-rating-label">nota mea</span></div>
+      <div class="post-rating"><span class="stars">{% stars_svg produs.nota_mea %}</span><span class="post-rating-label">nota mea</span></div>
       {% if show_details %}
       <div class="post-meta">{{ produs.data_postarii|naturaltime }}{% if produs.comment_count %} · 💬 {{ produs.comment_count }} păreri{% endif %}</div>
       {% endif %}

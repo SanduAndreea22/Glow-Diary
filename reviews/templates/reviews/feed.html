@@ -12,6 +12,9 @@
 {% elif ultima_actualizare %}
 <div class="stat-chip">✨ Actualizat {{ ultima_actualizare|naturaltime|lower }}</div>
 {% endif %}
+{% if an_recap_an %}
+<a href="{% url 'reviews:an_recap' an=an_recap_an %}" class="stat-chip stat-chip-link">🎁 Vezi rezumatul anului {{ an_recap_an }}</a>
+{% endif %}
 
 <div class="search-filters-row">
 <form class="search-bar" method="get">
@@ -20,6 +23,8 @@
   {% if categorie_activa %}<input type="hidden" name="categorie" value="{{ categorie_activa }}">{% endif %}
   {% if nota_min_activa %}<input type="hidden" name="nota_min" value="{{ nota_min_activa }}">{% endif %}
   {% if sursa_activa %}<input type="hidden" name="sursa" value="{{ sursa_activa }}">{% endif %}
+  {% if tag_activ %}<input type="hidden" name="tag" value="{{ tag_activ }}">{% endif %}
+  {% if pret_max_activ %}<input type="hidden" name="pret_max" value="{{ pret_max_activ }}">{% endif %}
   {% if sort_activ != "recent" %}<input type="hidden" name="sort" value="{{ sort_activ }}">{% endif %}
   <button type="submit">Caută</button>
 </form>
@@ -67,6 +72,28 @@
       </select>
     </div>
     {% endif %}
+
+    {% if tag_uri_disponibile %}
+    <div class="filter-row">
+      <label for="filter-tag">Tag</label>
+      <select name="tag" id="filter-tag">
+        <option value=""{% if not tag_activ %} selected{% endif %}>Orice tag</option>
+        {% for slug, nume in tag_uri_disponibile %}
+        <option value="{{ slug }}"{% if tag_activ == slug %} selected{% endif %}>{{ nume }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div class="filter-row">
+      <label for="filter-pret">Preț</label>
+      <select name="pret_max" id="filter-pret">
+        <option value=""{% if not pret_max_activ %} selected{% endif %}>Orice preț</option>
+        <option value="50"{% if pret_max_activ == "50" %} selected{% endif %}>Sub 50 lei</option>
+        <option value="100"{% if pret_max_activ == "100" %} selected{% endif %}>Sub 100 lei</option>
+        <option value="200"{% if pret_max_activ == "200" %} selected{% endif %}>Sub 200 lei</option>
+      </select>
+    </div>
 
     <div class="filter-row">
       <label for="filter-sort">Sortează</label>
@@ -171,10 +198,14 @@
       var categorie = document.querySelector('[name="categorie"]');
       var notaMin = document.querySelector('[name="nota_min"]');
       var sursa = document.querySelector('[name="sursa"]');
+      var tag = document.querySelector('[name="tag"]');
+      var pretMax = document.querySelector('[name="pret_max"]');
       var sort = document.querySelector('[name="sort"]');
       if (categorie) params.set('categorie', categorie.value);
       if (notaMin && notaMin.value) params.set('nota_min', notaMin.value);
       if (sursa && sursa.value) params.set('sursa', sursa.value);
+      if (tag && tag.value) params.set('tag', tag.value);
+      if (pretMax && pretMax.value) params.set('pret_max', pretMax.value);
       if (sort && sort.value) params.set('sort', sort.value);
       return params;
     };

@@ -1,3 +1,23 @@
+/* Randare de stele SVG identică (același path) cu varianta server-side
+   (`stars_svg` din reviews/templatetags/glow_extras.py) — un singur loc
+   care știe cum arată o stea, ca cele două căi de randare a unui card
+   (Django, aici din JS) să nu poată diverge vizual. Notele produsului sunt
+   mereu întregi (1-5), deci fără jumătăți de stea aici. */
+var GlowStars = {
+  PATH: "M12 2.5l2.95 6.02 6.65.97-4.8 4.68 1.13 6.62L12 17.7l-5.93 3.12 1.13-6.62-4.8-4.68 6.65-.97z",
+  render: function (value, max) {
+    max = max || 5;
+    var full = Math.max(0, Math.min(max, Math.round(value)));
+    var html = "";
+    for (var i = 0; i < max; i++) {
+      html += i < full
+        ? '<svg class="star-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="' + this.PATH + '" fill="currentColor"/></svg>'
+        : '<svg class="star-ico star-ico-empty" viewBox="0 0 24 24" aria-hidden="true"><path d="' + this.PATH + '" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+    }
+    return '<span class="stars-svg" role="img" aria-label="' + full + ' din ' + max + ' stele">' + html + "</span>";
+  },
+};
+
 /* Construiește markup-ul unui card de produs din datele JSON (folosit de
    Favorite și de căutarea live) — un singur loc pentru acest HTML. */
 var GlowCards = {
@@ -16,9 +36,10 @@ var GlowCards = {
             '<div class="post-brand">' + esc(p.brand) + "</div>" +
             '<div class="post-name">' + esc(p.nume) + "</div>" +
             '<div class="post-cat">' + esc(p.categorie) + "</div>" +
+            (p.il_recumpar ? '<div class="badge-recumpar">↻ Îl recumpăr</div>' : "") +
             (p.nuanta ? '<div class="post-shade">Nuanță: ' + esc(p.nuanta) + "</div>" : "") +
             (p.sursa ? '<div class="post-source">Cumpărat de la ' + esc(p.sursa) + "</div>" : "") +
-            '<div class="post-rating"><span class="stars">' + esc(p.stele) + '</span><span class="post-rating-label">nota mea</span></div>' +
+            '<div class="post-rating"><span class="stars">' + GlowStars.render(p.nota) + '</span><span class="post-rating-label">nota mea</span></div>' +
             (p.postat ? '<div class="post-meta">' + esc(p.postat) + (p.comment_count ? " · 💬 " + esc(p.comment_count) + " păreri" : "") + "</div>" : "") +
             '<div class="post-snippet">' + esc(p.snippet) + "</div>" +
           "</div>" +

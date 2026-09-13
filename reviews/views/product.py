@@ -109,7 +109,7 @@ class ProductDetailView(DetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = CommentForm(request.POST)
+        form = CommentForm(request.POST, request.FILES)
         ip = client_ip(request)
 
         # cache.add e atomic: „ocupă" lacătul doar dacă nu exista deja — spre
@@ -141,7 +141,7 @@ class ProductDetailView(DetailView):
         # nu a fost o postare reală (validare eșuată/honeypot) — eliberăm lacătul
         cache.delete(cache_key)
 
-        if not form.errors.get("comentariu") and not form.errors.get("nume"):
+        if not any(form.errors.get(f) for f in ("comentariu", "nume", "imagine")):
             # eroare "ascunsă" (honeypot) — mesaj generic, fără să dezvăluim mecanismul
             messages.error(request, "Nu am putut trimite comentariul — mai încearcă o dată.")
             return redirect(self.object.get_absolute_url())

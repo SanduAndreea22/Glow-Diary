@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static glow_extras %}
 
 {% block title %}{{ produs.nume }} — {{ produs.brand }} · Glow Diary by Deea{% endblock %}
 {% block meta_description %}{{ produs.parerea_mea|truncatewords:25 }}{% endblock %}
@@ -41,6 +41,12 @@
   <div class="d-brand">{{ produs.brand }}</div>
   <div class="d-name">{{ produs.nume }}</div>
   <div class="post-cat">{{ produs.get_categorie_display }}</div>
+  {% if produs.il_recumpar %}<div class="badge-recumpar">↻ Îl recumpăr</div>{% endif %}
+  {% if produs.tag_uri.all %}
+  <div class="tag-chips">
+    {% for tag in produs.tag_uri.all %}<span class="tag-chip">{{ tag.nume }}</span>{% endfor %}
+  </div>
+  {% endif %}
   <div class="d-shade">
     {% if produs.nuanta %}Nuanță: {{ produs.nuanta }}{% endif %}
     {% if produs.nuanta and produs.sursa %} · {% endif %}
@@ -48,15 +54,36 @@
   </div>
 
   <div class="d-rating">
-    <span class="stars">{{ produs.stele }}</span>
+    <span class="stars">{% stars_svg produs.nota_mea %}</span>
     <div class="d-rating-label">nota mea</div>
     {% if nota_cititoarelor %}
     <div class="d-rating-visitors">
-      <span>★ {{ nota_cititoarelor }}</span>
+      <span class="stars">{% stars_svg nota_cititoarelor %}</span>
+      <span>{{ nota_cititoarelor }}</span>
       <span class="d-rating-label">cititoarele ({{ nota_cititoarelor_total }})</span>
     </div>
     {% endif %}
   </div>
+
+  {% if produs.pret or produs.tine_cat or produs.pentru_cine or produs.il_recumpar is not None %}
+  <div class="verdict-card">
+    <div class="verdict-card-title">Pe scurt</div>
+    <div class="verdict-grid">
+      {% if produs.pret %}
+      <div class="verdict-item"><span class="verdict-label">Preț</span><span class="verdict-value">{{ produs.pret }} lei</span></div>
+      {% endif %}
+      {% if produs.il_recumpar is not None %}
+      <div class="verdict-item"><span class="verdict-label">Îl recumpăr?</span><span class="verdict-value">{% if produs.il_recumpar %}Da ✓{% else %}Nu{% endif %}</span></div>
+      {% endif %}
+      {% if produs.tine_cat %}
+      <div class="verdict-item"><span class="verdict-label">Cât ține</span><span class="verdict-value">{{ produs.tine_cat }}</span></div>
+      {% endif %}
+      {% if produs.pentru_cine %}
+      <div class="verdict-item"><span class="verdict-label">Recomandat pentru</span><span class="verdict-value">{{ produs.pentru_cine }}</span></div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
 
   <div class="my-take">
     <div class="my-take-label">Părerea mea</div>
@@ -65,7 +92,7 @@
 
   <div class="divider"></div>
 
-  <form class="comment-form" method="post">
+  <form class="comment-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="comment-q">L-ai încercat și tu? Cum ți s-a părut?</div>
 
@@ -84,6 +111,10 @@
     <textarea class="field" name="comentariu" rows="3" placeholder="Scrie părerea ta...">{{ form.comentariu.value|default:'' }}</textarea>
     {% if form.comentariu.errors %}<div class="no-comments form-error">{{ form.comentariu.errors.0 }}</div>{% endif %}
 
+    <label class="comment-photo-label" for="id_imagine">📷 Adaugă o poză (opțional)</label>
+    <input class="field field-file" type="file" name="imagine" id="id_imagine" accept="image/*">
+    {% if form.imagine.errors %}<div class="no-comments form-error">{{ form.imagine.errors.0 }}</div>{% endif %}
+
     <button type="submit" class="submit-btn">Trimite părerea</button>
   </form>
 
@@ -94,9 +125,14 @@
   <div class="comment-item">
     <div class="comment-top">
       <div class="comment-name">{{ comentariu.nume|default:"anonim" }}</div>
-      {% if comentariu.nota %}<div class="comment-stars">{{ comentariu.stele }}</div>{% endif %}
+      {% if comentariu.nota %}<div class="comment-stars">{% stars_svg comentariu.nota %}</div>{% endif %}
     </div>
     <div class="comment-text">{{ comentariu.comentariu }}</div>
+    {% if comentariu.imagine %}
+    <a href="{{ comentariu.imagine.url }}" target="_blank" rel="noopener noreferrer" class="comment-photo-link">
+      <img src="{{ comentariu.imagine.url }}" alt="Poză de la {{ comentariu.nume|default:'anonim' }}" class="comment-photo" loading="lazy">
+    </a>
+    {% endif %}
   </div>
   {% empty %}
   <div class="no-comments">Fii prima care lasă o părere despre acest produs.</div>

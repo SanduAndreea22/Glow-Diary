@@ -7,10 +7,12 @@ from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from PIL import Image
 
-from .models import Collection, Comment, ContactMessage, Product
+from .models import Collection, Comment, ContactMessage, Product, Tag
 from .story_image import render_story_png
+from .templatetags.glow_extras import stars_svg
 
 # Testele fac cereri HTTP simple (fără TLS) — fără asta, ele pică cu 301 când
 # rulate în afara lui DEBUG=True (unde SECURE_SSL_REDIRECT devine implicit True),
@@ -547,3 +549,149 @@ class ProductBulkAddAdminTests(TestCase):
         self.assertEqual(Product.objects.count(), 2)
         self.assertTrue(Product.objects.filter(brand="Rare Beauty").exists())
         self.assertTrue(Product.objects.filter(brand="Fenty Beauty").exists())
+
+
+class StarsSvgTagTests(TestCase):
+    def test_valoare_intreaga_da_stele_pline_si_goale(self):
+        html = stars_svg(3)
+        self.assertEqual(html.count("star-ico-empty"), 2)
+        self.assertEqual(html.count('class="star-ico"'), 3)
+        self.assertNotIn("star-ico-half", html)
+
+    def test_valoare_fractionara_da_o_jumatate_de_stea(self):
+        html = stars_svg(4.6)
+        self.assertIn("star-ico-half", html)
+
+    def test_valoare_in_afara_intervalului_e_limitata(self):
+        html = stars_svg(9)
+        self.assertEqual(html.count('class="star-ico"'), 5)
+        self.assertNotIn("star-ico-empty", html)
+
+
+@_no_ssl_redirect
+class VerdictFieldsTests(TestCase):
+    def test_recumpar_adevarat_arata_badge_si_da(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=5, parerea_mea="a",
+            pret="99.90", il_recumpar=True, tine_cat="8 ore",
+        )
+        r = self.client.get(produs.get_absolute_url())
+        self.assertContains(r, "badge-recumpar")
+        self.assertContains(r, "99,90 lei")
+        self.assertContains(r, "Da ✓")
+        self.assertContains(r, "8 ore")
+
+    def test_recumpar_fals_arata_nu_fara_badge(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            il_recumpar=False,
+        )
+        r = self.client.get(produs.get_absolute_url())
+        self.assertNotContains(r, "badge-recumpar")
+        self.assertContains(r, "Îl recumpăr?")
+
+    def test_recumpar_nedecis_nu_arata_nici_da_nici_nu(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+        )
+        r = self.client.get(produs.get_absolute_url())
+        self.assertNotContains(r, "badge-recumpar")
+        self.assertNotContains(r, "verdict-card")
+
+    def test_tag_uri_apar_pe_pagina_produsului(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+        )
+        produs.tag_uri.add(Tag.objects.get_or_create(nume="Vegan")[0])
+        r = self.client.get(produs.get_absolute_url())
+        self.assertContains(r, "Vegan")
+
+
+@_no_ssl_redirect
+class TagSiPretFilterTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.ieftin = Product.objects.create(
+            nume="Ieftin", brand="A", categorie="ruj", nota_mea=4, parerea_mea="x", pret="40",
+        )
+        self.scump = Product.objects.create(
+            nume="Scump", brand="B", categorie="ruj", nota_mea=4, parerea_mea="x", pret="250",
+        )
+        self.vegan_tag = Tag.objects.get_or_create(nume="Vegan")[0]
+        self.ieftin.tag_uri.add(self.vegan_tag)
+
+    def test_filtru_tag_in_feed(self):
+        r = self.client.get(reverse("reviews:feed"), {"tag": self.vegan_tag.slug})
+        self.assertContains(r, "Ieftin")
+        self.assertNotContains(r, "Scump")
+
+    def test_filtru_pret_max_in_feed(self):
+        r = self.client.get(reverse("reviews:feed"), {"pret_max": "100"})
+        self.assertContains(r, "Ieftin")
+        self.assertNotContains(r, "Scump")
+
+    def test_filtru_tag_in_api_cautare(self):
+        r = self.client.get(reverse("reviews:search_data"), {"tag": self.vegan_tag.slug})
+        slugs = [p["slug"] for p in r.json()["produse"]]
+        self.assertEqual(slugs, [self.ieftin.slug])
+
+    def test_json_api_trimite_nota_numerica(self):
+        r = self.client.get(reverse("reviews:search_data"))
+        primul = r.json()["produse"][0]
+        self.assertIn("nota", primul)
+        self.assertIn("il_recumpar", primul)
+        self.assertNotIn("stele", primul)
+
+
+@_no_ssl_redirect
+class ComentariuCuPozaTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+        )
+
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_poza_atasata_se_salveaza_si_apare(self):
+        r = self.client.post(self.produs.get_absolute_url(), {
+            "nume": "Ana", "nota": "5", "comentariu": "Super, uite poza!",
+            "website": "", "imagine": _poza_falsa(500, 500, nume="comentariu.jpg"),
+        })
+        self.assertRedirects(r, self.produs.get_absolute_url())
+        comentariu = Comment.objects.get(product=self.produs)
+        self.assertTrue(comentariu.imagine)
+
+        r2 = self.client.get(self.produs.get_absolute_url())
+        self.assertContains(r2, "comment-photo")
+
+    def test_fara_poza_ramane_optional(self):
+        r = self.client.post(self.produs.get_absolute_url(), {
+            "nume": "Ana", "nota": "5", "comentariu": "Fără poză, tot bine.", "website": "",
+        })
+        self.assertRedirects(r, self.produs.get_absolute_url())
+        self.assertEqual(Comment.objects.filter(product=self.produs).count(), 1)
+
+
+@_no_ssl_redirect
+class AnRecapTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_sub_prag_arata_mesaj_prietenos_nu_eroare(self):
+        Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+        )
+        r = self.client.get(reverse("reviews:an_recap", args=[timezone.now().year]))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "prea puține")
+
+    def test_peste_prag_arata_statistici(self):
+        for i in range(10):
+            Product.objects.create(
+                nume=f"Produs {i}", brand="Rare Beauty", categorie="blush",
+                nota_mea=5, parerea_mea="x", pret="50", il_recumpar=(i % 2 == 0),
+            )
+        r = self.client.get(reverse("reviews:an_recap", args=[timezone.now().year]))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Rare Beauty")
+        self.assertContains(r, "10")

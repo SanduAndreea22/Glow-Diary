@@ -28,9 +28,12 @@ class FeedView(ListView):
         ctx["categorie_activa"] = self.request.GET.get("categorie", "")
         ctx["nota_min_activa"] = self.request.GET.get("nota_min", "")
         ctx["sursa_activa"] = self.request.GET.get("sursa", "")
+        ctx["tag_activ"] = self.request.GET.get("tag", "")
+        ctx["pret_max_activ"] = self.request.GET.get("pret_max", "")
         ctx["sort_activ"] = self.request.GET.get("sort", "") or DEFAULT_SORT
         ctx["filtre_active"] = bool(
-            ctx["nota_min_activa"] or ctx["sursa_activa"] or self.request.GET.get("sort", "")
+            ctx["nota_min_activa"] or ctx["sursa_activa"] or ctx["tag_activ"]
+            or ctx["pret_max_activ"] or self.request.GET.get("sort", "")
         )
         stats = feed_stats()
         ctx["produsul_lunii_id"] = stats["produsul_lunii_id"]
@@ -38,6 +41,9 @@ class FeedView(ListView):
         ctx["ultima_actualizare"] = stats["ultima_actualizare"]
         ctx["arata_contor_produse"] = stats["total_produse"] >= MIN_PRODUSE_PENTRU_CONTOR
         ctx["surse"] = stats["surse"]
+        ctx["tag_uri_disponibile"] = stats["tag_uri"]
+        if stats["an_curent_total"] >= MIN_PRODUSE_PENTRU_CONTOR:
+            ctx["an_recap_an"] = stats["an_curent"]
 
         extra = self.request.GET.copy()
         extra.pop("page", None)

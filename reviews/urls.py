@@ -11,6 +11,7 @@ urlpatterns = [
     path("colectii/", views.CollectionListView.as_view(), name="collections"),
     path("colectii/<slug:slug>/", views.CollectionDetailView.as_view(), name="collection_detail"),
     path("favorite/", views.FavoritesView.as_view(), name="favorites"),
+    path("an/<int:an>/", views.AnRecapView.as_view(), name="an_recap"),
     path("api/favorite-data/", views.FavoritesDataView.as_view(), name="favorites_data"),
     path("api/search/", views.SearchDataView.as_view(), name="search_data"),
     path("despre/", views.AboutView.as_view(), name="about"),
