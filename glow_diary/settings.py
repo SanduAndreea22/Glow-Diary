@@ -239,8 +239,12 @@ if not ADMIN_URL.endswith("/"):
 
 
 # Linkuri social afișate în footer — opționale. Necompletate, iconițele
-# nu apar deloc (nu linkuim către profiluri inexistente).
-INSTAGRAM_URL = os.environ.get("INSTAGRAM_URL", "")
+# nu apar deloc (nu linkuim către profiluri inexistente). Instagram are
+# valoare implicită (contul real al Deei); poate fi schimbat oricând din
+# variabila de mediu INSTAGRAM_URL, fără cod nou.
+INSTAGRAM_URL = os.environ.get(
+    "INSTAGRAM_URL", "https://www.instagram.com/s_andreea_22"
+)
 TIKTOK_URL = os.environ.get("TIKTOK_URL", "")
 
 
