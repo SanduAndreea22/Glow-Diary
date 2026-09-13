@@ -1,6 +1,7 @@
 /* Wishlist locală, fără cont — salvat doar în browserul vizitatoarei (localStorage). */
 var GlowFavorites = {
   KEY: "glow-diary-favorites",
+  BURST_DURATA_MS: 500,
 
   /* Escapare defensivă înainte de a injecta text în innerHTML (chiar dacă azi
      datele vin doar din câmpuri completate de Deea în admin, nu din input
@@ -45,6 +46,7 @@ var GlowFavorites = {
 
   burst: function (btn) {
     var colors = ["#FF6FA5", "#E8B84B", "#7A1E3D"];
+    var burstDurataMs = this.BURST_DURATA_MS;
     for (var i = 0; i < 6; i++) {
       var p = document.createElement("span");
       p.className = "heart-burst-particle";
@@ -57,7 +59,7 @@ var GlowFavorites = {
       (function (el) {
         setTimeout(function () {
           el.remove();
-        }, 500);
+        }, burstDurataMs);
       })(p);
     }
   },

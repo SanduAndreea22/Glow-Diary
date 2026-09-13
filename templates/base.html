@@ -21,6 +21,11 @@
 <meta name="twitter:card" content="summary_large_image">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- fonts.gstatic.com e unde stau efectiv fișierele de font (.woff2), nu
+     fonts.googleapis.com (doar CSS-ul) — fără acest al doilea preconnect,
+     browserul deschide conexiunea abia după ce citește CSS-ul, cu un
+     round-trip DNS+TLS în plus înainte să înceapă descărcarea fontului. -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
@@ -73,6 +78,11 @@
 <div id="glow-toast" class="glow-toast" hidden></div>
 
 <script>
+  var GLOW_TOAST_VIZIBIL_MS = 2200;
+  var GLOW_TOAST_FADE_MS = 300;
+  var GLOW_MESAJ_VIZIBIL_MS = 4000;
+  var GLOW_MESAJ_FADE_MS = 400;
+
   (function () {
     var toggle = document.getElementById('nav-toggle');
     var nav = document.getElementById('nav-links');
@@ -103,8 +113,8 @@
       clearTimeout(el._hideTimer);
       el._hideTimer = setTimeout(function () {
         el.classList.remove('show');
-        setTimeout(function () { el.hidden = true; }, 300);
-      }, 2200);
+        setTimeout(function () { el.hidden = true; }, GLOW_TOAST_FADE_MS);
+      }, GLOW_TOAST_VIZIBIL_MS);
     }
   };
 
@@ -118,8 +128,8 @@
       el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
       el.style.opacity = '0';
       el.style.transform = 'translateY(-6px)';
-      setTimeout(function () { el.remove(); }, 400);
-    }, 4000);
+      setTimeout(function () { el.remove(); }, GLOW_MESAJ_FADE_MS);
+    }, GLOW_MESAJ_VIZIBIL_MS);
   });
 
   if ('serviceWorker' in navigator) {

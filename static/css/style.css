@@ -200,7 +200,10 @@ img{max-width:100%;display:block;}
    [hidden]{display:none} implicit al browserului (skeleton-ul de pe Favorite
    rămânea vizibil la nesfârșit pe desktop/tabletă). */
 .card-grid[hidden]{display:none;}
-.post-wrap{position:relative;margin:0 0 16px;}
+/* --post-photo-h e definit aici (nu pe .post-photo) ca să fie vizibil și
+   pentru .card-fav, care e frate cu .post, nu descendent al .post-photo —
+   o variabilă CSS "vede" doar în jos pe arbore, nu lateral. */
+.post-wrap{position:relative;margin:0 0 16px;--post-photo-h:140px;}
 .post{
   margin:0;
   background:var(--white);
@@ -217,7 +220,7 @@ img{max-width:100%;display:block;}
 }
 .post:active{transform:translateY(-1px) scale(1.005);}
 .post-photo{
-  height:140px;
+  height:var(--post-photo-h);
   display:flex;align-items:center;justify-content:center;
   font-size:46px;
   position:relative;
@@ -258,7 +261,7 @@ img{max-width:100%;display:block;}
 .post-meta{font-size:11px;color:var(--maroon);opacity:0.55;margin-top:6px;font-weight:600;}
 
 .card-fav{
-  position:absolute;top:98px;right:12px;
+  position:absolute;top:calc(var(--post-photo-h) - 42px);right:12px;
   width:32px;height:32px;border-radius:50%;
   background:rgba(255,255,255,0.9);color:var(--maroon);
   border:none;display:flex;align-items:center;justify-content:center;

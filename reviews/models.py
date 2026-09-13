@@ -77,6 +77,13 @@ class Product(models.Model):
         "Data postării", auto_now_add=True, db_index=True
     )
     slug = models.SlugField(max_length=180, unique=True, blank=True)
+    activ = models.BooleanField(
+        "Activ", default=True, db_index=True,
+        help_text=(
+            "Debifat = ascuns pe site (soft-delete) — rămâne în admin, cu "
+            "comentariile și pozele intacte, și poate fi reactivat oricând."
+        ),
+    )
 
     class Meta:
         ordering = ["-data_postarii"]
@@ -93,6 +100,17 @@ class Product(models.Model):
             )
         else:
             super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # "Delete" din admin ascunde prima dată (comentariile/pozele rămân
+        # legate, recuperabile) — abia pe un produs deja ascuns, Delete
+        # șterge cu adevărat. Fără asta, un click greșit pe Delete era
+        # ireversibil.
+        if self.activ:
+            self.activ = False
+            self.save(update_fields=["activ"])
+        else:
+            super().delete(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("reviews:product_detail", kwargs={"slug": self.slug})

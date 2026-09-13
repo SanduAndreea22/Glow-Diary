@@ -19,14 +19,21 @@ class ProductImageInline(admin.TabularInline):
     fields = ("imagine", "ordine")
 
 
+@admin.action(description="Restaurează (fă activ) produsele selectate")
+def restaureaza_produse(modeladmin, request, queryset):
+    updated = queryset.update(activ=True)
+    messages.success(request, f"Restaurat(e) {updated} produs(e).")
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
-    list_display = ("nume", "brand", "categorie", "nota_mea", "data_postarii")
-    list_filter = ("categorie", "nota_mea")
+    list_display = ("nume", "brand", "categorie", "nota_mea", "activ", "data_postarii")
+    list_filter = ("activ", "categorie", "nota_mea")
     search_fields = ("nume", "brand", "nuanta")
     inlines = [ProductImageInline, CommentInline]
     change_list_template = "admin/reviews/product/change_list.html"
+    actions = ["delete_selected", restaureaza_produse]
 
     def get_prepopulated_fields(self, request, obj=None):
         # Doar la creare — altfel JS-ul de prepopulare rescrie slug-ul live
@@ -36,6 +43,14 @@ class ProductAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         return ("slug",) if obj else ()
+
+    def delete_queryset(self, request, queryset):
+        # queryset.delete() ocolește Product.delete() (Django face un DELETE
+        # SQL direct pentru eficiență) — fără asta, "Delete selected" din
+        # bulk ar șterge cu adevărat produsele active dintr-o dată, în loc
+        # să le ascundă prima dată, ca la ștergerea individuală.
+        for obj in queryset:
+            obj.delete()
 
     def get_urls(self):
         urls = super().get_urls()

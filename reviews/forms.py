@@ -3,10 +3,10 @@ from django.utils.text import slugify
 
 from .models import (
     MAX_SLUG_ATTEMPTS,
+    NOTA_CHOICES,
     Collection,
     Comment,
     ContactMessage,
-    NOTA_CHOICES,
     Product,
 )
 

@@ -96,6 +96,81 @@ class ProductAdminSlugExhaustionTests(TestCase):
 
 
 @_no_ssl_redirect
+class SoftDeleteTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.staff = get_user_model().objects.create_user(
+            username="deea3", password="parola-puternica-123", is_staff=True, is_superuser=True,
+        )
+        self.client.force_login(self.staff)
+        self.produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+        )
+        Comment.objects.create(product=self.produs, comentariu="Super!", aprobat=True)
+
+    def test_delete_din_admin_ascunde_prima_data(self):
+        url = reverse("admin:reviews_product_delete", args=[self.produs.pk])
+        r = self.client.post(url, {"post": "yes"})
+        self.assertRedirects(r, reverse("admin:reviews_product_changelist"))
+
+        self.produs.refresh_from_db()
+        self.assertFalse(self.produs.activ)
+        self.assertTrue(Product.objects.filter(pk=self.produs.pk).exists())
+        self.assertEqual(Comment.objects.filter(product=self.produs).count(), 1)
+
+    def test_delete_a_doua_oara_sterge_definitiv(self):
+        self.produs.activ = False
+        self.produs.save(update_fields=["activ"])
+
+        url = reverse("admin:reviews_product_delete", args=[self.produs.pk])
+        self.client.post(url, {"post": "yes"})
+
+        self.assertFalse(Product.objects.filter(pk=self.produs.pk).exists())
+        self.assertEqual(Comment.objects.filter(product_id=self.produs.pk).count(), 0)
+
+    def test_bulk_delete_selected_ascunde_nu_sterge(self):
+        url = reverse("admin:reviews_product_changelist")
+        r = self.client.post(url, {
+            "action": "delete_selected",
+            "_selected_action": [str(self.produs.pk)],
+            "post": "yes",
+        })
+        self.assertEqual(r.status_code, 302)
+        self.produs.refresh_from_db()
+        self.assertFalse(self.produs.activ)
+        self.assertTrue(Product.objects.filter(pk=self.produs.pk).exists())
+
+    def test_actiunea_de_restaurare(self):
+        self.produs.activ = False
+        self.produs.save(update_fields=["activ"])
+
+        url = reverse("admin:reviews_product_changelist")
+        self.client.post(url, {
+            "action": "restaureaza_produse",
+            "_selected_action": [str(self.produs.pk)],
+        })
+        self.produs.refresh_from_db()
+        self.assertTrue(self.produs.activ)
+
+    def test_produs_ascuns_nu_apare_public(self):
+        self.produs.activ = False
+        self.produs.save(update_fields=["activ"])
+        cache.clear()
+
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertNotContains(r, self.produs.nume)
+
+        r = self.client.get(self.produs.get_absolute_url())
+        self.assertEqual(r.status_code, 404)
+
+        r = self.client.get(reverse("reviews:search_data"))
+        self.assertEqual(r.json()["produse"], [])
+
+        r = self.client.get(reverse("reviews:favorites_data"), {"slugs": self.produs.slug})
+        self.assertEqual(r.json()["produse"], [])
+
+
+@_no_ssl_redirect
 class FeedBadgeTests(TestCase):
     def setUp(self):
         cache.clear()
@@ -223,13 +298,13 @@ class ProductDetailAndCommentTests(TestCase):
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 1)
 
     def test_honeypot_respinge_comentariul(self):
-        r = self.client.post(self.produs.get_absolute_url(), {
+        self.client.post(self.produs.get_absolute_url(), {
             "nume": "Bot", "nota": "1", "comentariu": "spam", "website": "http://spam.com",
         })
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 0)
 
     def test_comentariu_gol_respins(self):
-        r = self.client.post(self.produs.get_absolute_url(), {
+        self.client.post(self.produs.get_absolute_url(), {
             "nume": "Cineva", "nota": "5", "comentariu": "", "website": "",
         })
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 0)
@@ -373,7 +448,7 @@ class StoryImageTests(TestCase):
     def test_a_doua_cerere_foloseste_cache(self):
         url = reverse("reviews:product_story_image", args=[self.produs.slug])
         with mock.patch(
-            "reviews.views.render_story_png", wraps=render_story_png
+            "reviews.views.product.render_story_png", wraps=render_story_png
         ) as spy:
             r1 = self.client.get(url)
             r2 = self.client.get(url)
@@ -411,7 +486,7 @@ class StaticPagesTests(TestCase):
 
     def test_contact_honeypot_respinge_mesajul(self):
         cache.clear()
-        r = self.client.post(reverse("reviews:contact"), {
+        self.client.post(reverse("reviews:contact"), {
             "nume": "Bot", "email": "bot@spam.com", "mesaj": "spam",
             "website": "http://spam.com",
         })

@@ -145,6 +145,7 @@
   })();
 
   (function () {
+    var CAUTARE_DEBOUNCE_MS = 300;
     var input = document.getElementById('search-input');
     var grid = document.getElementById('card-grid');
     var pagination = document.getElementById('pagination-nav');
@@ -204,7 +205,7 @@
       if (pagination) pagination.style.display = 'none';
       timer = setTimeout(function () {
         runSearch(q);
-      }, 300);
+      }, CAUTARE_DEBOUNCE_MS);
     });
   })();
 </script>

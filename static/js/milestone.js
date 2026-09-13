@@ -3,6 +3,9 @@ var GlowMilestone = {
   MILESTONES: [10, 25, 50, 100, 200, 500],
   KEY_PREFIX: "glow-diary-milestone-seen-",
   COLORS: ["#FF6FA5", "#E8B84B", "#7A1E3D", "#FFD6E8", "#FFFFFF"],
+  BANNER_VIZIBIL_MS: 4500,
+  BANNER_FADE_MS: 500,
+  CONFETTI_DURATA_MS: 4500,
 
   check: function (total) {
     var hit = this.MILESTONES.filter(function (m) {
@@ -21,6 +24,9 @@ var GlowMilestone = {
   },
 
   celebrate: function (n) {
+    var bannerVizibilMs = this.BANNER_VIZIBIL_MS;
+    var bannerFadeMs = this.BANNER_FADE_MS;
+
     var banner = document.createElement("div");
     banner.className = "milestone-banner";
     banner.innerHTML =
@@ -36,14 +42,15 @@ var GlowMilestone = {
       banner.classList.remove("show");
       setTimeout(function () {
         banner.remove();
-      }, 500);
-    }, 4500);
+      }, bannerFadeMs);
+    }, bannerVizibilMs);
 
     this.confetti();
   },
 
   confetti: function () {
     var colors = this.COLORS;
+    var confettiDurataMs = this.CONFETTI_DURATA_MS;
     for (var i = 0; i < 40; i++) {
       var piece = document.createElement("div");
       piece.className = "confetti-piece";
@@ -55,7 +62,7 @@ var GlowMilestone = {
       (function (p) {
         setTimeout(function () {
           p.remove();
-        }, 4500);
+        }, confettiDurataMs);
       })(piece);
     }
   },
