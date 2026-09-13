@@ -20,6 +20,18 @@ class HoneypotFormMixin(forms.Form):
 class CommentForm(HoneypotFormMixin, forms.ModelForm):
     """Formular public, fără cont, pentru comentarii pe pagina de produs."""
 
+    # Declarat explicit (nu lăsat să fie generat automat de ModelForm din
+    # câmpul modelului) — altfel Django preia `default="anonim"` de pe
+    # Comment.nume ca `initial` al câmpului de formular, iar un formular
+    # nelegat (pagina goală, la prima încărcare) apare cu "anonim" deja
+    # scris în input, ca un bug vizibil, nu ca placeholder.
+    nume = forms.CharField(
+        label="Nume",
+        max_length=60,
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Numele tău (opțional)"}),
+    )
+
     nota = forms.TypedChoiceField(
         label="Notă",
         choices=[("", "—")] + list(NOTA_CHOICES),
@@ -37,9 +49,6 @@ class CommentForm(HoneypotFormMixin, forms.ModelForm):
     class Meta:
         model = Comment
         fields = ["nume", "nota", "comentariu"]
-        widgets = {
-            "nume": forms.TextInput(attrs={"placeholder": "Numele tău (opțional)"}),
-        }
 
     def clean_comentariu(self):
         comentariu = self.cleaned_data.get("comentariu", "").strip()
