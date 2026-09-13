@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.shortcuts import redirect, render
 from django.urls import path
 
-from .forms import ProductBulkFormSet
+from .forms import CollectionAdminForm, ProductAdminForm, ProductBulkFormSet
 from .models import Collection, Comment, ContactMessage, Product, ProductImage
 
 
@@ -21,6 +21,7 @@ class ProductImageInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    form = ProductAdminForm
     list_display = ("nume", "brand", "categorie", "nota_mea", "data_postarii")
     list_filter = ("categorie", "nota_mea")
     search_fields = ("nume", "brand", "nuanta")
@@ -96,6 +97,7 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
+    form = CollectionAdminForm
     list_display = ("nume", "data_creare")
     filter_horizontal = ("produse",)
     search_fields = ("nume", "descriere")

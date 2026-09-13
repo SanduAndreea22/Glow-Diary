@@ -48,6 +48,8 @@ Toate valorile sensibile/specifice mediului vin din `.env` (local) sau din varia
 | `TRUST_X_FORWARDED_FOR` | `True` doar dacă hostingul suprascrie sigur acest header |
 | `ADMIN_URL` | schimbă ruta panoului de admin din `admin/` implicit |
 | `ADMIN_EMAIL` | primește email automat la fiecare eroare 500 |
+| `INSTAGRAM_URL` | link afișat ca iconiță în footer; are deja o valoare implicită |
+| `TIKTOK_URL` | link afișat ca iconiță în footer; necompletat, iconița nu apare |
 
 ## Checklist înainte de lansare live
 
@@ -61,7 +63,9 @@ Toate valorile sensibile/specifice mediului vin din `.env` (local) sau din varia
 
 ## Adăugare produs nou
 
-Din Django admin → Products → Add product: nume, brand, categorie, nuanță (opțional), sursă (de unde a fost cumpărat), poză, nota ta (1-5) și părerea ta. Slug-ul se generează automat din brand + nume. Poți adăuga și poze suplimentare de galerie direct din aceeași pagină (secțiunea „Imagine galerie" de sub formular).
+Din Django admin → Products → Add product: nume, brand, categorie, nuanță (opțional), sursă (de unde a fost cumpărat), poză, nota ta (1-5) și părerea ta. Slug-ul se generează automat din brand + nume. Poți adăuga și poze suplimentare de galerie direct din aceeași pagină (secțiunea „Imagine galerie" de sub formular). Pozele mari (poze de telefon) sunt redimensionate automat la salvare, nu e nevoie să le micșorezi manual înainte.
+
+Pentru mai multe produse deodată: butonul „Adaugă mai multe produse" de lângă „Add product" deschide un formular cu mai multe rânduri (fără poză — aceea rămâne de adăugat individual, per produs, după).
 
 ## Colecții curate
 

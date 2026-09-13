@@ -1,9 +1,13 @@
+import io
+import tempfile
 from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from PIL import Image
 
 from .models import Collection, Comment, ContactMessage, Product
 from .story_image import render_story_png
@@ -32,6 +36,122 @@ class ProductSlugTests(TestCase):
             nota_mea=3, parerea_mea="b",
         )
         self.assertNotEqual(p1.slug, p2.slug)
+
+
+def _poza_falsa(width, height, nume="test.jpg", format="JPEG"):
+    buf = io.BytesIO()
+    Image.new("RGB", (width, height), color=(255, 0, 0)).save(buf, format=format)
+    buf.seek(0)
+    return SimpleUploadedFile(nume, buf.read(), content_type=f"image/{format.lower()}")
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class ImageOptimizationTests(TestCase):
+    def test_poza_mare_e_redimensionata(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            poza=_poza_falsa(3000, 2000),
+        )
+        with Image.open(produs.poza.path) as img:
+            self.assertLessEqual(max(img.size), 1600)
+
+    def test_poza_mica_ramane_neatinsa(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            poza=_poza_falsa(400, 300),
+        )
+        with Image.open(produs.poza.path) as img:
+            self.assertEqual(img.size, (400, 300))
+
+
+@_no_ssl_redirect
+class ProductAdminSlugExhaustionTests(TestCase):
+    """La epuizarea încercărilor de slug unic, admin-ul trebuie să arate o
+    eroare de formular clară, nu un 500 brut (IntegrityError necaptat)."""
+
+    def setUp(self):
+        self.staff = get_user_model().objects.create_user(
+            username="deea2", password="parola-puternica-123", is_staff=True, is_superuser=True,
+        )
+        self.client.force_login(self.staff)
+        for i in range(1, 21):
+            slug = "brand-produs" if i == 1 else f"brand-produs-{i}"
+            Product.objects.create(
+                nume="Produs", brand="Brand", categorie="altele",
+                nota_mea=3, parerea_mea="x", slug=slug,
+            )
+
+    def test_formularul_respinge_cu_mesaj_clar(self):
+        r = self.client.post(reverse("admin:reviews_product_add"), {
+            "nume": "Produs", "brand": "Brand", "categorie": "altele",
+            "nota_mea": "3", "parerea_mea": "y", "slug": "",
+            "imagini-TOTAL_FORMS": "0", "imagini-INITIAL_FORMS": "0",
+            "imagini-MIN_NUM_FORMS": "0", "imagini-MAX_NUM_FORMS": "1000",
+            "comentarii-TOTAL_FORMS": "0", "comentarii-INITIAL_FORMS": "0",
+            "comentarii-MIN_NUM_FORMS": "0", "comentarii-MAX_NUM_FORMS": "1000",
+        })
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "completează manual câmpul Slug")
+        self.assertEqual(Product.objects.filter(nume="Produs").count(), 20)
+
+
+@_no_ssl_redirect
+class FeedBadgeTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_sub_prag_arata_data_ultimei_postari_nu_contorul(self):
+        Product.objects.create(
+            nume="A", brand="B", categorie="altele", nota_mea=3, parerea_mea="x",
+        )
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertContains(r, "Actualizat")
+        self.assertNotContains(r, "produs testat")
+        self.assertNotContains(r, "produse testate")
+
+    def test_peste_prag_arata_contorul(self):
+        for i in range(10):
+            Product.objects.create(
+                nume=f"P{i}", brand="B", categorie="altele", nota_mea=3, parerea_mea="x",
+            )
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertContains(r, "10 produse testate")
+
+
+@_no_ssl_redirect
+class FiltreCategoriiTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        Product.objects.create(
+            nume="A", brand="B", categorie="blush", nota_mea=3, parerea_mea="x",
+        )
+
+    def test_categoria_cu_produse_e_link_activ(self):
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertContains(r, "categorie=blush")
+        content = r.content.decode()
+        self.assertIn('<a href="?categorie=blush', content)
+
+    def test_categoria_fara_produse_e_span_needitabil(self):
+        r = self.client.get(reverse("reviews:feed"))
+        content = r.content.decode()
+        self.assertNotIn("categorie=ruj", content)
+        self.assertIn('<span class="chip chip-disabled"', content)
+
+
+@_no_ssl_redirect
+class SocialLinksTests(TestCase):
+    @override_settings(INSTAGRAM_URL="", TIKTOK_URL="")
+    def test_fara_linkuri_footerul_nu_arata_iconite(self):
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertNotContains(r, "footer-social")
+
+    @override_settings(INSTAGRAM_URL="https://www.instagram.com/exemplu", TIKTOK_URL="")
+    def test_cu_instagram_apare_iconita(self):
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertContains(r, "footer-social")
+        self.assertContains(r, "https://www.instagram.com/exemplu")
+        self.assertNotContains(r, "pe TikTok")
 
 
 @_no_ssl_redirect
@@ -161,6 +281,15 @@ class FavoritesApiTests(TestCase):
         r = self.client.get(reverse("reviews:favorites_data"), {"slugs": produs.slug})
         self.assertEqual(r.json()["produse"][0]["slug"], produs.slug)
 
+    def test_comment_count_apare_in_json(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie="altele",
+            nota_mea=3, parerea_mea="a",
+        )
+        Comment.objects.create(product=produs, comentariu="Super!", aprobat=True)
+        r = self.client.get(reverse("reviews:favorites_data"), {"slugs": produs.slug})
+        self.assertEqual(r.json()["produse"][0]["comment_count"], 1)
+
 
 @_no_ssl_redirect
 class SearchDataApiTests(TestCase):
@@ -207,6 +336,14 @@ class SearchDataApiTests(TestCase):
     def test_filtru_nota_min_invalida_e_ignorata(self):
         r = self.client.get(reverse("reviews:search_data"), {"nota_min": "abc"})
         self.assertEqual(len(r.json()["produse"]), 2)
+
+    def test_produsul_lunii_si_comment_count_apar_in_json(self):
+        Comment.objects.create(product=self.p1, comentariu="Super!", aprobat=True)
+        r = self.client.get(reverse("reviews:search_data"))
+        by_slug = {p["slug"]: p for p in r.json()["produse"]}
+        self.assertEqual(by_slug[self.p1.slug]["comment_count"], 1)
+        self.assertTrue(by_slug[self.p1.slug]["produsul_lunii"])
+        self.assertFalse(by_slug[self.p2.slug]["produsul_lunii"])
 
 
 @_no_ssl_redirect

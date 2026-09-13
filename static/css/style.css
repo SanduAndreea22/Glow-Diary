@@ -78,7 +78,9 @@ img{max-width:100%;display:block;}
 }
 /* Feed */
 .feed-title{padding:0 22px 4px;font-size:22px;font-weight:700;}
+.feed-title-sub{font-size:17px;}
 .feed-tag{padding:0 22px 4px;font-size:12px;color:var(--pink);font-weight:600;letter-spacing:0.02em;}
+.feed-tag-muted{color:var(--maroon);opacity:0.7;font-weight:500;}
 .feed-intro{padding:0 22px 16px;font-size:12.5px;line-height:1.6;color:var(--maroon);opacity:0.75;}
 .feed-intro a{color:var(--pink);font-weight:600;opacity:1;}
 .stat-chip{
@@ -350,6 +352,7 @@ img{max-width:100%;display:block;}
 }
 .detail-actions{display:flex;gap:10px;flex-wrap:wrap;}
 .back-link{font-size:12px;font-weight:600;color:var(--pink);}
+.back-link-page{display:block;padding:0 22px;margin-bottom:8px;}
 .share-btn{
   position:relative;
   display:flex;align-items:center;gap:6px;
@@ -376,7 +379,7 @@ img{max-width:100%;display:block;}
   background:none;border:1.5px solid var(--line);color:var(--maroon);opacity:0.7;
 }
 .share-btn-secondary:hover{background:var(--pink-soft);opacity:1;color:var(--maroon);}
-.d-brand{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.05em;}
+.d-brand{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.05em;margin-top:12px;}
 .d-name{font-size:23px;font-weight:800;margin-top:4px;font-family:'Unbounded';}
 .d-shade{font-size:12.5px;color:var(--maroon);opacity:0.65;margin-top:5px;}
 .d-rating{
@@ -405,6 +408,7 @@ img{max-width:100%;display:block;}
 .divider{
   height:2px;background:var(--line);margin:22px 0;border-radius:2px;
 }
+.divider-inset{margin:0 22px 22px;}
 .comment-form{
   background:var(--white);
   border:2px dashed var(--line);
@@ -452,6 +456,10 @@ select.field{appearance:none;}
   cursor:pointer;
 }
 .submit-btn:hover{background:var(--maroon);}
+/* .submit-btn e gândit pentru <button> — pe paginile de eroare (403/404) e
+   folosit și ca link <a>, care are nevoie explicit de inline-block ca să
+   accepte padding-ul, plus fără sublinierea implicită a linkurilor. */
+.submit-btn-link{display:inline-block;text-decoration:none;}
 .section-title{font-size:15px;font-weight:700;margin-bottom:6px;font-family:'Unbounded';}
 .comment-item{padding:14px 0;border-bottom:1.5px dashed var(--line);}
 .comment-item:last-child{border-bottom:none;}
@@ -462,6 +470,7 @@ select.field{appearance:none;}
 .comment-stars{color:var(--pink);font-size:12px;}
 .comment-text{font-size:12.5px;color:var(--maroon);opacity:0.75;margin-top:4px;line-height:1.5;}
 .no-comments{font-size:12.5px;color:var(--maroon);opacity:0.55;padding:10px 0;}
+.form-error{color:#8A1F1F;}
 
 /* Seal (TESTED BY DEEA) */
 .seal{

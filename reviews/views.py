@@ -1,5 +1,6 @@
 import hashlib
 import io
+import time
 from datetime import timedelta
 
 from django.conf import settings
@@ -122,6 +123,12 @@ def _feed_stats():
             "categorii_cu_produse": set(
                 Product.objects.values_list("categorie", flat=True).distinct()
             ),
+            "surse": list(
+                Product.objects.exclude(sursa="")
+                .order_by("sursa")
+                .values_list("sursa", flat=True)
+                .distinct()
+            ),
         }
         cache.set("feed-stats", stats, FEED_STATS_CACHE_TTL)
     return stats
@@ -146,12 +153,6 @@ class FeedView(ListView):
         ctx["nota_min_activa"] = self.request.GET.get("nota_min", "")
         ctx["sursa_activa"] = self.request.GET.get("sursa", "")
         ctx["sort_activ"] = self.request.GET.get("sort", "") or DEFAULT_SORT
-        ctx["surse"] = (
-            Product.objects.exclude(sursa="")
-            .order_by("sursa")
-            .values_list("sursa", flat=True)
-            .distinct()
-        )
         ctx["filtre_active"] = bool(
             ctx["nota_min_activa"] or ctx["sursa_activa"] or self.request.GET.get("sort", "")
         )
@@ -160,10 +161,21 @@ class FeedView(ListView):
         ctx["total_produse"] = stats["total_produse"]
         ctx["ultima_actualizare"] = stats["ultima_actualizare"]
         ctx["arata_contor_produse"] = stats["total_produse"] >= MIN_PRODUSE_PENTRU_CONTOR
+        ctx["surse"] = stats["surse"]
 
         extra = self.request.GET.copy()
         extra.pop("page", None)
         ctx["querystring_extra"] = ("&" + extra.urlencode()) if extra else ""
+
+        # Un singur loc care păstrează filtrele active (q/nota_min/sursa/sort)
+        # atunci când se schimbă categoria — înainte, fiecare link de
+        # categorie repeta manual, inline în template, același lanț de
+        # {% if %}, cu risc mare ca un filtru nou adăugat să fie uitat la
+        # unul din linkuri.
+        fara_categorie = self.request.GET.copy()
+        fara_categorie.pop("page", None)
+        fara_categorie.pop("categorie", None)
+        ctx["querystring_fara_categorie"] = fara_categorie.urlencode()
 
         if ctx.get("is_paginated"):
             page_obj = ctx["page_obj"]
@@ -263,12 +275,36 @@ class ProductStoryImageView(View):
                     "Prea multe imagini generate deodată — mai încearcă peste câteva minute.",
                     status=429,
                 )
-            png_bytes = render_story_png(produs, host).getvalue()
-            cache.set(cache_key, png_bytes, STORY_IMAGE_CACHE_TTL)
+            png_bytes = self._render_with_lock(cache_key, produs, host)
         response = FileResponse(io.BytesIO(png_bytes), content_type="image/png")
         response["Content-Disposition"] = f'attachment; filename="{produs.slug}-story.png"'
         return response
 
+    def _render_with_lock(self, cache_key, produs, host):
+        """Evită randări Pillow duplicate când două cereri lovesc simultan
+        același cache-miss (ex. un link de Story distribuit și deschis de
+        mai multe persoane deodată) — doar prima ține efectiv lacătul și
+        randează; restul așteaptă scurt rezultatul ei din cache, în loc să
+        randeze fiecare separat aceeași imagine."""
+        lock_key = f"story-render-lock:{cache_key}"
+        if cache.add(lock_key, True, 30):
+            try:
+                png_bytes = render_story_png(produs, host).getvalue()
+                cache.set(cache_key, png_bytes, STORY_IMAGE_CACHE_TTL)
+                return png_bytes
+            finally:
+                cache.delete(lock_key)
+
+        for _ in range(6):
+            time.sleep(0.3)
+            png_bytes = cache.get(cache_key)
+            if png_bytes is not None:
+                return png_bytes
+        # Lacătul a expirat/blocat mai mult decât am așteptat — randăm noi
+        # înșine, mai bine cu o randare în plus decât cu un request picat.
+        png_bytes = render_story_png(produs, host).getvalue()
+        cache.set(cache_key, png_bytes, STORY_IMAGE_CACHE_TTL)
+        return png_bytes
 
 class CollectionListView(ListView):
     model = Collection
@@ -297,7 +333,12 @@ class FavoritesView(TemplateView):
     template_name = "reviews/favorites.html"
 
 
-def _product_card_data(p):
+def _product_card_data(p, produsul_lunii_id=None):
+    # comment_count și produsul_lunii trebuie să existe și aici, nu doar în
+    # _product_card.html — altfel sigiliul "PRODUSUL LUNII" și numărul de
+    # păreri dispar tăcut de pe cardurile randate din căutarea live/Favorite
+    # (cele două căi de randare a unui card au divergut altfel fără să pice
+    # niciun test).
     return {
         "nume": p.nume,
         "brand": p.brand,
@@ -310,21 +351,25 @@ def _product_card_data(p):
         "url": p.get_absolute_url(),
         "slug": p.slug,
         "postat": str(naturaltime(p.data_postarii)),
+        "comment_count": getattr(p, "comment_count", 0),
+        "produsul_lunii": bool(produsul_lunii_id and p.id == produsul_lunii_id),
     }
 
 
 class FavoritesDataView(View):
     def get(self, request):
         slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:50]
-        produse = Product.objects.filter(slug__in=slugs)
-        data = [_product_card_data(p) for p in produse]
+        produse = _cu_numar_pareri(Product.objects.filter(slug__in=slugs))
+        produsul_lunii_id = _feed_stats()["produsul_lunii_id"]
+        data = [_product_card_data(p, produsul_lunii_id) for p in produse]
         return JsonResponse({"produse": data})
 
 
 class SearchDataView(View):
     def get(self, request):
-        qs = _filtreaza_produse(Product.objects.all(), request)
-        data = [_product_card_data(p) for p in qs[:24]]
+        qs = _filtreaza_produse(_cu_numar_pareri(Product.objects.all()), request)
+        produsul_lunii_id = _feed_stats()["produsul_lunii_id"]
+        data = [_product_card_data(p, produsul_lunii_id) for p in qs[:24]]
         return JsonResponse({"produse": data})
 
 

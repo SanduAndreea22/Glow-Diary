@@ -5,9 +5,9 @@
 {% block meta_description %}{{ colectie.descriere|truncatewords:25 }}{% endblock %}
 
 {% block content %}
-<a href="{% url 'reviews:collections' %}" class="back-link" style="display:block;padding:0 22px;margin-bottom:8px;">&larr; toate colecțiile</a>
+<a href="{% url 'reviews:collections' %}" class="back-link back-link-page">&larr; toate colecțiile</a>
 <div class="feed-title">{{ colectie.nume }}</div>
-{% if colectie.descriere %}<div class="feed-tag" style="color:var(--maroon);opacity:0.7;font-weight:500;">{{ colectie.descriere }}</div>{% endif %}
+{% if colectie.descriere %}<div class="feed-tag feed-tag-muted">{{ colectie.descriere }}</div>{% endif %}
 
 <div class="card-grid">
 {% for produs in produse %}

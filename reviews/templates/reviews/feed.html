@@ -25,10 +25,10 @@
 </form>
 
 <div class="filters">
-  <a href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if nota_min_activa %}nota_min={{ nota_min_activa }}&{% endif %}{% if sursa_activa %}sursa={{ sursa_activa|urlencode }}&{% endif %}{% if sort_activ != "recent" %}sort={{ sort_activ }}&{% endif %}" class="chip{% if not categorie_activa %} active{% endif %}">Toate</a>
+  <a href="?{{ querystring_fara_categorie }}" class="chip{% if not categorie_activa %} active{% endif %}">Toate</a>
   {% for value, label in categorii %}
   {% if value in categorii_cu_produse %}
-  <a href="?{% if q %}q={{ q|urlencode }}&{% endif %}categorie={{ value }}{% if nota_min_activa %}&nota_min={{ nota_min_activa }}{% endif %}{% if sursa_activa %}&sursa={{ sursa_activa|urlencode }}{% endif %}{% if sort_activ != "recent" %}&sort={{ sort_activ }}{% endif %}"
+  <a href="?categorie={{ value }}{% if querystring_fara_categorie %}&{{ querystring_fara_categorie }}{% endif %}"
      class="chip{% if categorie_activa == value %} active{% endif %}">{{ label }}</a>
   {% else %}
   <span class="chip chip-disabled" title="Încă niciun produs în această categorie">{{ label }}</span>

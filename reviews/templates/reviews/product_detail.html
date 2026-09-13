@@ -37,7 +37,7 @@
       </a>
     </div>
   </div>
-  <div class="d-brand" style="margin-top:12px;">{{ produs.brand }}</div>
+  <div class="d-brand">{{ produs.brand }}</div>
   <div class="d-name">{{ produs.nume }}</div>
   <div class="post-cat">{{ produs.get_categorie_display }}</div>
   <div class="d-shade">
@@ -75,7 +75,7 @@
     </div>
 
     <textarea class="field" name="comentariu" rows="3" placeholder="Scrie părerea ta...">{{ form.comentariu.value|default:'' }}</textarea>
-    {% if form.comentariu.errors %}<div class="no-comments" style="color:#8A1F1F;">{{ form.comentariu.errors.0 }}</div>{% endif %}
+    {% if form.comentariu.errors %}<div class="no-comments form-error">{{ form.comentariu.errors.0 }}</div>{% endif %}
 
     <button type="submit" class="submit-btn">Trimite părerea</button>
   </form>
@@ -97,8 +97,8 @@
 </div>
 
 {% if similare %}
-<div class="divider" style="margin:0 22px 22px;"></div>
-<div class="feed-title" style="font-size:17px;">S-ar putea să-ți placă și</div>
+<div class="divider divider-inset"></div>
+<div class="feed-title feed-title-sub">S-ar putea să-ți placă și</div>
 <div class="card-grid">
   {% for produs in similare %}
     {% include "reviews/_product_card.html" with produs=produs show_details=False snippet_words=16 %}

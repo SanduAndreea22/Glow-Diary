@@ -1,6 +1,14 @@
 from django import forms
+from django.utils.text import slugify
 
-from .models import Comment, ContactMessage, NOTA_CHOICES, Product
+from .models import (
+    MAX_SLUG_ATTEMPTS,
+    Collection,
+    Comment,
+    ContactMessage,
+    NOTA_CHOICES,
+    Product,
+)
 
 
 class HoneypotFormMixin(forms.Form):
@@ -96,3 +104,47 @@ class ProductBulkForm(forms.ModelForm):
 ProductBulkFormSet = forms.modelformset_factory(
     Product, form=ProductBulkForm, extra=8, can_delete=False,
 )
+
+
+def _slug_ar_epuiza_incercarile(model_cls, base_text):
+    """Verificare preventivă: dacă baza de slug e deja ocupată de
+    MAX_SLUG_ATTEMPTS variante (base, base-2, base-3, ...), generarea
+    automată din save() ar epuiza toate încercările și ar ridica un
+    IntegrityError necaptat — mai bine un mesaj clar în formular decât
+    o eroare 500 în admin."""
+    base_slug = slugify(base_text)[:170]
+    existente = model_cls.objects.filter(slug__startswith=base_slug).count()
+    return existente >= MAX_SLUG_ATTEMPTS
+
+
+class ProductAdminForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+    def clean(self):
+        cleaned = super().clean()
+        if not self.instance.pk and not cleaned.get("slug"):
+            base_text = f"{cleaned.get('brand', '')}-{cleaned.get('nume', '')}"
+            if _slug_ar_epuiza_incercarile(Product, base_text):
+                raise forms.ValidationError(
+                    "Există deja prea multe produse cu acest brand+nume — "
+                    "completează manual câmpul Slug cu ceva distinctiv."
+                )
+        return cleaned
+
+
+class CollectionAdminForm(forms.ModelForm):
+    class Meta:
+        model = Collection
+        fields = "__all__"
+
+    def clean(self):
+        cleaned = super().clean()
+        if not self.instance.pk and not cleaned.get("slug"):
+            if _slug_ar_epuiza_incercarile(Collection, cleaned.get("nume", "")):
+                raise forms.ValidationError(
+                    "Există deja prea multe colecții cu acest nume — "
+                    "completează manual câmpul Slug cu ceva distinctiv."
+                )
+        return cleaned

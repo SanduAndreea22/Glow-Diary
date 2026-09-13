@@ -10,6 +10,7 @@ var GlowCards = {
           '<div class="post-photo">' +
             (p.poza ? '<img src="' + esc(p.poza) + '" alt="' + esc(p.nume) + '">' : "💄") +
             '<div class="seal">TESTED BY DEEA</div>' +
+            (p.produsul_lunii ? '<div class="sticker">⭐ PRODUSUL LUNII</div>' : "") +
           "</div>" +
           '<div class="post-body">' +
             '<div class="post-brand">' + esc(p.brand) + "</div>" +
@@ -18,7 +19,7 @@ var GlowCards = {
             (p.nuanta ? '<div class="post-shade">Nuanță: ' + esc(p.nuanta) + "</div>" : "") +
             (p.sursa ? '<div class="post-source">Cumpărat de la ' + esc(p.sursa) + "</div>" : "") +
             '<div class="post-rating"><span class="stars">' + esc(p.stele) + '</span><span class="post-rating-label">nota mea</span></div>' +
-            (p.postat ? '<div class="post-meta">' + esc(p.postat) + "</div>" : "") +
+            (p.postat ? '<div class="post-meta">' + esc(p.postat) + (p.comment_count ? " · 💬 " + esc(p.comment_count) + " păreri" : "") + "</div>" : "") +
             '<div class="post-snippet">' + esc(p.snippet) + "</div>" +
           "</div>" +
         "</a>" +

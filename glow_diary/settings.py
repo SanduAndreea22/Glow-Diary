@@ -110,7 +110,10 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
+        # Implicit e 8 — pe un site cu un singur cont admin care controlează
+        # tot, o parolă minimă mai lungă e o linie de apărare gratuită.
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 12},
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -142,6 +145,25 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Nume de fișier cu hash (style.a1b2c3.css) generate la `collectstatic` —
+# fără asta, vizitatoarele care revin pot vedea CSS/JS învechit din cache-ul
+# browserului după un deploy, în funcție de headerele serverului. Doar în
+# producție (DEBUG=False): ManifestStaticFilesStorage cere `collectstatic`
+# rulat înainte ca {% static %} să funcționeze deloc — un pas în plus care
+# n-are ce căuta în fluxul simplu de dezvoltare locală (`runserver` direct).
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+            if not DEBUG
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        ),
+    },
+}
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -3,6 +3,8 @@ from django.db import IntegrityError, models, transaction
 from django.urls import reverse
 from django.utils.text import slugify
 
+from .image_utils import optimizeaza_poza
+
 NOTA_CHOICES = [(i, str(i)) for i in range(1, 6)]
 
 MAX_SLUG_ATTEMPTS = 20
@@ -62,7 +64,7 @@ class Product(models.Model):
         help_text="Opțional — nu toate categoriile au nuanță.",
     )
     sursa = models.CharField(
-        "Cumpărat de la", max_length=100, blank=True,
+        "Cumpărat de la", max_length=100, blank=True, db_index=True,
         help_text="Ex: Sephora, Douglas, Notino, magazin fizic...",
     )
     poza = models.ImageField("Poză", upload_to="produse/", blank=True)
@@ -83,6 +85,7 @@ class Product(models.Model):
         return f"{self.brand} — {self.nume}"
 
     def save(self, *args, **kwargs):
+        optimizeaza_poza(self.poza)
         if not self.slug:
             _save_with_unique_slug(
                 self, f"{self.brand}-{self.nume}",
@@ -111,6 +114,10 @@ class ProductImage(models.Model):
         verbose_name = "Imagine galerie"
         verbose_name_plural = "Imagini galerie"
 
+    def save(self, *args, **kwargs):
+        optimizeaza_poza(self.imagine)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Imagine {self.ordine} — {self.product}"
 
@@ -135,6 +142,7 @@ class Collection(models.Model):
         return self.nume
 
     def save(self, *args, **kwargs):
+        optimizeaza_poza(self.coperta)
         if not self.slug:
             _save_with_unique_slug(
                 self, self.nume,

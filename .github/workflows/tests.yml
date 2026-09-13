@@ -1,0 +1,26 @@
+name: Teste
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalează dependențele
+        run: pip install -r requirements.txt
+
+      - name: Rulează testele
+        env:
+          SECRET_KEY: doar-pentru-ci-niciodata-folosita-in-productie
+          DEBUG: "True"
+          ALLOWED_HOSTS: localhost,127.0.0.1
+        run: python manage.py test
