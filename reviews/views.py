@@ -22,6 +22,10 @@ GLOBAL_RATE_LIMIT_MAX = 5
 GLOBAL_RATE_LIMIT_WINDOW = 600  # 10 minute
 
 FEED_STATS_CACHE_TTL = 300  # 5 minute
+# Sub acest prag, un contor de tip "X produse testate" atrage atenția exact
+# spre cât de la început e proiectul — afișăm în schimb data ultimei postări,
+# un semnal care nu depinde de volum.
+MIN_PRODUSE_PENTRU_CONTOR = 10
 STORY_IMAGE_CACHE_TTL = 60 * 60 * 24  # 24h — randarea cu Pillow e costisitoare
 
 
@@ -108,9 +112,13 @@ def _feed_stats():
     """Cache scurt pentru statisticile din header-ul feed-ului (produsul lunii, total)."""
     stats = cache.get("feed-stats")
     if stats is None:
+        ultimul = Product.objects.order_by("-data_postarii").values_list(
+            "data_postarii", flat=True
+        ).first()
         stats = {
             "produsul_lunii_id": _produsul_lunii(),
             "total_produse": Product.objects.count(),
+            "ultima_actualizare": ultimul,
             "categorii_cu_produse": set(
                 Product.objects.values_list("categorie", flat=True).distinct()
             ),
@@ -150,6 +158,8 @@ class FeedView(ListView):
         stats = _feed_stats()
         ctx["produsul_lunii_id"] = stats["produsul_lunii_id"]
         ctx["total_produse"] = stats["total_produse"]
+        ctx["ultima_actualizare"] = stats["ultima_actualizare"]
+        ctx["arata_contor_produse"] = stats["total_produse"] >= MIN_PRODUSE_PENTRU_CONTOR
 
         extra = self.request.GET.copy()
         extra.pop("page", None)

@@ -13,7 +13,7 @@
 {% for produs in produse %}
   {% include "reviews/_product_card.html" with produs=produs show_details=True snippet_words=20 %}
 {% empty %}
-<div class="empty-state">Nu sunt produse în această colecție încă.</div>
+<div class="empty-state"><div class="empty-state-icon">💄</div>Nu sunt produse în această colecție încă.</div>
 {% endfor %}
 </div>
 {% endblock %}

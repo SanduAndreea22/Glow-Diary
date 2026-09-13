@@ -1,9 +1,15 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Despre · Glow Diary by Deea{% endblock %}
 
 {% block content %}
 <div class="static-body">
+  <div class="about-avatar">
+    <img src="{% static 'img/deea-avatar.jpg' %}" alt="Deea, fondatoarea Glow Diary"
+         onerror="this.closest('.about-avatar').classList.add('avatar-fallback');this.remove();">
+    <span class="avatar-fallback-mark">D</span>
+  </div>
   <div class="static-title">Salut, sunt Deea 💕</div>
   <p class="static-text">
     Glow Diary e jurnalul meu de makeup — produsele pe care le cumpăr cu banii mei,

@@ -82,6 +82,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "reviews.context_processors.social_links",
             ],
         },
     },
@@ -235,6 +236,12 @@ LOGGING = {
 ADMIN_URL = os.environ.get("ADMIN_URL", "admin/").lstrip("/")
 if not ADMIN_URL.endswith("/"):
     ADMIN_URL += "/"
+
+
+# Linkuri social afișate în footer — opționale. Necompletate, iconițele
+# nu apar deloc (nu linkuim către profiluri inexistente).
+INSTAGRAM_URL = os.environ.get("INSTAGRAM_URL", "")
+TIKTOK_URL = os.environ.get("TIKTOK_URL", "")
 
 
 # Niciun script din proiect nu are nevoie să citească din JS cookie-ul CSRF

@@ -107,11 +107,35 @@ img{max-width:100%;display:block;}
   font-family:'DM Sans';cursor:pointer;flex-shrink:0;
 }
 .filters{
+  position:relative;
   display:flex;gap:8px;margin:0 22px 16px;
   overflow-x:auto;padding-bottom:2px;
-  mask-image:linear-gradient(to right, black calc(100% - 28px), transparent 100%);
-  -webkit-mask-image:linear-gradient(to right, black calc(100% - 28px), transparent 100%);
 }
+/* Indicator că mai sunt categorii ascunse la dreapta, dincolo de scroll —
+   fără el, rândul tăiat la margine arăta ca o listă completă, nu ca una
+   parțial ascunsă. Pin-uite (position:absolute), deci nu se mișcă odată
+   cu conținutul care scrolează; JS-ul de mai jos le arată doar cât timp
+   chiar mai e ceva de descoperit spre dreapta. */
+.filters::before{
+  content:"";
+  position:absolute;top:0;right:0;bottom:2px;
+  width:36px;
+  background:linear-gradient(to right, transparent, var(--cream));
+  pointer-events:none;
+  opacity:0;transition:opacity 0.2s ease;
+}
+.filters::after{
+  content:"›";
+  position:absolute;top:50%;right:2px;
+  transform:translateY(-50%);
+  width:20px;height:20px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;line-height:1;
+  color:var(--pink);
+  pointer-events:none;
+  opacity:0;transition:opacity 0.2s ease;
+}
+.filters.has-more::before,.filters.has-more::after{opacity:1;}
 .chip{
   flex-shrink:0;
   font-size:12px;font-weight:600;
@@ -247,6 +271,7 @@ img{max-width:100%;display:block;}
   100%{transform:translate(-50%,-50%) rotate(var(--angle)) translateX(var(--dist)) scale(0.3);opacity:0;}
 }
 .empty-state{margin:0 22px 16px;padding:24px;text-align:center;font-size:13px;color:var(--maroon);opacity:0.6;}
+.empty-state-icon{font-size:34px;margin-bottom:10px;opacity:0.85;}
 
 .skeleton-card{
   height:260px;border-radius:22px;margin:0 0 16px;
@@ -333,6 +358,18 @@ img{max-width:100%;display:block;}
 .share-btn.copied{background:var(--gold);color:var(--maroon);}
 .share-btn.copy-failed{background:#FBD7D7;color:#8A1F1F;}
 .share-btn.active{background:var(--pink);color:var(--white);}
+/* Ierarhie vizuală pe cele 3 acțiuni: Salvează contează pentru vizitatoare
+   (acțiune principală), Copiază linkul/Descarcă Story sunt utile mai ales
+   pentru distribuire (secundare) — nu trebuie să cântărească la fel. */
+.share-btn-primary{
+  background:var(--white);border:1.5px solid var(--pink);color:var(--pink);
+}
+.share-btn-primary:hover{background:var(--pink);color:var(--white);}
+.share-btn-primary.active{background:var(--pink);color:var(--white);border-color:var(--pink);}
+.share-btn-secondary{
+  background:none;border:1.5px solid var(--line);color:var(--maroon);opacity:0.7;
+}
+.share-btn-secondary:hover{background:var(--pink-soft);opacity:1;color:var(--maroon);}
 .d-brand{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.05em;}
 .d-name{font-size:23px;font-weight:800;margin-top:4px;font-family:'Unbounded';}
 .d-shade{font-size:12.5px;color:var(--maroon);opacity:0.65;margin-top:5px;}
@@ -344,9 +381,21 @@ img{max-width:100%;display:block;}
 }
 .d-rating .stars{font-size:16px;margin:0;}
 .d-rating-label{font-size:11.5px;color:var(--maroon);opacity:0.7;}
-.my-take{margin-top:16px;}
+/* "Părerea mea" e conținutul cel mai valoros de pe pagină — tratat ca un
+   citat/testimonial, nu ca un paragraf de descriere oarecare. */
+.my-take{
+  margin-top:18px;position:relative;
+  background:var(--pink-soft);border-radius:18px;
+  padding:18px 20px 18px 46px;
+}
+.my-take::before{
+  content:"\201E";
+  position:absolute;left:14px;top:2px;
+  font-family:'Unbounded';font-size:44px;line-height:1;
+  color:var(--pink);opacity:0.4;
+}
 .my-take-label{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
-.my-take-text{font-size:13.5px;line-height:1.65;color:var(--maroon);white-space:pre-line;}
+.my-take-text{font-size:14.5px;line-height:1.7;color:var(--maroon);white-space:pre-line;font-weight:500;}
 .divider{
   height:2px;background:var(--line);margin:22px 0;border-radius:2px;
 }
@@ -459,6 +508,20 @@ select.field{appearance:none;}
 .static-body{padding:22px;}
 .static-title{font-size:22px;font-weight:800;margin-bottom:12px;font-family:'Unbounded';}
 .static-text{font-size:13.5px;line-height:1.7;color:var(--maroon);opacity:0.85;margin-bottom:14px;}
+/* Prezența vizuală a persoanei din spatele brandului — poza reală dacă
+   există (static/img/deea-avatar.jpg), altfel un avatar cu inițială,
+   nu o poză stricată. */
+.about-avatar{
+  width:84px;height:84px;border-radius:50%;margin-bottom:16px;
+  overflow:hidden;position:relative;
+  background:linear-gradient(135deg, var(--pink), #FFA9C8);
+  display:flex;align-items:center;justify-content:center;
+  border:3px solid var(--white);box-shadow:0 4px 14px rgba(122,30,61,0.18);
+}
+.about-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.avatar-fallback-mark{display:none;font-family:'Unbounded';font-size:32px;font-weight:800;color:var(--white);}
+.about-avatar.avatar-fallback{background:linear-gradient(135deg, var(--pink), #FFA9C8);}
+.about-avatar.avatar-fallback .avatar-fallback-mark{display:block;}
 
 /* Moment WOW: milestone + confetti */
 .milestone-banner{
@@ -488,9 +551,15 @@ select.field{appearance:none;}
 }
 
 footer.site-footer{
-  max-width:520px;margin:0 auto;padding:0 22px;
+  max-width:520px;margin:0 auto;padding:0 22px 22px;
   text-align:center;font-size:11px;color:var(--maroon);opacity:0.5;
 }
+.footer-social{
+  display:flex;justify-content:center;gap:16px;margin-top:10px;
+}
+.footer-social a{color:var(--pink);opacity:0.8;display:inline-flex;}
+.footer-social a:hover{opacity:1;}
+.footer-social svg{width:17px;height:17px;}
 
 /* Responsive: tabletă / desktop — pe ecrane late, cardul nu mai rămâne
    blocat la lățimea de telefon; feed-ul/colecțiile trec pe grid cu mai

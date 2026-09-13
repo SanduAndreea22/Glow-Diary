@@ -7,7 +7,11 @@
 <div class="feed-title">Ultimele încercări</div>
 <div class="feed-tag">Real products. My honest take.</div>
 <p class="feed-intro">Machiajul pe care l-am cumpărat, l-am testat și l-am evaluat eu — fără PR-uri, fără sponsorizări. Las-o și pe-a ta la orice produs, fără cont. Vezi și <a href="{% url 'reviews:collections' %}">colecțiile mele curate →</a></p>
-{% if total_produse %}<div class="stat-chip">✨ {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} până acum</div>{% endif %}
+{% if arata_contor_produse %}
+<div class="stat-chip">✨ {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} până acum</div>
+{% elif ultima_actualizare %}
+<div class="stat-chip">✨ Actualizat {{ ultima_actualizare|naturaltime|lower }}</div>
+{% endif %}
 
 <form class="search-bar" method="get">
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7A1E3D" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -124,6 +128,18 @@
     toggle.addEventListener('click', function () {
       panel.classList.toggle('open');
     });
+  })();
+
+  (function () {
+    var row = document.querySelector('.filters');
+    if (!row) return;
+    var update = function () {
+      var hasMore = row.scrollWidth - row.clientWidth - row.scrollLeft > 4;
+      row.classList.toggle('has-more', hasMore);
+    };
+    update();
+    row.addEventListener('scroll', update);
+    window.addEventListener('resize', update);
   })();
 
   (function () {
