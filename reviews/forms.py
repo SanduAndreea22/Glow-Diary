@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Comment, ContactMessage, NOTA_CHOICES
+from .models import Comment, ContactMessage, NOTA_CHOICES, Product
 
 
 class HoneypotFormMixin(forms.Form):
@@ -79,3 +79,20 @@ class ContactForm(HoneypotFormMixin, forms.ModelForm):
         widgets = {
             "nume": forms.TextInput(attrs={"placeholder": "Numele tău (opțional)"}),
         }
+
+
+class ProductBulkForm(forms.ModelForm):
+    """Un rând din formularul de adăugare în bulk (admin) — fără poză;
+    aceea rămâne de adăugat individual, per produs, după import."""
+
+    class Meta:
+        model = Product
+        fields = ["brand", "nume", "categorie", "nuanta", "sursa", "nota_mea", "parerea_mea"]
+        widgets = {
+            "parerea_mea": forms.Textarea(attrs={"rows": 2}),
+        }
+
+
+ProductBulkFormSet = forms.modelformset_factory(
+    Product, form=ProductBulkForm, extra=8, can_delete=False,
+)

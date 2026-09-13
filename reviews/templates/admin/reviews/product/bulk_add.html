@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<p>Un rând per produs — <strong>fără poză</strong>, aceea rămâne de adăugat individual, din pagina fiecărui produs, după ce le salvezi aici. Un rând lăsat complet gol e ignorat, nu dă eroare.</p>
+
+<form method="post" id="bulk-add-form">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  {% if formset.non_form_errors %}
+    <p class="errornote">{{ formset.non_form_errors }}</p>
+  {% endif %}
+
+  <div id="bulk-rows">
+    {% for form in formset.forms %}
+    <fieldset class="module aligned bulk-row" style="margin-bottom:18px;padding:12px;border:1px solid #ccc;">
+      <h2>Produs {{ forloop.counter }}</h2>
+      {% if form.non_field_errors %}<p class="errornote">{{ form.non_field_errors }}</p>{% endif %}
+      {% for field in form.visible_fields %}
+      <div class="form-row field-{{ field.name }}">
+        {{ field.errors }}
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    </fieldset>
+    {% endfor %}
+  </div>
+
+  <div class="submit-row">
+    <button type="button" id="add-row-btn" class="button">+ Adaugă alt rând</button>
+    <input type="submit" value="Salvează produsele" class="default">
+  </div>
+</form>
+
+<template id="empty-row-template">
+  <fieldset class="module aligned bulk-row" style="margin-bottom:18px;padding:12px;border:1px solid #ccc;">
+    <h2>Produs __COUNTER__</h2>
+    {% for field in formset.empty_form.visible_fields %}
+    <div class="form-row field-{{ field.name }}">
+      {{ field.label_tag }}
+      {{ field }}
+    </div>
+    {% endfor %}
+    {% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+  </fieldset>
+</template>
+
+<script>
+(function () {
+  var totalForms = document.getElementById('id_form-TOTAL_FORMS');
+  var addBtn = document.getElementById('add-row-btn');
+  var rowsContainer = document.getElementById('bulk-rows');
+  var template = document.getElementById('empty-row-template');
+
+  addBtn.addEventListener('click', function () {
+    var index = parseInt(totalForms.value, 10);
+    var html = template.innerHTML.replace(/__prefix__/g, index).replace(/__COUNTER__/g, index + 1);
+    var wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    rowsContainer.appendChild(wrapper.firstElementChild);
+    totalForms.value = index + 1;
+  });
+})();
+</script>
+{% endblock %}

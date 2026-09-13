@@ -1,0 +1,8 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+<li>
+  <a href="{% url 'admin:reviews_product_bulk_add' %}" class="addlink">Adaugă mai multe produse</a>
+</li>
+{{ block.super }}
+{% endblock %}

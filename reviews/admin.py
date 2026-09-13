@@ -1,5 +1,8 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.shortcuts import redirect, render
+from django.urls import path
 
+from .forms import ProductBulkFormSet
 from .models import Collection, Comment, ContactMessage, Product, ProductImage
 
 
@@ -22,6 +25,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ("categorie", "nota_mea")
     search_fields = ("nume", "brand", "nuanta")
     inlines = [ProductImageInline, CommentInline]
+    change_list_template = "admin/reviews/product/change_list.html"
 
     def get_prepopulated_fields(self, request, obj=None):
         # Doar la creare — altfel JS-ul de prepopulare rescrie slug-ul live
@@ -31,6 +35,55 @@ class ProductAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         return ("slug",) if obj else ()
+
+    def get_urls(self):
+        urls = super().get_urls()
+        extra = [
+            path(
+                "bulk-add/",
+                self.admin_site.admin_view(self.bulk_add_view),
+                name="reviews_product_bulk_add",
+            ),
+        ]
+        return extra + urls
+
+    def bulk_add_view(self, request):
+        # Un rând per produs, fără poză (aceea rămâne de adăugat individual
+        # din pagina fiecărui produs) — gândit pentru a intra rapid text
+        # pentru mai multe produse deodată, fără dus-întors prin changelist
+        # ca la "Save and add another".
+        if not self.has_add_permission(request):
+            messages.error(request, "Nu ai permisiunea de a adăuga produse.")
+            return redirect("admin:reviews_product_changelist")
+
+        if request.method == "POST":
+            formset = ProductBulkFormSet(request.POST, queryset=Product.objects.none())
+            if formset.is_valid():
+                create = [
+                    form for form in formset.forms
+                    if form.has_changed() and form.cleaned_data
+                ]
+                for form in create:
+                    form.save()
+                if create:
+                    messages.success(
+                        request,
+                        f"Am adăugat {len(create)} produs(e). Nu uita să încarci poza "
+                        "la fiecare, individual — bulk-add-ul nu include poze.",
+                    )
+                else:
+                    messages.warning(request, "N-ai completat niciun rând — nimic de salvat.")
+                return redirect("admin:reviews_product_changelist")
+        else:
+            formset = ProductBulkFormSet(queryset=Product.objects.none())
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Adaugă mai multe produse",
+            "formset": formset,
+            "opts": self.model._meta,
+        }
+        return render(request, "admin/reviews/product/bulk_add.html", context)
 
 
 @admin.register(Comment)

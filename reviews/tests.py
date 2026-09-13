@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -287,3 +288,50 @@ class StaticPagesTests(TestCase):
             "nume": "Alta", "email": "alta@test.com", "mesaj": "Salut din nou!", "website": "",
         })
         self.assertEqual(ContactMessage.objects.count(), 1)
+
+
+@_no_ssl_redirect
+class ProductBulkAddAdminTests(TestCase):
+    def setUp(self):
+        self.staff = get_user_model().objects.create_user(
+            username="deea", password="parola-puternica-123", is_staff=True, is_superuser=True,
+        )
+        self.url = reverse("admin:reviews_product_bulk_add")
+
+    def _management_form(self, total):
+        return {
+            "form-TOTAL_FORMS": str(total),
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+        }
+
+    def test_neautentificat_e_redirectionat_la_login(self):
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, 302)
+
+    def test_pagina_incarca_pentru_staff(self):
+        self.client.force_login(self.staff)
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+
+    def test_salveaza_doar_randurile_completate(self):
+        self.client.force_login(self.staff)
+        data = self._management_form(3)
+        data.update({
+            "form-0-brand": "Rare Beauty", "form-0-nume": "Soft Pinch",
+            "form-0-categorie": "blush", "form-0-nuanta": "", "form-0-sursa": "Sephora",
+            "form-0-nota_mea": "5", "form-0-parerea_mea": "Super produs.",
+            # rândul 1 rămâne complet gol — trebuie ignorat, nu trebuie să dea eroare
+            "form-1-brand": "", "form-1-nume": "", "form-1-categorie": "",
+            "form-1-nuanta": "", "form-1-sursa": "", "form-1-nota_mea": "",
+            "form-1-parerea_mea": "",
+            "form-2-brand": "Fenty Beauty", "form-2-nume": "Gloss Bomb",
+            "form-2-categorie": "gloss", "form-2-nuanta": "", "form-2-sursa": "Douglas",
+            "form-2-nota_mea": "4", "form-2-parerea_mea": "Mi-a plăcut mult.",
+        })
+        r = self.client.post(self.url, data)
+        self.assertRedirects(r, reverse("admin:reviews_product_changelist"))
+        self.assertEqual(Product.objects.count(), 2)
+        self.assertTrue(Product.objects.filter(brand="Rare Beauty").exists())
+        self.assertTrue(Product.objects.filter(brand="Fenty Beauty").exists())
