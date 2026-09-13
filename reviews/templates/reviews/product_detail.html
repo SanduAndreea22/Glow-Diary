@@ -93,9 +93,11 @@
     <div class="my-take-text">{{ produs.parerea_mea }}</div>
   </div>
 
+  <a href="#comment-form" class="cta-review-nudge">L-ai încercat și tu? Lasă o părere ↓</a>
+
   <div class="divider"></div>
 
-  <form class="comment-form" method="post" enctype="multipart/form-data">
+  <form class="comment-form" method="post" enctype="multipart/form-data" id="comment-form">
     {% csrf_token %}
     <div class="comment-q">L-ai încercat și tu? Cum ți s-a părut?</div>
 
