@@ -15,7 +15,7 @@ body{
   padding:32px 0 80px;
 }
 a{color:inherit;text-decoration:none;}
-h1,h2,h3{font-family:'Unbounded', sans-serif;}
+h1,h2,h3{font-family:'Fraunces', serif;}
 img{max-width:100%;display:block;}
 
 .screen{
@@ -32,6 +32,7 @@ img{max-width:100%;display:block;}
 }
 @media (prefers-reduced-motion: reduce){
   .screen{animation:none;}
+  .post-wrap{animation:none;opacity:1;}
 }
 
 .topbar{
@@ -43,7 +44,7 @@ img{max-width:100%;display:block;}
   box-shadow:0 6px 12px -8px rgba(122,30,61,0.25);
 }
 .logo{
-  font-family:'Unbounded';font-weight:800;font-size:19px;
+  font-family:'Fraunces';font-weight:800;font-size:19px;
   color:var(--pink);
   display:flex;align-items:baseline;gap:6px;
 }
@@ -191,8 +192,8 @@ img{max-width:100%;display:block;}
   cursor:pointer;
 }
 .chip.active{
-  background:var(--pink);
-  border-color:var(--pink);
+  background:var(--maroon);
+  border-color:var(--maroon);
   color:var(--white);
   opacity:1;
 }
@@ -234,7 +235,25 @@ img{max-width:100%;display:block;}
 /* --post-photo-h e definit aici (nu pe .post-photo) ca să fie vizibil și
    pentru .card-fav, care e frate cu .post, nu descendent al .post-photo —
    o variabilă CSS "vede" doar în jos pe arbore, nu lateral. */
-.post-wrap{position:relative;margin:0 0 16px;--post-photo-h:140px;}
+.post-wrap{
+  position:relative;margin:0 0 16px;--post-photo-h:190px;
+  opacity:0;animation:card-in 0.4s ease both;
+}
+@keyframes card-in{
+  0%{opacity:0;transform:translateY(10px);}
+  100%{opacity:1;transform:translateY(0);}
+}
+/* Eșalonat pe primele carduri vizibile — dincolo de-atât, diferența nu se
+   mai vede (și n-are rost să întârziem la nesfârșit cardurile de jos). */
+.card-grid .post-wrap:nth-child(1){animation-delay:0.02s;}
+.card-grid .post-wrap:nth-child(2){animation-delay:0.06s;}
+.card-grid .post-wrap:nth-child(3){animation-delay:0.10s;}
+.card-grid .post-wrap:nth-child(4){animation-delay:0.14s;}
+.card-grid .post-wrap:nth-child(5){animation-delay:0.18s;}
+.card-grid .post-wrap:nth-child(6){animation-delay:0.22s;}
+.card-grid .post-wrap:nth-child(7){animation-delay:0.26s;}
+.card-grid .post-wrap:nth-child(8){animation-delay:0.30s;}
+.card-grid .post-wrap:nth-child(n+9){animation-delay:0.34s;}
 .post{
   margin:0;
   background:var(--white);
@@ -260,14 +279,19 @@ img{max-width:100%;display:block;}
 .post:nth-child(3n+1) .post-photo{background:linear-gradient(135deg, var(--pink-soft), #FFEAF4);}
 .post:nth-child(3n+2) .post-photo{background:linear-gradient(135deg, #FFE9D6, var(--pink-soft));}
 .post:nth-child(3n) .post-photo{background:linear-gradient(135deg, #F0DDF7, var(--pink-soft));}
-.post-photo img{width:100%;height:100%;object-fit:cover;}
+.post-photo img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s ease;}
+.post:hover .post-photo img,.post:focus-visible .post-photo img{transform:scale(1.06);}
+@media (prefers-reduced-motion: reduce){
+  .post-photo img{transition:none;}
+  .post:hover .post-photo img,.post:focus-visible .post-photo img{transform:none;}
+}
 .sticker{
   position:absolute;top:10px;right:12px;
   background:var(--gold);color:var(--maroon);
   font-size:10.5px;font-weight:700;
   padding:4px 10px;border-radius:100px;
   transform:rotate(4deg);
-  font-family:'Unbounded';
+  font-family:'Fraunces';
   white-space:nowrap;
 }
 .post-body{padding:13px 15px 16px;}
@@ -278,11 +302,11 @@ img{max-width:100%;display:block;}
 .post-cat{
   display:inline-block;
   font-size:10px;font-weight:600;
-  background:var(--pink);color:var(--white);
+  background:var(--maroon);color:var(--white);
   padding:3px 9px;border-radius:100px;
   margin-top:6px;
 }
-.post-name{font-size:15px;font-weight:700;margin-top:2px;font-family:'Unbounded';}
+.post-name{font-size:15px;font-weight:700;margin-top:2px;font-family:'Fraunces';}
 .post-shade{font-size:11.5px;color:var(--maroon);opacity:0.6;margin-top:2px;}
 .post-source{font-size:10.5px;color:var(--pink);font-weight:600;margin-top:2px;}
 .stars{color:var(--gold);font-size:13px;letter-spacing:1px;margin-top:6px;display:block;}
@@ -348,7 +372,7 @@ img{max-width:100%;display:block;}
   display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;
 }
 .collection-cover img{width:100%;height:100%;object-fit:cover;}
-.collection-name{font-size:15px;font-weight:700;font-family:'Unbounded';}
+.collection-name{font-size:15px;font-weight:700;font-family:'Fraunces';}
 .collection-desc{font-size:12px;color:var(--maroon);opacity:0.65;margin-top:3px;}
 .collection-count{font-size:10.5px;color:var(--pink);font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:0.03em;}
 .pagination{display:flex;justify-content:center;align-items:center;gap:6px;margin:16px 22px 0;flex-wrap:wrap;}
@@ -424,16 +448,25 @@ img{max-width:100%;display:block;}
 }
 .share-btn-secondary:hover{background:var(--pink-soft);opacity:1;color:var(--maroon);}
 .d-brand{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.05em;margin-top:12px;}
-.d-name{font-size:23px;font-weight:800;margin-top:4px;font-family:'Unbounded';}
+.d-name{font-size:23px;font-weight:800;margin-top:4px;font-family:'Fraunces';}
 .d-shade{font-size:12.5px;color:var(--maroon);opacity:0.65;margin-top:5px;}
 .d-rating{
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   margin-top:14px;padding:13px 15px;
   background:var(--pink-soft);
   border-radius:16px;
 }
 .d-rating .stars{font-size:16px;margin:0;}
 .d-rating-label{font-size:11.5px;color:var(--maroon);opacity:0.7;}
+/* Nota Deei vs. media cititoarelor — auriu (deja rezervat "notei mele" în
+   tot restul site-ului) rămâne exclusiv al ei; roz distinge clar a doua
+   cifră ca fiind altceva, nu o continuare a aceleiași note. */
+.d-rating-visitors{
+  display:flex;align-items:center;gap:6px;
+  margin-left:auto;padding-left:12px;
+  border-left:1.5px solid rgba(122,30,61,0.15);
+  font-size:13px;font-weight:700;color:var(--pink);
+}
 /* "Părerea mea" e conținutul cel mai valoros de pe pagină — tratat ca un
    citat/testimonial, nu ca un paragraf de descriere oarecare. */
 .my-take{
@@ -444,7 +477,7 @@ img{max-width:100%;display:block;}
 .my-take::before{
   content:"\201E";
   position:absolute;left:14px;top:2px;
-  font-family:'Unbounded';font-size:44px;line-height:1;
+  font-family:'Fraunces';font-size:44px;line-height:1;
   color:var(--pink);opacity:0.4;
 }
 .my-take-label{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
@@ -459,7 +492,7 @@ img{max-width:100%;display:block;}
   border-radius:18px;
   padding:16px;
 }
-.comment-q{font-size:14px;font-weight:700;font-family:'Unbounded';line-height:1.4;}
+.comment-q{font-size:14px;font-weight:700;font-family:'Fraunces';line-height:1.4;}
 .field{
   margin-top:10px;
   width:100%;
@@ -496,7 +529,7 @@ select.field{appearance:none;}
   border:none;border-radius:100px;
   padding:11px 22px;
   font-size:13px;font-weight:700;
-  font-family:'Unbounded';
+  font-family:'Fraunces';
   cursor:pointer;
 }
 .submit-btn:hover{background:var(--maroon);}
@@ -504,7 +537,7 @@ select.field{appearance:none;}
    folosit și ca link <a>, care are nevoie explicit de inline-block ca să
    accepte padding-ul, plus fără sublinierea implicită a linkurilor. */
 .submit-btn-link{display:inline-block;text-decoration:none;}
-.section-title{font-size:15px;font-weight:700;margin-bottom:6px;font-family:'Unbounded';}
+.section-title{font-size:15px;font-weight:700;margin-bottom:6px;font-family:'Fraunces';}
 .comment-item{padding:14px 0;border-bottom:1.5px dashed var(--line);}
 .comment-item:last-child{border-bottom:none;}
 .comment-top{display:flex;justify-content:space-between;align-items:baseline;}
@@ -523,7 +556,7 @@ select.field{appearance:none;}
   font-size:9.5px;font-weight:700;
   padding:5px 10px;border-radius:6px;
   transform:rotate(-4deg);
-  font-family:'Unbounded';
+  font-family:'Fraunces';
   letter-spacing:0.02em;
   box-shadow:0 2px 0 rgba(122,30,61,0.15);
   border:1px dashed var(--pink);
@@ -565,7 +598,7 @@ select.field{appearance:none;}
 
 /* Static pages */
 .static-body{padding:22px;}
-.static-title{font-size:22px;font-weight:800;margin-bottom:12px;font-family:'Unbounded';}
+.static-title{font-size:22px;font-weight:800;margin-bottom:12px;font-family:'Fraunces';}
 .static-text{font-size:13.5px;line-height:1.7;color:var(--maroon);opacity:0.85;margin-bottom:14px;}
 .contact-alt-channel{margin-top:14px;font-size:12.5px;color:var(--maroon);opacity:0.7;text-align:center;}
 .contact-alt-channel a{color:var(--pink);font-weight:700;opacity:1;}
@@ -581,7 +614,7 @@ select.field{appearance:none;}
   border:3px solid var(--white);box-shadow:0 4px 14px rgba(122,30,61,0.18);
 }
 .about-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
-.avatar-fallback-mark{display:none;font-family:'Unbounded';font-size:32px;font-weight:800;color:var(--white);}
+.avatar-fallback-mark{display:none;font-family:'Fraunces';font-size:32px;font-weight:800;color:var(--white);}
 .about-avatar.avatar-fallback{background:linear-gradient(135deg, var(--pink), #FFA9C8);}
 .about-avatar.avatar-fallback .avatar-fallback-mark{display:block;}
 
@@ -597,7 +630,7 @@ select.field{appearance:none;}
 .milestone-banner.show{opacity:1;transform:translate(-50%,0);}
 .milestone-banner-inner{
   background:var(--maroon);color:var(--cream);
-  font-family:'Unbounded';font-size:12.5px;font-weight:700;
+  font-family:'Fraunces';font-size:12.5px;font-weight:700;
   padding:12px 20px;border-radius:100px;
   box-shadow:0 8px 24px rgba(122,30,61,0.35);
   text-align:center;
@@ -612,15 +645,20 @@ select.field{appearance:none;}
   100%{transform:translateY(105vh) rotate(540deg);opacity:0.9;}
 }
 
+/* Bandou închis la culoare sub cardul crem — singura suprafață de mare
+   contrast din tot layout-ul, ca site-ul să nu rămână crem-pe-roz de sus
+   până jos, fără nicio greutate vizuală care să-l ancoreze. */
 footer.site-footer{
-  max-width:520px;margin:0 auto;padding:0 22px 22px;
-  text-align:center;font-size:11px;color:var(--maroon);opacity:0.5;
+  max-width:520px;margin:0 auto;padding:18px 22px;
+  background:var(--maroon);border-radius:22px;
+  text-align:center;font-size:11px;color:var(--cream);
 }
+.footer-tagline{opacity:0.65;}
 .footer-social{
   display:flex;justify-content:center;gap:16px;margin-top:10px;
 }
-.footer-social a{color:var(--pink);opacity:0.8;display:inline-flex;}
-.footer-social a:hover{opacity:1;}
+.footer-social a{color:var(--pink-soft);opacity:0.9;display:inline-flex;}
+.footer-social a:hover{color:var(--gold);opacity:1;}
 .footer-social svg{width:17px;height:17px;}
 
 /* Responsive: tabletă / desktop — pe ecrane late, cardul nu mai rămâne
@@ -634,6 +672,7 @@ footer.site-footer{
     gap:0 16px;align-items:start;
   }
   .card-grid .post-wrap,.card-grid .collection-card{margin:0 0 16px;}
+  .card-grid .post-wrap{--post-photo-h:210px;}
   .detail-body,.static-body{max-width:640px;margin:0 auto;}
   .hero-product{height:320px;}
   /* Despre: poză mare în dreapta, text în stânga — mai editorial, mai

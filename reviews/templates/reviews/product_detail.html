@@ -8,6 +8,7 @@
 {% block og_image %}{% if produs.poza %}{{ request.scheme }}://{{ request.get_host }}{{ produs.poza.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-image.png' %}{% endif %}{% endblock %}
 
 {% block content %}
+<script type="application/ld+json">{{ product_schema_json|safe }}</script>
 <div class="hero-product">
   {% if galerie %}<img id="hero-img" src="{{ galerie.0.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
   <div class="seal">TESTED BY DEEA</div>
@@ -27,9 +28,9 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.6c0 4-4.4 7.3-8.8 10.4C7.6 15.9 3.2 12.6 3.2 8.6 3.2 5.9 5.3 4 7.8 4c1.5 0 2.9.7 3.7 1.9C12.3 4.7 13.7 4 15.2 4c2.5 0 4.6 1.9 4.6 4.6z"/></svg>
         <span id="fav-btn-label">Salvează</span>
       </button>
-      <button type="button" class="share-btn share-btn-secondary" id="share-btn" data-url="{{ request.build_absolute_uri }}">
+      <button type="button" class="share-btn share-btn-secondary" id="share-btn" data-url="{{ request.build_absolute_uri }}" data-title="{{ produs.brand }} — {{ produs.nume }} · Glow Diary by Deea" data-text="{{ produs.parerea_mea|truncatewords:20 }}">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9"/></svg>
-        <span id="share-btn-label">Copiază linkul</span>
+        <span id="share-btn-label">Trimite mai departe</span>
       </button>
       <a class="share-btn share-btn-secondary" id="story-download-btn" href="{% url 'reviews:product_story_image' slug=produs.slug %}" download title="Imagine PNG, 1080×1920 — gata de postat direct la Instagram Story">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
@@ -49,6 +50,12 @@
   <div class="d-rating">
     <span class="stars">{{ produs.stele }}</span>
     <div class="d-rating-label">nota mea</div>
+    {% if nota_cititoarelor %}
+    <div class="d-rating-visitors">
+      <span>★ {{ nota_cititoarelor }}</span>
+      <span class="d-rating-label">cititoarele ({{ nota_cititoarelor_total }})</span>
+    </div>
+    {% endif %}
   </div>
 
   <div class="my-take">
@@ -183,17 +190,35 @@
     btn.addEventListener('click', function () {
       var url = btn.getAttribute('data-url');
 
-      var fallback = function () {
-        var ok = legacyCopy(url);
-        showState(ok ? 'Copiat! ✓' : 'N-a mers — selectează linkul manual', ok ? 'copied' : 'copy-failed', 2400);
+      var copyToClipboard = function () {
+        var fallback = function () {
+          var ok = legacyCopy(url);
+          showState(ok ? 'Copiat! ✓' : 'N-a mers — selectează linkul manual', ok ? 'copied' : 'copy-failed', 2400);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () {
+            showState('Copiat! ✓', 'copied', 1800);
+          }).catch(fallback);
+        } else {
+          fallback();
+        }
       };
 
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(function () {
-          showState('Copiat! ✓', 'copied', 1800);
-        }).catch(fallback);
+      // Pe mobil, sheet-ul nativ de distribuire (WhatsApp/Instagram/etc.) —
+      // mult mai des folosit decât copiatul manual al linkului. Dacă
+      // vizitatoarea anulează sheet-ul (AbortError), nu tratăm asta ca eșec.
+      if (navigator.share) {
+        navigator.share({
+          title: btn.getAttribute('data-title') || document.title,
+          text: btn.getAttribute('data-text') || '',
+          url: url,
+        }).catch(function (e) {
+          if (e && e.name === 'AbortError') return;
+          copyToClipboard();
+        });
       } else {
-        fallback();
+        copyToClipboard();
       }
     });
   })();

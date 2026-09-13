@@ -1,6 +1,6 @@
 /* Moment WOW: celebrare la milestone (10, 25, 50... produse postate). O singură dată per prag. */
 var GlowMilestone = {
-  MILESTONES: [10, 25, 50, 100, 200, 500],
+  MILESTONES: [5, 10, 25, 50, 100, 200, 500],
   KEY_PREFIX: "glow-diary-milestone-seen-",
   COLORS: ["#FF6FA5", "#E8B84B", "#7A1E3D", "#FFD6E8", "#FFFFFF"],
   BANNER_VIZIBIL_MS: 4500,

@@ -1,11 +1,14 @@
 import hashlib
 import io
+import json
 import time
 
 from django.contrib import messages
 from django.core.cache import cache
+from django.db.models import Count, Sum
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.templatetags.static import static
 from django.views import View
 from django.views.generic import DetailView
 
@@ -30,8 +33,24 @@ class ProductDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["comentarii"] = self.object.comentarii.filter(aprobat=True)
+        comentarii_aprobate = self.object.comentarii.filter(aprobat=True)
+        ctx["comentarii"] = comentarii_aprobate
         ctx["form"] = kwargs.get("form", CommentForm())
+
+        # Media notelor lăsate de cititoare (doar cele cu notă, nu toate
+        # comentariile au una) — separată vizual de nota Deei, ca cititoarea
+        # să vadă dintr-o privire dacă părerile converg sau diverg.
+        rating_stats = comentarii_aprobate.filter(nota__isnull=False).aggregate(
+            suma=Sum("nota"), total=Count("nota")
+        )
+        vizitatoare_total = rating_stats["total"] or 0
+        if vizitatoare_total:
+            ctx["nota_cititoarelor"] = round(rating_stats["suma"] / vizitatoare_total, 1)
+            ctx["nota_cititoarelor_total"] = vizitatoare_total
+
+        ctx["product_schema_json"] = self._product_schema(
+            self.object, rating_stats["suma"] or 0, vizitatoare_total
+        )
         galerie = list(self.object.imagini.all())
         pozele = ([self.object.poza] if self.object.poza else []) + [
             img.imagine for img in galerie if img.imagine
@@ -42,6 +61,51 @@ class ProductDetailView(DetailView):
             .exclude(pk=self.object.pk)
         )[:3]
         return ctx
+
+    def _product_schema(self, produs, suma_note_vizitatoare, total_vizitatoare):
+        """JSON-LD Product+Review — permite Google să arate stelele direct
+        în rezultatele de căutare, nu doar un link anonim. Combinăm nota
+        Deei cu cele ale vizitatoarelor într-un singur agregat, cerut de
+        Google pentru orice rating afișat public pe pagină."""
+        request = self.request
+        base_url = f"{request.scheme}://{request.get_host()}"
+        image_url = (
+            f"{base_url}{produs.poza.url}" if produs.poza
+            else f"{base_url}{static('img/og-image.png')}"
+        )
+        suma_totala = suma_note_vizitatoare + produs.nota_mea
+        numar_total = total_vizitatoare + 1
+
+        data = {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": produs.nume,
+            "brand": {"@type": "Brand", "name": produs.brand},
+            "image": image_url,
+            "url": f"{base_url}{produs.get_absolute_url()}",
+            "description": produs.parerea_mea,
+            "review": {
+                "@type": "Review",
+                "author": {"@type": "Person", "name": "Deea"},
+                "reviewBody": produs.parerea_mea,
+                "reviewRating": {
+                    "@type": "Rating",
+                    "ratingValue": produs.nota_mea,
+                    "bestRating": 5,
+                    "worstRating": 1,
+                },
+            },
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": round(suma_totala / numar_total, 1),
+                "reviewCount": numar_total,
+                "bestRating": 5,
+                "worstRating": 1,
+            },
+        }
+        # "</script>" în descriere ar închide prematur tag-ul — improbabil cu
+        # text scris de Deea, dar mai sigur decât să presupunem că nu apare.
+        return json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
