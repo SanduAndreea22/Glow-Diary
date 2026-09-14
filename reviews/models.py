@@ -49,6 +49,13 @@ CATEGORIE_CHOICES = [
     ("farduri-pleoape", "Farduri de pleoape"),
     ("creion-ochi", "Creion de ochi"),
     ("sprancene", "Sprâncene"),
+    ("ser", "Ser"),
+    ("crema-hidratanta", "Cremă hidratantă"),
+    ("toner", "Toner"),
+    ("exfoliant", "Exfoliant"),
+    ("demachiant", "Demachiant"),
+    ("masca", "Mască"),
+    ("protectie-solara", "Protecție solară"),
     ("altele", "Altele"),
 ]
 
