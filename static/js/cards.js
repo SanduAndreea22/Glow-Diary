@@ -38,7 +38,7 @@ var GlowCards = {
             '<div class="post-cat">' + esc(p.categorie) + "</div>" +
             (p.il_recumpar ? '<div class="badge-recumpar">↻ Îl recumpăr</div>' : "") +
             (p.nuanta ? '<div class="post-shade">Nuanță: ' + esc(p.nuanta) + "</div>" : "") +
-            (p.sursa ? '<div class="post-source">Cumpărat de la ' + esc(p.sursa) + "</div>" : "") +
+            (p.sursa ? '<div class="post-source"><svg class="source-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Cumpărat de la ' + esc(p.sursa) + "</div>" : "") +
             '<div class="post-rating"><span class="stars">' + GlowStars.render(p.nota) + '</span><span class="post-rating-label">nota mea</span></div>' +
             (p.postat ? '<div class="post-meta">' + esc(p.postat) + (p.comment_count ? " · 💬 " + esc(p.comment_count) + " păreri" : "") + "</div>" : "") +
             '<div class="post-snippet">' + esc(p.snippet) + "</div>" +

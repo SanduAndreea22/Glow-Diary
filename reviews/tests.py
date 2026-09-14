@@ -340,8 +340,20 @@ class ProductDetailAndCommentTests(TestCase):
         r = self.client.post(self.produs.get_absolute_url(), {
             "nume": "Miruna", "nota": "5", "comentariu": "Super produs!", "website": "",
         })
-        self.assertRedirects(r, self.produs.get_absolute_url())
+        # ?prima-parere=1 — primul comentariu de pe acest produs declanșează
+        # confetti pe client (vezi ProductDetailView.post).
+        self.assertRedirects(r, self.produs.get_absolute_url() + "?prima-parere=1")
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 1)
+
+    def test_al_doilea_comentariu_nu_are_parametrul_de_confetti(self):
+        # ?prima-parere=1 declanșează confetti pe client — doar chiar primul
+        # comentariu al unui produs merită asta, nu fiecare comentariu.
+        Comment.objects.create(product=self.produs, nume="Prima", comentariu="Primul comentariu.")
+        r = self.client.post(self.produs.get_absolute_url(), {
+            "nume": "A doua", "nota": "4", "comentariu": "Al doilea comentariu.", "website": "",
+        })
+        self.assertRedirects(r, self.produs.get_absolute_url())
+        self.assertEqual(Comment.objects.filter(product=self.produs).count(), 2)
 
     def test_honeypot_respinge_comentariul(self):
         self.client.post(self.produs.get_absolute_url(), {
@@ -744,7 +756,7 @@ class ComentariuCuPozaTests(TestCase):
             "nume": "Ana", "nota": "5", "comentariu": "Super, uite poza!",
             "website": "", "imagine": _poza_falsa(500, 500, nume="comentariu.jpg"),
         })
-        self.assertRedirects(r, self.produs.get_absolute_url())
+        self.assertRedirects(r, self.produs.get_absolute_url() + "?prima-parere=1")
         comentariu = Comment.objects.get(product=self.produs)
         self.assertTrue(comentariu.imagine)
 
@@ -755,7 +767,7 @@ class ComentariuCuPozaTests(TestCase):
         r = self.client.post(self.produs.get_absolute_url(), {
             "nume": "Ana", "nota": "5", "comentariu": "Fără poză, tot bine.", "website": "",
         })
-        self.assertRedirects(r, self.produs.get_absolute_url())
+        self.assertRedirects(r, self.produs.get_absolute_url() + "?prima-parere=1")
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 1)
 
     def test_poza_peste_5mb_e_respinsa_de_formular(self):

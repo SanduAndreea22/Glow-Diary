@@ -13,7 +13,7 @@
       {% if produs.il_recumpar %}<div class="badge-recumpar">↻ Îl recumpăr</div>{% endif %}
       {% if show_details %}
       {% if produs.nuanta %}<div class="post-shade">Nuanță: {{ produs.nuanta }}</div>{% endif %}
-      {% if produs.sursa %}<div class="post-source">Cumpărat de la {{ produs.sursa }}</div>{% endif %}
+      {% if produs.sursa %}<div class="post-source"><svg class="source-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Cumpărat de la {{ produs.sursa }}</div>{% endif %}
       {% endif %}
       <div class="post-rating"><span class="stars">{% stars_svg produs.nota_mea %}</span><span class="post-rating-label">nota mea</span></div>
       {% if show_details %}

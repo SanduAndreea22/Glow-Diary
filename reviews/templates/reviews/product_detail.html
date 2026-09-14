@@ -49,7 +49,7 @@
       <div class="d-shade">
         {% if produs.nuanta %}Nuanță: {{ produs.nuanta }}{% endif %}
         {% if produs.nuanta and produs.sursa %} · {% endif %}
-        {% if produs.sursa %}Cumpărat de la {{ produs.sursa }}{% endif %}
+        {% if produs.sursa %}<svg class="source-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Cumpărat de la {{ produs.sursa }}{% endif %}
       </div>
 
       <div class="d-rating">
@@ -133,6 +133,17 @@
   <div class="divider"></div>
 
   <div class="section-title">Ce au zis alte cititoare{% if comentarii %} ({{ comentarii|length }}){% endif %}</div>
+  {% if distributie_note %}
+  <div class="rating-distribution">
+    {% for rand in distributie_note %}
+    <div class="rating-distribution-row">
+      <span class="rating-distribution-label">{{ rand.stele }}★</span>
+      <span class="rating-distribution-bar"><span style="width:{{ rand.procent }}%"></span></span>
+      <span class="rating-distribution-pct">{{ rand.procent }}%</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   {% for comentariu in comentarii %}
   <div class="comment-item">
     <div class="comment-top">
@@ -164,7 +175,19 @@
 
 {% block extra_js %}
 <script src="{% static 'js/favorites.js' %}"></script>
+<script src="{% static 'js/milestone.js' %}"></script>
 <script>
+  (function () {
+    // Confetti scurt la prima părere lăsată vreodată pe acest produs — vezi
+    // ?prima-parere=1 adăugat de ProductDetailView.post() la redirect.
+    // Scoatem parametrul din URL imediat, ca un refresh să nu-l repete.
+    if (window.location.search.indexOf('prima-parere=1') !== -1 && window.GlowMilestone) {
+      GlowMilestone.confetti();
+      var urlCurat = window.location.pathname + window.location.hash;
+      window.history.replaceState(null, '', urlCurat);
+    }
+  })();
+
   (function () {
     var favBtn = document.getElementById('fav-btn');
     var favLabel = document.getElementById('fav-btn-label');

@@ -21,7 +21,7 @@
 {% else %}
 
 <div class="recap-hero">
-  <div class="recap-hero-number">{{ total_produse }}</div>
+  <div class="recap-hero-number" data-countup="{{ total_produse }}">0</div>
   <div class="recap-hero-label">produse testate în {{ an }}</div>
 </div>
 
@@ -52,7 +52,7 @@
   {% if total_cheltuit %}
   <div class="recap-stat">
     <div class="recap-stat-label">Cheltuit pe produsele testate</div>
-    <div class="recap-stat-value">{{ total_cheltuit }} lei</div>
+    <div class="recap-stat-value"><span data-countup="{{ total_cheltuit }}">0</span> lei</div>
   </div>
   {% endif %}
 
@@ -64,7 +64,7 @@
   {% if cel_mai_scump %}
   <div class="recap-stat">
     <div class="recap-stat-label">Cel mai scump produs</div>
-    <div class="recap-stat-value">{{ cel_mai_scump.pret }} lei</div>
+    <div class="recap-stat-value"><span data-countup="{{ cel_mai_scump.pret }}">0</span> lei</div>
     <div class="recap-stat-sub"><a href="{{ cel_mai_scump.get_absolute_url }}">{{ cel_mai_scump.brand }} — {{ cel_mai_scump.nume }}</a></div>
   </div>
   {% endif %}
@@ -92,4 +92,40 @@
 
 <div class="recap-footer-link"><a href="{% url 'reviews:feed' %}" class="back-link">&larr; înapoi la ultimele încercări</a></div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* Numerele cresc de la 0 la valoarea reală, ca pagina de Recap să simtă
+     mai degrabă ca un "wrapped" (Spotify-style), nu ca un tabel static.
+     Animăm doar ca întreg (Math.round) — la final punem textul exact din
+     data-countup, ca sumele cu bani (zecimale) să rămână corecte. */
+  (function () {
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var els = document.querySelectorAll('[data-countup]');
+    var DURATA_MS = 900;
+
+    els.forEach(function (el) {
+      var final = el.getAttribute('data-countup');
+      var target = parseFloat(final);
+      if (reduceMotion || isNaN(target)) {
+        el.textContent = final;
+        return;
+      }
+      var start = null;
+      var step = function (timestamp) {
+        if (!start) start = timestamp;
+        var progres = Math.min((timestamp - start) / DURATA_MS, 1);
+        var eased = 1 - Math.pow(1 - progres, 3);
+        el.textContent = Math.round(target * eased);
+        if (progres < 1) {
+          requestAnimationFrame(step);
+        } else {
+          el.textContent = final;
+        }
+      };
+      requestAnimationFrame(step);
+    });
+  })();
+</script>
 {% endblock %}

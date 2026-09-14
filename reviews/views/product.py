@@ -47,6 +47,26 @@ class ProductDetailView(DetailView):
             ctx["nota_cititoarelor"] = round(rating_stats["suma"] / vizitatoare_total, 1)
             ctx["nota_cititoarelor_total"] = vizitatoare_total
 
+        # Distribuție 5★→1★ — utilă doar cu destule note ca procentele să
+        # nu inducă în eroare (ex. 1 singură notă de 3★ n-ar trebui să arate
+        # ca "100% din vizitatoare au dat 3 stele"). Pragul e generos (3),
+        # nu strict statistic — scopul e senzația de comunitate, nu precizie.
+        if vizitatoare_total >= 3:
+            note_brute = comentarii_aprobate.filter(nota__isnull=False).values_list(
+                "nota", flat=True
+            )
+            distributie = {n: 0 for n in range(5, 0, -1)}
+            for nota in note_brute:
+                distributie[nota] += 1
+            ctx["distributie_note"] = [
+                {
+                    "stele": stele,
+                    "count": count,
+                    "procent": round(100 * count / vizitatoare_total),
+                }
+                for stele, count in distributie.items()
+            ]
+
         ctx["product_schema_json"] = self._product_schema(
             self.object, rating_stats["suma"] or 0, vizitatoare_total
         )
@@ -138,8 +158,18 @@ class ProductDetailView(DetailView):
             if not comment.nume:
                 comment.nume = "anonim"
             comment.save()
-            messages.success(request, "Mulțumesc pentru părere! ✨")
-            return redirect(self.object.get_absolute_url())
+            # Momentul WOW: prima părere lăsată vreodată la un produs merită
+            # o recunoaștere reală, nu același mesaj generic — vizitatoarea
+            # care a "spart gheața" e exact genul de implicare de păstrat.
+            e_prima_parere = self.object.comentarii.filter(aprobat=True).count() == 1
+            if e_prima_parere:
+                messages.success(request, "Ești prima care lasă o părere aici! Mulțumesc ✨")
+            else:
+                messages.success(request, "Mulțumesc pentru părere! ✨")
+            url = self.object.get_absolute_url()
+            if e_prima_parere:
+                url += "?prima-parere=1"
+            return redirect(url)
 
         # nu a fost o postare reală (validare eșuată/honeypot) — eliberăm lacătul
         cache.delete(cache_key)
