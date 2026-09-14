@@ -7,7 +7,7 @@
   --white:#FFFFFF;
   --line:#F4C9DC;
   /* Nuanțe secundare, doar pentru gradientul decorativ din spatele pozelor
-     lipsă (post-photo/hero-product/collection-cover) — variabile, nu hex
+     lipsă (post-photo/product-photo/collection-cover) — variabile, nu hex
      direct în reguli, ca dark mode să le poată închide la culoare fără să
      amestece un capăt de gradient „flipuit" cu unul rămas deschis. */
   --photo-peach:#FFE9D6;
@@ -252,7 +252,7 @@ img{max-width:100%;display:block;}
    pentru .card-fav, care e frate cu .post, nu descendent al .post-photo —
    o variabilă CSS "vede" doar în jos pe arbore, nu lateral. */
 .post-wrap{
-  position:relative;margin:0 0 16px;--post-photo-h:190px;
+  position:relative;margin:0 0 16px;--post-photo-h:280px;
   opacity:0;animation:card-in 0.4s ease both;
 }
 @keyframes card-in{
@@ -429,18 +429,27 @@ img{max-width:100%;display:block;}
 .page-arrow.disabled{opacity:0.35;pointer-events:none;}
 .page-ellipsis{color:var(--maroon);opacity:0.5;font-size:12px;padding:0 2px;}
 
-/* Product detail */
-.hero-product{
-  height:230px;
-  background:linear-gradient(135deg, var(--pink-soft), var(--photo-peach) 60%, var(--photo-purple));
-  border-radius:30px 30px 0 0;
-  display:flex;align-items:center;justify-content:center;
-  font-size:64px;
-  position:relative;
+/* Product detail — poză moderată lângă titlu/notă, nu banner peste toată
+   lățimea (o poză portret/pătrată aruncată într-o cutie lată tăia cap și
+   bază la fiecare fotografie, în moduri diferite de la un produs la altul). */
+.product-top{
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  text-align:center;margin-top:16px;
 }
-.hero-product img{width:100%;height:100%;object-fit:cover;}
+.product-photo{
+  width:100%;max-width:220px;aspect-ratio:4/5;flex-shrink:0;
+  background:linear-gradient(135deg, var(--pink-soft), var(--photo-peach) 60%, var(--photo-purple));
+  border-radius:22px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:46px;position:relative;
+}
+.product-photo img{width:100%;height:100%;object-fit:cover;}
+@media (min-width:600px){
+  .product-top{flex-direction:row;align-items:flex-start;text-align:left;gap:22px;}
+  .product-photo{width:200px;flex-shrink:0;}
+}
 .gallery-strip{
-  display:flex;gap:8px;padding:12px 22px 6px;overflow-x:auto;
+  display:flex;gap:8px;padding:12px 0 6px;overflow-x:auto;
   scrollbar-width:thin;scrollbar-color:var(--pink-soft) transparent;
 }
 .gallery-strip::-webkit-scrollbar{height:6px;}
@@ -764,9 +773,8 @@ footer.site-footer{
     gap:0 16px;align-items:start;
   }
   .card-grid .post-wrap,.card-grid .collection-card{margin:0 0 16px;}
-  .card-grid .post-wrap{--post-photo-h:210px;}
+  .card-grid .post-wrap{--post-photo-h:300px;}
   .detail-body,.static-body{max-width:640px;margin:0 auto;}
-  .hero-product{height:320px;}
   /* Despre: poză mare în dreapta, text în stânga — mai editorial, mai
      personal decât avatarul mic de pe mobil (păstrat neschimbat sub
      acest breakpoint). */
@@ -784,7 +792,6 @@ footer.site-footer{
   .screen{max-width:1040px;}
   footer.site-footer{max-width:1040px;}
   .card-grid{grid-template-columns:repeat(3, 1fr);}
-  .hero-product{height:400px;}
 }
 
 /* Rezumatul anului ("wrapped") */

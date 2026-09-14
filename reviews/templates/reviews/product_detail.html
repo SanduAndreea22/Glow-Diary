@@ -9,17 +9,6 @@
 
 {% block content %}
 <script type="application/ld+json">{{ product_schema_json|safe }}</script>
-<div class="hero-product">
-  {% if galerie %}<img id="hero-img" src="{{ galerie.0.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
-  <div class="seal">TESTED BY DEEA</div>
-</div>
-{% if galerie|length > 1 %}
-<div class="gallery-strip">
-  {% for poza in galerie %}
-  <img src="{{ poza.url }}" class="thumb{% if forloop.first %} active{% endif %}" data-full="{{ poza.url }}" alt="{{ produs.nume }} — poza {{ forloop.counter }}" loading="lazy">
-  {% endfor %}
-</div>
-{% endif %}
 <div class="detail-body">
   <div class="detail-top-row">
     <a href="{% url 'reviews:feed' %}" class="back-link">&larr; înapoi acasă</a>
@@ -41,32 +30,49 @@
       </a>
     </div>
   </div>
-  <div class="d-brand">{{ produs.brand }}</div>
-  <div class="d-name">{{ produs.nume }}</div>
-  <div class="post-cat">{{ produs.get_categorie_display }}</div>
-  {% if produs.il_recumpar %}<div class="badge-recumpar">↻ Îl recumpăr</div>{% endif %}
-  {% if produs.tag_uri.all %}
-  <div class="tag-chips">
-    {% for tag in produs.tag_uri.all %}<span class="tag-chip">{{ tag.nume }}</span>{% endfor %}
-  </div>
-  {% endif %}
-  <div class="d-shade">
-    {% if produs.nuanta %}Nuanță: {{ produs.nuanta }}{% endif %}
-    {% if produs.nuanta and produs.sursa %} · {% endif %}
-    {% if produs.sursa %}Cumpărat de la {{ produs.sursa }}{% endif %}
+
+  <div class="product-top">
+    <div class="product-photo">
+      {% if galerie %}<img id="hero-img" src="{{ galerie.0.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
+      <div class="seal">TESTED BY DEEA</div>
+    </div>
+    <div class="product-top-info">
+      <div class="d-brand">{{ produs.brand }}</div>
+      <div class="d-name">{{ produs.nume }}</div>
+      <div class="post-cat">{{ produs.get_categorie_display }}</div>
+      {% if produs.il_recumpar %}<div class="badge-recumpar">↻ Îl recumpăr</div>{% endif %}
+      {% if produs.tag_uri.all %}
+      <div class="tag-chips">
+        {% for tag in produs.tag_uri.all %}<span class="tag-chip">{{ tag.nume }}</span>{% endfor %}
+      </div>
+      {% endif %}
+      <div class="d-shade">
+        {% if produs.nuanta %}Nuanță: {{ produs.nuanta }}{% endif %}
+        {% if produs.nuanta and produs.sursa %} · {% endif %}
+        {% if produs.sursa %}Cumpărat de la {{ produs.sursa }}{% endif %}
+      </div>
+
+      <div class="d-rating">
+        <span class="stars">{% stars_svg produs.nota_mea %}</span>
+        <div class="d-rating-label">nota mea</div>
+        {% if nota_cititoarelor %}
+        <div class="d-rating-visitors">
+          <span class="stars">{% stars_svg nota_cititoarelor %}</span>
+          <span>{{ nota_cititoarelor }}</span>
+          <span class="d-rating-label">cititoarele ({{ nota_cititoarelor_total }})</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 
-  <div class="d-rating">
-    <span class="stars">{% stars_svg produs.nota_mea %}</span>
-    <div class="d-rating-label">nota mea</div>
-    {% if nota_cititoarelor %}
-    <div class="d-rating-visitors">
-      <span class="stars">{% stars_svg nota_cititoarelor %}</span>
-      <span>{{ nota_cititoarelor }}</span>
-      <span class="d-rating-label">cititoarele ({{ nota_cititoarelor_total }})</span>
-    </div>
-    {% endif %}
+  {% if galerie|length > 1 %}
+  <div class="gallery-strip">
+    {% for poza in galerie %}
+    <img src="{{ poza.url }}" class="thumb{% if forloop.first %} active{% endif %}" data-full="{{ poza.url }}" alt="{{ produs.nume }} — poza {{ forloop.counter }}" loading="lazy">
+    {% endfor %}
   </div>
+  {% endif %}
 
   {% if produs.pret or produs.tine_cat or produs.pentru_cine or produs.il_recumpar is not None %}
   <div class="verdict-card">
