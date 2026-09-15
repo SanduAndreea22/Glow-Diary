@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models.functions import Coalesce
 from django.utils.text import slugify
 from PIL import Image
 
@@ -6,11 +7,24 @@ from .image_utils import MAX_PIXELI_ACCEPTATI
 from .models import (
     MAX_SLUG_ATTEMPTS,
     NOTA_CHOICES,
+    Categorie,
     Collection,
     Comment,
     ContactMessage,
     Product,
 )
+
+
+def _categorii_frunza():
+    """Un produs se leagă mereu de o categorie-frunză (subcategorie, sau
+    grup fără subcategorii, ex. Parfumuri/Altele) — niciodată de un grup
+    care are subcategorii (ex. „Machiaj” direct, fără să aleagă Ten/Ochi/...)."""
+    return (
+        Categorie.objects.filter(subcategorii__isnull=True)
+        .select_related("grup")
+        .annotate(grup_ordine=Coalesce("grup__ordine", "ordine"))
+        .order_by("grup_ordine", "grup__nume", "ordine", "nume")
+    )
 
 # Endpoint public, fără autentificare — Django nu respinge automat fișiere
 # mari (FILE_UPLOAD_MAX_MEMORY_SIZE e doar pragul de spooling pe disc, nu
@@ -128,6 +142,8 @@ class ProductBulkForm(forms.ModelForm):
     """Un rând din formularul de adăugare în bulk (admin) — fără poză;
     aceea rămâne de adăugat individual, per produs, după import."""
 
+    categorie = forms.ModelChoiceField(queryset=_categorii_frunza(), label="Categorie")
+
     class Meta:
         model = Product
         fields = ["brand", "nume", "categorie", "nuanta", "sursa", "nota_mea", "parerea_mea"]
@@ -152,10 +168,47 @@ def _slug_ar_epuiza_incercarile(model_cls, base_text):
     return existente >= MAX_SLUG_ATTEMPTS
 
 
+class CategorieSelect(forms.Select):
+    """`<select>` obișnuit, dar cu `data-grup` pe fiecare `<option>` — JS-ul
+    de cascadă (static/admin/reviews/product_categorie_cascade.js) filtrează
+    lista vizibilă de subcategorii după grupul ales, fără AJAX."""
+
+    grup_dupa_categorie = {}
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        if value:
+            grup_id = self.grup_dupa_categorie.get(value.value if hasattr(value, "value") else value)
+            if grup_id is not None:
+                option["attrs"]["data-grup"] = grup_id
+        return option
+
+
 class ProductAdminForm(forms.ModelForm):
+    # Nu e câmp de model — doar ajută JS-ul de cascadă să filtreze
+    # dropdown-ul de mai jos (`categorie`) la subcategoriile grupului ales.
+    # Câmpul salvat efectiv rămâne `categorie` (o frunză), niciodată `grup`.
+    grup = forms.ModelChoiceField(
+        queryset=Categorie.objects.filter(grup__isnull=True).order_by("ordine", "nume"),
+        required=False, label="Grup",
+        help_text="Alege întâi grupul — categoria de mai jos se filtrează automat.",
+    )
+
     class Meta:
         model = Product
         fields = "__all__"
+        widgets = {"categorie": CategorieSelect}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        frunze = _categorii_frunza()
+        self.fields["categorie"].queryset = frunze
+        self.fields["categorie"].widget.grup_dupa_categorie = {
+            str(c.pk): str(c.grup_id or c.pk) for c in frunze
+        }
+        if self.instance.pk and self.instance.categorie_id:
+            leaf = self.instance.categorie
+            self.initial["grup"] = leaf.grup_id or leaf.pk
 
     def clean(self):
         cleaned = super().clean()

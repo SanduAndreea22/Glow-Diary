@@ -18,7 +18,7 @@ def _product_card_data(p, produsul_lunii_id=None):
     return {
         "nume": p.nume,
         "brand": p.brand,
-        "categorie": p.get_categorie_display(),
+        "categorie": p.categorie.nume,
         "nuanta": p.nuanta,
         "sursa": p.sursa,
         "poza": p.poza.url if p.poza else "",
@@ -36,7 +36,9 @@ def _product_card_data(p, produsul_lunii_id=None):
 class FavoritesDataView(View):
     def get(self, request):
         slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:MAX_SLUGURI_FAVORITE]
-        produse = cu_numar_pareri(Product.objects.filter(slug__in=slugs, activ=True))
+        produse = cu_numar_pareri(
+            Product.objects.filter(slug__in=slugs, activ=True).select_related("categorie")
+        )
         produsul_lunii_id = feed_stats()["produsul_lunii_id"]
         data = [_product_card_data(p, produsul_lunii_id) for p in produse]
         return JsonResponse({"produse": data})
@@ -44,7 +46,9 @@ class FavoritesDataView(View):
 
 class SearchDataView(View):
     def get(self, request):
-        qs = filtreaza_produse(cu_numar_pareri(Product.objects.filter(activ=True)), request)
+        qs = filtreaza_produse(
+            cu_numar_pareri(Product.objects.filter(activ=True).select_related("categorie")), request
+        )
         produsul_lunii_id = feed_stats()["produsul_lunii_id"]
         data = [_product_card_data(p, produsul_lunii_id) for p in qs[:MAX_REZULTATE_CAUTARE]]
         return JsonResponse({"produse": data})

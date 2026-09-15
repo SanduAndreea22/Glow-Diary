@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.urls import path
 
 from .forms import CollectionAdminForm, ProductAdminForm, ProductBulkFormSet
-from .models import Collection, Comment, ContactMessage, Product, ProductImage, Tag
+from .models import Categorie, Collection, Comment, ContactMessage, Product, ProductImage, Tag
 
 
 class CommentInline(admin.TabularInline):
@@ -31,16 +31,20 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = (
         "nume", "brand", "categorie", "nota_mea", "pret", "il_recumpar", "activ", "data_postarii",
     )
-    list_filter = ("activ", "categorie", "nota_mea", "il_recumpar", "tag_uri")
+    list_select_related = ("categorie", "categorie__grup")
+    list_filter = ("activ", "categorie__grup", "categorie", "nota_mea", "il_recumpar", "tag_uri")
     search_fields = ("nume", "brand", "nuanta")
     filter_horizontal = ("tag_uri",)
     inlines = [ProductImageInline, CommentInline]
     change_list_template = "admin/reviews/product/change_list.html"
     actions = ["delete_selected", restaureaza_produse]
+
+    class Media:
+        js = ("admin/reviews/product_categorie_cascade.js",)
     fieldsets = (
         (None, {
             "fields": (
-                "nume", "brand", "categorie", "nuanta", "sursa", "poza", "slug",
+                "nume", "brand", "grup", "categorie", "nuanta", "sursa", "poza", "slug",
             ),
         }),
         ("Verdict", {
@@ -127,6 +131,17 @@ class CommentAdmin(admin.ModelAdmin):
     @admin.display(description="Poză", boolean=True)
     def are_poza(self, obj):
         return bool(obj.imagine)
+
+
+@admin.register(Categorie)
+class CategorieAdmin(admin.ModelAdmin):
+    list_display = ("nume", "grup", "ordine")
+    list_filter = ("grup",)
+    search_fields = ("nume",)
+    prepopulated_fields = {"slug": ("nume",)}
+    autocomplete_fields = ["grup"]
+    ordering = ["grup__ordine", "grup__nume", "ordine", "nume"]
+
 
 
 @admin.register(Tag)

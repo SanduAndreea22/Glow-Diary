@@ -28,7 +28,7 @@ class ProductDetailView(DetailView):
     def get_queryset(self):
         # activ=True — un produs ascuns (soft-delete) trebuie să 404
         # pentru vizitatoare, la fel ca unul șters cu adevărat.
-        return Product.objects.filter(activ=True)
+        return Product.objects.filter(activ=True).select_related("categorie")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -81,6 +81,7 @@ class ProductDetailView(DetailView):
         ctx["similare"] = (
             Product.objects.filter(activ=True, categorie=self.object.categorie)
             .exclude(pk=self.object.pk)
+            .select_related("categorie")
             .order_by("-data_postarii")
         )[:3]
         return ctx

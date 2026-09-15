@@ -1,7 +1,7 @@
 from django.db.models import Avg, Count, Sum
 from django.views.generic import TemplateView
 
-from ..models import CATEGORIE_CHOICES, Product
+from ..models import Product
 from ..queries import MIN_PRODUSE_PENTRU_RECAP, cu_numar_pareri
 
 # Câte produse candidate luăm în calcul înainte de a filtra "cele mai
@@ -54,16 +54,17 @@ class AnRecapView(TemplateView):
         )
         ctx["brand_preferat"] = brand_top
 
-        # Tiebreaker (`categorie`) adăugat pentru determinism la egalitate —
-        # fără el, ordinea la egalitate de "total" nu e garantată de SQL.
+        # Tiebreaker (`categorie__nume`) adăugat pentru determinism la
+        # egalitate — fără el, ordinea la egalitate de "total" nu e
+        # garantată de SQL.
         categorie_top = (
-            produse_an.values("categorie")
+            produse_an.values("categorie__nume")
             .annotate(total=Count("id"))
-            .order_by("-total", "categorie")
+            .order_by("-total", "categorie__nume")
             .first()
         )
         if categorie_top:
-            ctx["categorie_preferata"] = dict(CATEGORIE_CHOICES).get(categorie_top["categorie"])
+            ctx["categorie_preferata"] = categorie_top["categorie__nume"]
             ctx["categorie_preferata_total"] = categorie_top["total"]
 
         # Tiebreaker (`-data_postarii`) — la preț egal, arătăm cel mai recent

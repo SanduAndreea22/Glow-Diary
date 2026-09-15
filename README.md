@@ -73,6 +73,10 @@ Pentru mai multe produse deodată: butonul „Adaugă mai multe produse" de lân
 
 Pe lângă notă și părere, un produs poate avea: **preț** (lei — opțional, dar exact ce vine să afle cineva care se întreabă dacă merită banii), **îl recumpăr** (Da/Nu, lăsat necompletat cât timp nu te-ai hotărât — completat, arată sigiliu auriu pe card), **cât ține** (text liber, ex. „8 ore") și **recomandat pentru** (text liber, ex. „ten gras"). Toate opționale.
 
+### Categorii (grupuri + subcategorii)
+
+Categoriile sunt pe 2 niveluri: un **grup** (ex. „Machiaj", „Îngrijire ten") și **subcategoriile** lui (ex. „Buze", „Ochi"). Un produs se leagă mereu de o subcategorie, sau de un grup fără subcategorii (ex. „Parfumuri", „Altele"). Complet editabile din admin → Categorii — la fel ca Tag-urile, poți adăuga/redenumi/reordona oricând, fără cod. În feed, o categorie apare în filtru doar dacă are cel puțin un produs activ.
+
 ### Tag-uri și filtrare după preț
 
 **Tag-uri** — atribute libere de filtrare (tip de ten, ingrediente etc.), gestionate din admin → Tags: se pot adăuga/șterge oricând, fără cod. Un produs poate avea mai multe tag-uri (secțiunea „Filtrare" din formularul de produs). Feed-ul are un filtru dedicat pe tag, plus un filtru de **preț maxim** — ambele combinabile cu restul filtrelor existente (categorie, notă minimă, sursă, sortare).

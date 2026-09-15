@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models, transaction
 from django.urls import reverse
@@ -36,35 +37,44 @@ def _save_with_unique_slug(instance, base_text, save_fn):
         f"{MAX_SLUG_ATTEMPTS} încercări."
     )
 
-CATEGORIE_CHOICES = [
-    ("ruj", "Ruj"),
-    ("gloss", "Gloss"),
-    ("blush", "Blush"),
-    ("iluminator", "Iluminator"),
-    ("pudra", "Pudră"),
-    ("fond-de-ten", "Fond de ten"),
-    ("corector", "Corector"),
-    ("primer", "Primer"),
-    ("mascara", "Mascara"),
-    ("farduri-pleoape", "Farduri de pleoape"),
-    ("creion-ochi", "Creion de ochi"),
-    ("sprancene", "Sprâncene"),
-    ("contur-buze", "Contur buze"),
-    ("fixator", "Fixator machiaj"),
-    ("ser", "Ser"),
-    ("crema-hidratanta", "Cremă hidratantă"),
-    ("crema-ochi", "Cremă de ochi"),
-    ("toner", "Toner"),
-    ("exfoliant", "Exfoliant"),
-    ("demachiant", "Demachiant"),
-    ("masca", "Mască"),
-    ("ulei-buze", "Ulei de buze"),
-    ("ulei-corp", "Ulei de corp"),
-    ("protectie-solara", "Protecție solară"),
-    ("parfum", "Parfum"),
-    ("ingrijire-par", "Îngrijire păr"),
-    ("altele", "Altele"),
-]
+class Categorie(models.Model):
+    """Categorie de produs, pe maximum 2 niveluri: un grup (`grup=None`,
+    ex. „Machiaj") și subcategoriile lui (`grup=<grupul>`, ex. „Buze").
+    Complet editabilă din admin, la fel ca Tag — Deea poate adăuga/redenumi/
+    reordona oricând, fără cod. Un produs se leagă mereu de o „frunză":
+    fie o subcategorie, fie un grup fără nicio subcategorie (ex. „Parfumuri",
+    „Altele") — niciodată de un grup care are subcategorii."""
+
+    nume = models.CharField("Nume", max_length=60)
+    slug = models.SlugField(max_length=70, unique=True, blank=True)
+    grup = models.ForeignKey(
+        "self", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="subcategorii", verbose_name="Grup",
+        help_text="Lasă gol dacă asta e un grup de nivel 1 (ex. „Machiaj”).",
+    )
+    ordine = models.PositiveSmallIntegerField(
+        "Ordine", default=0,
+        help_text="Ordinea de afișare (crescător) — între grupuri, sau între subcategoriile aceluiași grup.",
+    )
+
+    class Meta:
+        ordering = ["ordine", "nume"]
+        verbose_name = "Categorie"
+        verbose_name_plural = "Categorii"
+
+    def __str__(self):
+        return f"{self.grup.nume} → {self.nume}" if self.grup_id else self.nume
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nume)[:70]
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        if self.grup_id and self.grup.grup_id:
+            raise ValidationError(
+                "Doar 2 niveluri permise — o subcategorie nu poate fi, la rândul ei, grup pentru altceva."
+            )
 
 
 class Tag(models.Model):
@@ -92,8 +102,10 @@ class Tag(models.Model):
 class Product(models.Model):
     nume = models.CharField("Nume produs", max_length=150)
     brand = models.CharField("Brand", max_length=100)
-    categorie = models.CharField(
-        "Categorie", max_length=30, choices=CATEGORIE_CHOICES, db_index=True
+    categorie = models.ForeignKey(
+        Categorie, on_delete=models.PROTECT, related_name="produse",
+        verbose_name="Categorie",
+        help_text="O subcategorie (ex. Machiaj → Buze), sau un grup fără subcategorii (ex. Parfumuri, Altele).",
     )
     nuanta = models.CharField(
         "Nuanță", max_length=100, blank=True,

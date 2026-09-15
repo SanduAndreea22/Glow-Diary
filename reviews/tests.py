@@ -5,6 +5,7 @@ from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -13,7 +14,7 @@ from PIL import Image
 
 from .forms import MAX_UPLOAD_IMAGINE_BYTES, CommentForm
 from .image_utils import MAX_PIXELI_ACCEPTATI, PozaPreaMareError
-from .models import Collection, Comment, ContactMessage, Product, Tag
+from .models import Categorie, Collection, Comment, ContactMessage, Product, Tag
 from .story_image import _safe_text, build_story_image, render_story_png
 from .templatetags.glow_extras import stars_svg
 
@@ -27,20 +28,27 @@ class ProductSlugTests(TestCase):
     def test_slug_generat_automat(self):
         p = Product.objects.create(
             nume="Soft Pinch Liquid Blush", brand="Rare Beauty",
-            categorie="blush", nota_mea=5, parerea_mea="Test.",
+            categorie=_cat("ten"), nota_mea=5, parerea_mea="Test.",
         )
         self.assertEqual(p.slug, "rare-beauty-soft-pinch-liquid-blush")
 
     def test_slug_unic_la_duplicat(self):
         p1 = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele",
+            nume="Test", brand="Brand", categorie=_cat("altele"),
             nota_mea=3, parerea_mea="a",
         )
         p2 = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele",
+            nume="Test", brand="Brand", categorie=_cat("altele"),
             nota_mea=3, parerea_mea="b",
         )
         self.assertNotEqual(p1.slug, p2.slug)
+
+
+def _cat(slug):
+    """Categoria-frunză cu acest slug, din taxonomia semănată prin migrare
+    (reviews/migrations/0015_migreaza_categorii.py) — nu se creează una nouă,
+    ca testele să exerseze aceleași date ca producția."""
+    return Categorie.objects.get(slug=slug)
 
 
 def _poza_falsa(width, height, nume="test.jpg", format="JPEG"):
@@ -54,7 +62,7 @@ def _poza_falsa(width, height, nume="test.jpg", format="JPEG"):
 class ImageOptimizationTests(TestCase):
     def test_poza_mare_e_redimensionata(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
             poza=_poza_falsa(3000, 2000),
         )
         with Image.open(produs.poza.path) as img:
@@ -62,7 +70,7 @@ class ImageOptimizationTests(TestCase):
 
     def test_poza_mica_ramane_neatinsa(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
             poza=_poza_falsa(400, 300),
         )
         with Image.open(produs.poza.path) as img:
@@ -74,7 +82,7 @@ class ImageOptimizationTests(TestCase):
         latura = int((MAX_PIXELI_ACCEPTATI ** 0.5) * 1.2)
         with self.assertRaises(PozaPreaMareError):
             Product.objects.create(
-                nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+                nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
                 poza=_poza_falsa(latura, latura),
             )
 
@@ -86,7 +94,7 @@ class OrphanFileCleanupTests(TestCase):
 
     def test_fisierul_e_sters_la_stergerea_definitiva(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
             poza=_poza_falsa(400, 300), activ=False,  # deja ascuns => delete() șterge cu adevărat
         )
         cale = produs.poza.path
@@ -100,7 +108,7 @@ class OrphanFileCleanupTests(TestCase):
 
     def test_fisierul_vechi_e_sters_la_inlocuirea_pozei(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
             poza=_poza_falsa(400, 300),
         )
         cale_veche = produs.poza.path
@@ -123,13 +131,13 @@ class ProductAdminSlugExhaustionTests(TestCase):
         for i in range(1, 21):
             slug = "brand-produs" if i == 1 else f"brand-produs-{i}"
             Product.objects.create(
-                nume="Produs", brand="Brand", categorie="altele",
+                nume="Produs", brand="Brand", categorie=_cat("altele"),
                 nota_mea=3, parerea_mea="x", slug=slug,
             )
 
     def test_formularul_respinge_cu_mesaj_clar(self):
         r = self.client.post(reverse("admin:reviews_product_add"), {
-            "nume": "Produs", "brand": "Brand", "categorie": "altele",
+            "nume": "Produs", "brand": "Brand", "categorie": str(_cat("altele").pk),
             "nota_mea": "3", "parerea_mea": "y", "slug": "",
             "imagini-TOTAL_FORMS": "0", "imagini-INITIAL_FORMS": "0",
             "imagini-MIN_NUM_FORMS": "0", "imagini-MAX_NUM_FORMS": "1000",
@@ -150,7 +158,7 @@ class SoftDeleteTests(TestCase):
         )
         self.client.force_login(self.staff)
         self.produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
         )
         Comment.objects.create(product=self.produs, comentariu="Super!", aprobat=True)
 
@@ -223,7 +231,7 @@ class FeedBadgeTests(TestCase):
 
     def test_sub_prag_arata_data_ultimei_postari_nu_contorul(self):
         Product.objects.create(
-            nume="A", brand="B", categorie="altele", nota_mea=3, parerea_mea="x",
+            nume="A", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
         )
         r = self.client.get(reverse("reviews:feed"))
         self.assertContains(r, "Actualizat")
@@ -233,7 +241,7 @@ class FeedBadgeTests(TestCase):
     def test_peste_prag_arata_contorul(self):
         for i in range(10):
             Product.objects.create(
-                nume=f"P{i}", brand="B", categorie="altele", nota_mea=3, parerea_mea="x",
+                nume=f"P{i}", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
             )
         r = self.client.get(reverse("reviews:feed"))
         self.assertContains(r, "10 produse testate")
@@ -244,20 +252,93 @@ class FiltreCategoriiTests(TestCase):
     def setUp(self):
         cache.clear()
         Product.objects.create(
-            nume="A", brand="B", categorie="blush", nota_mea=3, parerea_mea="x",
+            nume="A", brand="B", categorie=_cat("ten"), nota_mea=3, parerea_mea="x",
         )
 
     def test_categoria_cu_produse_e_link_activ(self):
         r = self.client.get(reverse("reviews:feed"))
-        self.assertContains(r, "categorie=blush")
+        self.assertContains(r, "categorie=ten")
         content = r.content.decode()
-        self.assertIn('<a href="?categorie=blush', content)
+        self.assertIn('<a href="?categorie=ten', content)
 
-    def test_categoria_fara_produse_e_span_needitabil(self):
+    def test_categoria_fara_produse_nu_apare_deloc(self):
+        # Fără produse în "Buze", categoria nici măcar nu apare în filtru
+        # (nu doar estompată) — vezi _categorii_navigare în queries.py.
         r = self.client.get(reverse("reviews:feed"))
         content = r.content.decode()
-        self.assertNotIn("categorie=ruj", content)
-        self.assertIn('<span class="chip chip-disabled"', content)
+        self.assertNotIn("categorie=buze", content)
+        self.assertNotIn("chip-disabled", content)
+
+
+class CategorieIerarhieTests(TestCase):
+    """Categorie e pe maximum 2 niveluri (grup -> subcategorie) — vezi
+    Categorie.clean() și _categorii_frunza() din forms.py."""
+
+    def test_un_grup_de_nivel_1_e_valid(self):
+        grup = Categorie.objects.create(nume="Grup Test")
+        grup.full_clean()  # nu ridică ValidationError
+
+    def test_o_subcategorie_sub_un_grup_e_valida(self):
+        grup = Categorie.objects.create(nume="Grup Test 2")
+        sub = Categorie(nume="Sub Test", grup=grup)
+        sub.full_clean()  # nu ridică ValidationError
+
+    def test_al_treilea_nivel_e_respins(self):
+        grup = Categorie.objects.create(nume="Grup Test 3")
+        sub = Categorie.objects.create(nume="Sub Test 3", grup=grup)
+        nepot = Categorie(nume="Nepot", grup=sub)
+        with self.assertRaises(ValidationError):
+            nepot.full_clean()
+
+    def test_slug_generat_automat_din_nume(self):
+        c = Categorie.objects.create(nume="Categorie Nouă Testată")
+        self.assertEqual(c.slug, "categorie-noua-testata")
+
+    def test_str_arata_grup_sageata_nume_pentru_subcategorie(self):
+        grup = Categorie.objects.create(nume="Grup Test 4")
+        sub = Categorie.objects.create(nume="Sub Test 4", grup=grup)
+        self.assertEqual(str(sub), "Grup Test 4 → Sub Test 4")
+
+    def test_str_arata_doar_numele_pentru_un_grup(self):
+        grup = Categorie.objects.create(nume="Grup Test 5")
+        self.assertEqual(str(grup), "Grup Test 5")
+
+
+@_no_ssl_redirect
+class CategorieAdminFormTests(TestCase):
+    """Un produs se leagă mereu de o categorie-frunză — niciodată de un grup
+    care are subcategorii (ex. „Machiaj” direct, fără Ten/Ochi/...)."""
+
+    def setUp(self):
+        self.staff = get_user_model().objects.create_user(
+            username="deea-cat", password="parola-puternica-123", is_staff=True, is_superuser=True,
+        )
+        self.client.force_login(self.staff)
+
+    def test_grup_cu_subcategorii_nu_e_optiune_valida(self):
+        machiaj = Categorie.objects.get(slug="machiaj")
+        r = self.client.post(reverse("admin:reviews_product_add"), {
+            "nume": "Produs", "brand": "Brand", "categorie": str(machiaj.pk),
+            "nota_mea": "3", "parerea_mea": "y", "slug": "",
+            "imagini-TOTAL_FORMS": "0", "imagini-INITIAL_FORMS": "0",
+            "imagini-MIN_NUM_FORMS": "0", "imagini-MAX_NUM_FORMS": "1000",
+            "comentarii-TOTAL_FORMS": "0", "comentarii-INITIAL_FORMS": "0",
+            "comentarii-MIN_NUM_FORMS": "0", "comentarii-MAX_NUM_FORMS": "1000",
+        })
+        self.assertEqual(r.status_code, 200)  # re-randează formularul, nu redirect
+        self.assertFalse(Product.objects.filter(nume="Produs").exists())
+
+    def test_o_subcategorie_e_optiune_valida(self):
+        r = self.client.post(reverse("admin:reviews_product_add"), {
+            "nume": "Produs", "brand": "Brand", "categorie": str(_cat("buze").pk),
+            "nota_mea": "3", "parerea_mea": "y", "slug": "",
+            "imagini-TOTAL_FORMS": "0", "imagini-INITIAL_FORMS": "0",
+            "imagini-MIN_NUM_FORMS": "0", "imagini-MAX_NUM_FORMS": "1000",
+            "comentarii-TOTAL_FORMS": "0", "comentarii-INITIAL_FORMS": "0",
+            "comentarii-MIN_NUM_FORMS": "0", "comentarii-MAX_NUM_FORMS": "1000",
+        })
+        self.assertRedirects(r, reverse("admin:reviews_product_changelist"))
+        self.assertTrue(Product.objects.filter(nume="Produs").exists())
 
 
 @_no_ssl_redirect
@@ -279,11 +360,11 @@ class SocialLinksTests(TestCase):
 class FeedViewTests(TestCase):
     def setUp(self):
         self.p1 = Product.objects.create(
-            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie="blush",
+            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie=_cat("ten"),
             nota_mea=5, parerea_mea="Text.", sursa="Sephora",
         )
         self.p2 = Product.objects.create(
-            nume="Gloss Bomb", brand="Fenty Beauty", categorie="gloss",
+            nume="Gloss Bomb", brand="Fenty Beauty", categorie=_cat("buze"),
             nota_mea=4, parerea_mea="Text.", sursa="Douglas",
         )
 
@@ -309,7 +390,7 @@ class FeedViewTests(TestCase):
         self.assertNotContains(r, "Rare Beauty")
 
     def test_feed_filtru_categorie(self):
-        r = self.client.get(reverse("reviews:feed"), {"categorie": "blush"})
+        r = self.client.get(reverse("reviews:feed"), {"categorie": "ten"})
         self.assertContains(r, "Rare Beauty")
         self.assertNotContains(r, "Fenty Beauty")
 
@@ -324,7 +405,7 @@ class ProductDetailAndCommentTests(TestCase):
     def setUp(self):
         cache.clear()
         self.produs = Product.objects.create(
-            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie="blush",
+            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie=_cat("ten"),
             nota_mea=5, parerea_mea="Text.",
         )
 
@@ -397,7 +478,7 @@ class CollectionTests(TestCase):
 
     def test_colectie_cu_produse_apare_si_afiseaza_produsul(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele",
+            nume="Test", brand="Brand", categorie=_cat("altele"),
             nota_mea=3, parerea_mea="a",
         )
         colectie = Collection.objects.create(nume="Vara")
@@ -420,7 +501,7 @@ class FavoritesApiTests(TestCase):
 
     def test_slug_valid_intoarce_produsul(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele",
+            nume="Test", brand="Brand", categorie=_cat("altele"),
             nota_mea=3, parerea_mea="a",
         )
         r = self.client.get(reverse("reviews:favorites_data"), {"slugs": produs.slug})
@@ -428,7 +509,7 @@ class FavoritesApiTests(TestCase):
 
     def test_comment_count_apare_in_json(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele",
+            nume="Test", brand="Brand", categorie=_cat("altele"),
             nota_mea=3, parerea_mea="a",
         )
         Comment.objects.create(product=produs, comentariu="Super!", aprobat=True)
@@ -440,11 +521,11 @@ class FavoritesApiTests(TestCase):
 class SearchDataApiTests(TestCase):
     def setUp(self):
         self.p1 = Product.objects.create(
-            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie="blush",
+            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie=_cat("ten"),
             nota_mea=5, parerea_mea="Text.", sursa="Sephora",
         )
         self.p2 = Product.objects.create(
-            nume="Gloss Bomb", brand="Fenty Beauty", categorie="gloss",
+            nume="Gloss Bomb", brand="Fenty Beauty", categorie=_cat("buze"),
             nota_mea=4, parerea_mea="Text.", sursa="Douglas",
         )
 
@@ -474,7 +555,7 @@ class SearchDataApiTests(TestCase):
         self.assertEqual(len(r.json()["produse"]), 2)
 
     def test_filtru_categorie(self):
-        r = self.client.get(reverse("reviews:search_data"), {"categorie": "gloss"})
+        r = self.client.get(reverse("reviews:search_data"), {"categorie": "buze"})
         slugs = [p["slug"] for p in r.json()["produse"]]
         self.assertEqual(slugs, [self.p2.slug])
 
@@ -496,7 +577,7 @@ class StoryImageTests(TestCase):
     def setUp(self):
         cache.clear()
         self.produs = Product.objects.create(
-            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie="blush",
+            nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie=_cat("ten"),
             nota_mea=5, parerea_mea="Text.",
         )
 
@@ -555,7 +636,7 @@ class StoryImageTests(TestCase):
 
     def test_genereaza_imaginea_fara_eroare_cu_emoji_in_parere(self):
         produs = Product.objects.create(
-            nume="Watermelon Glow Toner", brand="Glow Recipe", categorie="altele",
+            nume="Watermelon Glow Toner", brand="Glow Recipe", categorie=_cat("altele"),
             nota_mea=5, parerea_mea="Mi-a plăcut mult 🍉 și are PHA+BHA.",
         )
         build_story_image(produs, "glowdiary.pythonanywhere.com")
@@ -633,14 +714,14 @@ class ProductBulkAddAdminTests(TestCase):
         data = self._management_form(3)
         data.update({
             "form-0-brand": "Rare Beauty", "form-0-nume": "Soft Pinch",
-            "form-0-categorie": "blush", "form-0-nuanta": "", "form-0-sursa": "Sephora",
+            "form-0-categorie": str(_cat("ten").pk), "form-0-nuanta": "", "form-0-sursa": "Sephora",
             "form-0-nota_mea": "5", "form-0-parerea_mea": "Super produs.",
             # rândul 1 rămâne complet gol — trebuie ignorat, nu trebuie să dea eroare
             "form-1-brand": "", "form-1-nume": "", "form-1-categorie": "",
             "form-1-nuanta": "", "form-1-sursa": "", "form-1-nota_mea": "",
             "form-1-parerea_mea": "",
             "form-2-brand": "Fenty Beauty", "form-2-nume": "Gloss Bomb",
-            "form-2-categorie": "gloss", "form-2-nuanta": "", "form-2-sursa": "Douglas",
+            "form-2-categorie": str(_cat("buze").pk), "form-2-nuanta": "", "form-2-sursa": "Douglas",
             "form-2-nota_mea": "4", "form-2-parerea_mea": "Mi-a plăcut mult.",
         })
         r = self.client.post(self.url, data)
@@ -671,7 +752,7 @@ class StarsSvgTagTests(TestCase):
 class VerdictFieldsTests(TestCase):
     def test_recumpar_adevarat_arata_badge_si_da(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=5, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=5, parerea_mea="a",
             pret="99.90", il_recumpar=True, tine_cat="8 ore",
         )
         r = self.client.get(produs.get_absolute_url())
@@ -682,7 +763,7 @@ class VerdictFieldsTests(TestCase):
 
     def test_recumpar_fals_arata_nu_fara_badge(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
             il_recumpar=False,
         )
         r = self.client.get(produs.get_absolute_url())
@@ -691,7 +772,7 @@ class VerdictFieldsTests(TestCase):
 
     def test_recumpar_nedecis_nu_arata_nici_da_nici_nu(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
         )
         r = self.client.get(produs.get_absolute_url())
         self.assertNotContains(r, "badge-recumpar")
@@ -699,7 +780,7 @@ class VerdictFieldsTests(TestCase):
 
     def test_tag_uri_apar_pe_pagina_produsului(self):
         produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
         )
         produs.tag_uri.add(Tag.objects.get_or_create(nume="Vegan")[0])
         r = self.client.get(produs.get_absolute_url())
@@ -711,10 +792,10 @@ class TagSiPretFilterTests(TestCase):
     def setUp(self):
         cache.clear()
         self.ieftin = Product.objects.create(
-            nume="Ieftin", brand="A", categorie="ruj", nota_mea=4, parerea_mea="x", pret="40",
+            nume="Ieftin", brand="A", categorie=_cat("buze"), nota_mea=4, parerea_mea="x", pret="40",
         )
         self.scump = Product.objects.create(
-            nume="Scump", brand="B", categorie="ruj", nota_mea=4, parerea_mea="x", pret="250",
+            nume="Scump", brand="B", categorie=_cat("buze"), nota_mea=4, parerea_mea="x", pret="250",
         )
         self.vegan_tag = Tag.objects.get_or_create(nume="Vegan")[0]
         self.ieftin.tag_uri.add(self.vegan_tag)
@@ -747,7 +828,7 @@ class ComentariuCuPozaTests(TestCase):
     def setUp(self):
         cache.clear()
         self.produs = Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
         )
 
     @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
@@ -804,7 +885,7 @@ class AnRecapTests(TestCase):
 
     def test_sub_prag_arata_mesaj_prietenos_nu_eroare(self):
         Product.objects.create(
-            nume="Test", brand="Brand", categorie="altele", nota_mea=3, parerea_mea="a",
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
         )
         r = self.client.get(reverse("reviews:an_recap", args=[timezone.now().year]))
         self.assertEqual(r.status_code, 200)
@@ -813,7 +894,7 @@ class AnRecapTests(TestCase):
     def test_peste_prag_arata_statistici(self):
         for i in range(10):
             Product.objects.create(
-                nume=f"Produs {i}", brand="Rare Beauty", categorie="blush",
+                nume=f"Produs {i}", brand="Rare Beauty", categorie=_cat("ten"),
                 nota_mea=5, parerea_mea="x", pret="50", il_recumpar=(i % 2 == 0),
             )
         r = self.client.get(reverse("reviews:an_recap", args=[timezone.now().year]))

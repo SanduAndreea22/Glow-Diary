@@ -6,9 +6,10 @@ from decimal import Decimal, InvalidOperation
 
 from django.core.cache import cache
 from django.db.models import Count, Q
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from .models import Product, Tag
+from .models import Categorie, Product, Tag
 
 FEED_STATS_CACHE_TTL = 300  # 5 minute
 # Sub acest prag, un contor de tip "X produse testate" atrage atenția exact
@@ -45,7 +46,9 @@ def filtreaza_produse(qs, request):
     if q:
         qs = qs.filter(Q(nume__icontains=q) | Q(brand__icontains=q))
     if categorie:
-        qs = qs.filter(categorie=categorie)
+        # `categorie` din URL e slug-ul unei categorii-frunză (subcategorie
+        # sau grup fără subcategorii) — vezi Categorie în models.py.
+        qs = qs.filter(categorie__slug=categorie)
     if nota_min:
         try:
             qs = qs.filter(nota_mea=int(nota_min))
@@ -92,6 +95,23 @@ def produsul_lunii():
     return top.id if top else None
 
 
+def _categorii_navigare(active_qs):
+    """Categoriile-frunză (subcategorii, sau grupuri fără subcategorii —
+    ex. Parfumuri, Altele) care au cel puțin un produs activ — restul nu
+    apar deloc în filtrul din feed (nu doar estompate). Ordonate după
+    ordinea grupului, apoi ordinea proprie, ca rândul de chip-uri să
+    urmeze taxonomia din admin, nu ordinea aleatorie din DB. Listă simplă
+    de dict-uri (nu instanțe de model), sigură de pus în cache."""
+    frunze = (
+        Categorie.objects.filter(produse__in=active_qs)
+        .distinct()
+        .select_related("grup")
+        .annotate(grup_ordine=Coalesce("grup__ordine", "ordine"))
+        .order_by("grup_ordine", "grup__nume", "ordine", "nume")
+    )
+    return [{"nume": c.nume, "slug": c.slug} for c in frunze]
+
+
 def feed_stats():
     """Cache scurt pentru statisticile din header-ul feed-ului (produsul lunii, total)."""
     stats = cache.get("feed-stats")
@@ -107,9 +127,7 @@ def feed_stats():
             "ultima_actualizare": ultimul,
             "an_curent": an_curent,
             "an_curent_total": active.filter(data_postarii__year=an_curent).count(),
-            "categorii_cu_produse": set(
-                active.values_list("categorie", flat=True).distinct()
-            ),
+            "categorii_navigare": _categorii_navigare(active),
             "surse": list(
                 active.exclude(sursa="")
                 .order_by("sursa")

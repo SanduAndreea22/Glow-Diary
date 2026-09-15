@@ -39,7 +39,7 @@
     <div class="product-top-info">
       <div class="d-brand">{{ produs.brand }}</div>
       <div class="d-name">{{ produs.nume }}</div>
-      <div class="post-cat">{{ produs.get_categorie_display }}</div>
+      <div class="post-cat">{{ produs.categorie.nume }}</div>
       {% if produs.il_recumpar %}<div class="badge-recumpar">↻ Îl recumpăr</div>{% endif %}
       {% if produs.tag_uri.all %}
       <div class="tag-chips">

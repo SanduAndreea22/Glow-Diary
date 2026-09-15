@@ -200,7 +200,7 @@ def build_story_image(product, host):
     y += _center_text(draw, y, "by Deea", _font(FONT_QUOTE, 30), PINK) + 34
 
     y += _center_pill(
-        draw, y, product.get_categorie_display().upper(), _font(FONT_BOLD, 24),
+        draw, y, product.categorie.nume.upper(), _font(FONT_BOLD, 24),
         MAROON, (*WHITE, 235),
     ) + 26
 

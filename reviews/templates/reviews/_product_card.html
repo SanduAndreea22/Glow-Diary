@@ -9,7 +9,7 @@
     <div class="post-body">
       <div class="post-brand">{{ produs.brand }}</div>
       <div class="post-name">{{ produs.nume }}</div>
-      <div class="post-cat">{{ produs.get_categorie_display }}</div>
+      <div class="post-cat">{{ produs.categorie.nume }}</div>
       {% if produs.il_recumpar %}<div class="badge-recumpar">↻ Îl recumpăr</div>{% endif %}
       {% if show_details %}
       {% if produs.nuanta %}<div class="post-shade">Nuanță: {{ produs.nuanta }}</div>{% endif %}

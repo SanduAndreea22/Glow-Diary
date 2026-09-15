@@ -1,6 +1,6 @@
 from django.views.generic import ListView
 
-from ..models import CATEGORIE_CHOICES, Product
+from ..models import Product
 from ..queries import (
     DEFAULT_SORT,
     MIN_PRODUSE_PENTRU_CONTOR,
@@ -17,13 +17,11 @@ class FeedView(ListView):
     paginate_by = 12
 
     def get_queryset(self):
-        qs = cu_numar_pareri(Product.objects.filter(activ=True))
+        qs = cu_numar_pareri(Product.objects.filter(activ=True).select_related("categorie"))
         return filtreaza_produse(qs, self.request)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["categorii"] = CATEGORIE_CHOICES
-        ctx["categorii_cu_produse"] = feed_stats()["categorii_cu_produse"]
         ctx["q"] = self.request.GET.get("q", "")
         ctx["categorie_activa"] = self.request.GET.get("categorie", "")
         ctx["nota_min_activa"] = self.request.GET.get("nota_min", "")
@@ -42,6 +40,7 @@ class FeedView(ListView):
         ctx["arata_contor_produse"] = stats["total_produse"] >= MIN_PRODUSE_PENTRU_CONTOR
         ctx["surse"] = stats["surse"]
         ctx["tag_uri_disponibile"] = stats["tag_uri"]
+        ctx["categorii_navigare"] = stats["categorii_navigare"]
         if stats["an_curent_total"] >= MIN_PRODUSE_PENTRU_CONTOR:
             ctx["an_recap_an"] = stats["an_curent"]
 
