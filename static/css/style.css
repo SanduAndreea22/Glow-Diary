@@ -499,13 +499,14 @@ img{max-width:100%;display:block;}
 .share-btn.copy-failed{background:#FBD7D7;color:#8A1F1F;}
 .share-btn.active{background:var(--pink);color:var(--white);}
 /* Ierarhie vizuală pe cele 3 acțiuni: Salvează contează pentru vizitatoare
-   (acțiune principală), Copiază linkul/Descarcă Story sunt utile mai ales
-   pentru distribuire (secundare) — nu trebuie să cântărească la fel. */
+   (acțiune principală) — fundal plin, nu doar bordură — Copiază linkul/
+   Descarcă Story sunt utile mai ales pentru distribuire (secundare) — nu
+   trebuie să cântărească la fel. */
 .share-btn-primary{
-  background:var(--white);border:1.5px solid var(--pink);color:var(--pink);
+  background:var(--pink);border:1.5px solid var(--pink);color:var(--white);
 }
-.share-btn-primary:hover{background:var(--pink);color:var(--white);}
-.share-btn-primary.active{background:var(--pink);color:var(--white);border-color:var(--pink);}
+.share-btn-primary:hover{background:var(--maroon);border-color:var(--maroon);}
+.share-btn-primary.active{background:var(--maroon);color:var(--white);border-color:var(--maroon);}
 .share-btn-secondary{
   background:none;border:1.5px solid var(--line);color:var(--maroon);opacity:0.7;
 }
