@@ -24,6 +24,7 @@
     <textarea class="field" name="mesaj" rows="5" placeholder="Scrie-mi mesajul tău...">{{ form.mesaj.value|default:'' }}</textarea>
     {% if form.mesaj.errors %}<div class="no-comments form-error">{{ form.mesaj.errors.0 }}</div>{% endif %}
 
+    <div class="comment-moderation-note">Răspund de obicei în 3 zile.</div>
     <button type="submit" class="submit-btn">Trimite mesajul</button>
   </form>
 
