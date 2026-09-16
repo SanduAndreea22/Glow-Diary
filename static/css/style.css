@@ -13,6 +13,10 @@
   --photo-peach:#FFE9D6;
   --photo-pink-tint:#FFEAF4;
   --photo-purple:#F0DDF7;
+  /* Singura nuanță "rece", introdusă deliberat ca accent secundar — contrast
+     față de paleta caldă roz-crem-maroniu, doar în gradientul decorativ din
+     spatele cardurilor (nu în butoane/linkuri/badge-uri, care rămân neatinse). */
+  --photo-blue-tint:#DCE9F5;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
@@ -339,18 +343,22 @@ img{max-width:100%;display:block;}
   position:relative;
   background:linear-gradient(135deg, var(--pink-soft), var(--photo-peach));
 }
-/* 6 variante (nu 3) — recombină aceleași 3 nuanțe existente, pereche +
-   direcție diferite, ca feed-ul să aibă mai mult ritm vizual la scroll
-   fără să adauge culori noi (deci fără reguli noi de dark mode de scris).
+/* 8 variante — recombină cele 3 nuanțe calde existente, pereche + direcție
+   diferite, plus 2 variante cu accent albastru pudrat (singura nuanță
+   "rece" din paletă, introdusă deliberat pentru contrast — doar aici, nu
+   în butoane/linkuri/badge-uri). Ca feed-ul să aibă mai mult ritm vizual
+   la scroll, fără să schimbe identitatea de culoare a brandului.
    Țintă pe .post-wrap (poziția reală în grid), nu pe .post — .post e
    mereu primul copil al lui .post-wrap (al doilea e butonul de favorite),
    deci :nth-child pe .post însuși nu s-ar cicla niciodată. */
-.post-wrap:nth-child(6n+1) .post-photo{background:linear-gradient(135deg, var(--pink-soft), var(--photo-pink-tint));}
-.post-wrap:nth-child(6n+2) .post-photo{background:linear-gradient(135deg, var(--photo-peach), var(--pink-soft));}
-.post-wrap:nth-child(6n+3) .post-photo{background:linear-gradient(135deg, var(--photo-purple), var(--pink-soft));}
-.post-wrap:nth-child(6n+4) .post-photo{background:linear-gradient(200deg, var(--photo-pink-tint), var(--photo-peach));}
-.post-wrap:nth-child(6n+5) .post-photo{background:linear-gradient(200deg, var(--pink-soft), var(--photo-purple));}
-.post-wrap:nth-child(6n) .post-photo{background:linear-gradient(200deg, var(--photo-peach), var(--photo-purple));}
+.post-wrap:nth-child(8n+1) .post-photo{background:linear-gradient(135deg, var(--pink-soft), var(--photo-pink-tint));}
+.post-wrap:nth-child(8n+2) .post-photo{background:linear-gradient(135deg, var(--photo-peach), var(--pink-soft));}
+.post-wrap:nth-child(8n+3) .post-photo{background:linear-gradient(135deg, var(--photo-purple), var(--pink-soft));}
+.post-wrap:nth-child(8n+4) .post-photo{background:linear-gradient(200deg, var(--photo-pink-tint), var(--photo-peach));}
+.post-wrap:nth-child(8n+5) .post-photo{background:linear-gradient(200deg, var(--pink-soft), var(--photo-purple));}
+.post-wrap:nth-child(8n+6) .post-photo{background:linear-gradient(200deg, var(--photo-peach), var(--photo-purple));}
+.post-wrap:nth-child(8n+7) .post-photo{background:linear-gradient(135deg, var(--photo-blue-tint), var(--pink-soft));}
+.post-wrap:nth-child(8n) .post-photo{background:linear-gradient(200deg, var(--pink-soft), var(--photo-blue-tint));}
 .post-photo img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s ease;}
 .post:hover .post-photo img,.post:focus-visible .post-photo img{transform:scale(1.06);}
 @media (prefers-reduced-motion: reduce){
@@ -923,6 +931,7 @@ footer.site-footer{
     --photo-peach:#2E2118;
     --photo-pink-tint:#331B28;
     --photo-purple:#211A2E;
+    --photo-blue-tint:#1A2530;
   }
   body{background:#120A0D;}
 
