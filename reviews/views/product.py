@@ -189,7 +189,10 @@ class ProductDetailView(DetailView):
 
 class ProductStoryImageView(View):
     def get(self, request, slug):
-        produs = get_object_or_404(Product, slug=slug)
+        # activ=True — un produs ascuns (soft-delete) trebuie să 404 și
+        # aici, nu doar pe pagina de detaliu (altfel imaginea de Story tot
+        # poate fi generată/accesată dacă cineva știe sau ghicește slug-ul).
+        produs = get_object_or_404(Product, slug=slug, activ=True)
         # www vs. non-www ar fi altfel două chei de cache diferite pentru
         # exact aceeași imagine — normalizăm la o singură formă canonică,
         # folosită atât în cheie cât și ca text afișat pe imagine (brand-ul

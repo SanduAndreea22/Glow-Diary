@@ -830,6 +830,14 @@ class StoryImageTests(TestCase):
         )
         self.assertEqual(r.status_code, 404)
 
+    def test_produs_dezactivat_da_404(self):
+        self.produs.activ = False
+        self.produs.save()
+        r = self.client.get(
+            reverse("reviews:product_story_image", args=[self.produs.slug])
+        )
+        self.assertEqual(r.status_code, 404)
+
     def test_a_doua_cerere_foloseste_cache(self):
         url = reverse("reviews:product_story_image", args=[self.produs.slug])
         with mock.patch(
