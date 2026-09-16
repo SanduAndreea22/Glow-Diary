@@ -254,6 +254,13 @@ class FiltreCategoriiTests(TestCase):
         Product.objects.create(
             nume="A", brand="B", categorie=_cat("ten"), nota_mea=3, parerea_mea="x",
         )
+        # Peste MIN_PRODUSE_PENTRU_CONTOR — sub prag, rândul de categorii e
+        # ascuns complet (simplificare UI cât conținutul e redus, vezi
+        # feed.html), deci testele de mai jos n-ar mai avea ce verifica.
+        for i in range(9):
+            Product.objects.create(
+                nume=f"P{i}", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+            )
 
     def test_categoria_cu_produse_e_link_activ(self):
         r = self.client.get(reverse("reviews:feed"))
@@ -339,6 +346,37 @@ class CategorieAdminFormTests(TestCase):
         })
         self.assertRedirects(r, reverse("admin:reviews_product_changelist"))
         self.assertTrue(Product.objects.filter(nume="Produs").exists())
+
+
+@_no_ssl_redirect
+class SimplificareUISubPragTests(TestCase):
+    """Sub MIN_PRODUSE_PENTRU_CONTOR, bara de căutare+filtre și rândul de
+    categorii sunt "mobilier" fără rost — ascunse temporar, nu șterse."""
+
+    def setUp(self):
+        cache.clear()
+        Product.objects.create(
+            nume="A", brand="B", categorie=_cat("ten"), nota_mea=3, parerea_mea="x",
+        )
+
+    def test_sub_prag_fara_filtru_activ_ascunde_ui_ul(self):
+        r = self.client.get(reverse("reviews:feed"))
+        content = r.content.decode()
+        self.assertNotIn('id="search-bar"', content)
+        self.assertNotIn('id="filter-panel"', content)
+        self.assertNotIn("categorie=ten", content)
+
+    def test_sub_prag_cu_cautare_activa_arata_ui_ul(self):
+        # Vizitatoare ajunsă cu un link deja filtrat/cu căutare — nu rămâne
+        # blocată fără context, chiar dacă suntem sub pragul de produse.
+        r = self.client.get(reverse("reviews:feed"), {"q": "a"})
+        content = r.content.decode()
+        self.assertIn('id="search-bar"', content)
+
+    def test_sub_prag_cu_categorie_activa_arata_ui_ul(self):
+        r = self.client.get(reverse("reviews:feed"), {"categorie": "ten"})
+        content = r.content.decode()
+        self.assertIn('id="search-bar"', content)
 
 
 @_no_ssl_redirect
