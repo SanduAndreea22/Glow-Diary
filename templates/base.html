@@ -52,7 +52,7 @@
   {% if messages %}
   <ul class="messages">
     {% for message in messages %}
-    <li class="{{ message.tags }}">{{ message }}</li>
+    <li class="{{ message.tags }}"><span>{{ message }}</span><button type="button" class="messages-close" aria-label="Închide mesajul">×</button></li>
     {% endfor %}
   </ul>
   {% endif %}
@@ -107,7 +107,7 @@
      printr-un request/redirect și deci n-ar avea altfel niciun feedback
      textual pe telefon, unde tooltip-urile pe hover nu există. */
   window.GlowToast = {
-    show: function (text) {
+    show: function (text, durataMs) {
       var el = document.getElementById('glow-toast');
       if (!el) return;
       el.textContent = text;
@@ -117,7 +117,7 @@
       el._hideTimer = setTimeout(function () {
         el.classList.remove('show');
         setTimeout(function () { el.hidden = true; }, GLOW_TOAST_FADE_MS);
-      }, GLOW_TOAST_VIZIBIL_MS);
+      }, durataMs || GLOW_TOAST_VIZIBIL_MS);
     }
   };
 
@@ -126,13 +126,25 @@
     messagesBanner.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  var dismissMessage = function (el) {
+    el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-6px)';
+    setTimeout(function () { el.remove(); }, GLOW_MESAJ_FADE_MS);
+  };
+
   document.querySelectorAll('.messages li').forEach(function (el) {
-    setTimeout(function () {
-      el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(-6px)';
-      setTimeout(function () { el.remove(); }, GLOW_MESAJ_FADE_MS);
-    }, GLOW_MESAJ_VIZIBIL_MS);
+    var closeBtn = el.querySelector('.messages-close');
+    if (closeBtn) closeBtn.addEventListener('click', function () { dismissMessage(el); });
+
+    // Un mesaj de succes (ex. confirmarea că părerea a fost trimisă) rămâne
+    // vizibil până îl închide vizitatoarea — altfel poate dispărea automat
+    // înainte ca ea să apuce să citească/deruleze până acolo, și rămâne
+    // nesigură dacă acțiunea chiar s-a încheiat. Erorile/avertismentele tot
+    // dispar automat, ca să nu aglomereze pagina la o revenire.
+    if (el.classList.contains('success')) return;
+
+    setTimeout(function () { dismissMessage(el); }, GLOW_MESAJ_VIZIBIL_MS);
   });
 
   if ('serviceWorker' in navigator) {

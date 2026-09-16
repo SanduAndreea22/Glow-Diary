@@ -43,7 +43,7 @@ class HoneypotFormMixin(forms.Form):
     def clean_website(self):
         value = self.cleaned_data.get("website")
         if value:
-            raise forms.ValidationError("Spam detectat.")
+            raise forms.ValidationError("Nu am putut trimite formularul. Încearcă din nou.")
         return value
 
 
@@ -95,7 +95,7 @@ class CommentForm(HoneypotFormMixin, forms.ModelForm):
 
         if imagine.size > MAX_UPLOAD_IMAGINE_BYTES:
             raise forms.ValidationError(
-                "Poza e prea mare (peste 5MB) — încearcă una mai mică."
+                "Imaginea este mai mare de 5 MB. Alege una mai mică."
             )
 
         try:
@@ -109,7 +109,7 @@ class CommentForm(HoneypotFormMixin, forms.ModelForm):
 
         if latime * inaltime > MAX_PIXELI_ACCEPTATI:
             raise forms.ValidationError(
-                "Poza are o rezoluție neobișnuit de mare — încearcă una mai mică."
+                "Imaginea are dimensiuni prea mari. Alege o imagine mai mică."
             )
         return imagine
 

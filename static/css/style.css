@@ -28,6 +28,9 @@ body{
 a{color:inherit;text-decoration:none;}
 h1,h2,h3{font-family:'Fraunces', serif;}
 img{max-width:100%;display:block;}
+@media (prefers-reduced-motion: no-preference){
+  html{scroll-behavior:smooth;}
+}
 
 .screen{
   max-width:520px;
@@ -99,6 +102,17 @@ img{max-width:100%;display:block;}
 .hero-intro .feed-tag{padding:0;color:var(--gold);margin-top:4px;}
 .hero-intro .feed-intro{padding:0;color:var(--cream);opacity:0.85;margin-top:8px;}
 .hero-intro .feed-intro a{color:var(--gold);}
+/* Acțiune principală, evidentă din prima privire — fără ea, vizitatoarea
+   trebuie să deducă singură că trebuie să deruleze printre carduri. */
+.hero-cta{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:14px;
+  background:var(--gold);color:var(--maroon);
+  font-family:'Fraunces';font-weight:700;font-size:13px;
+  padding:10px 20px;border-radius:100px;
+  transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+.hero-cta:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,0.18);}
 .feed-title{padding:0 22px 4px;font-size:22px;font-weight:700;}
 .feed-title-sub{font-size:17px;}
 .feed-tag{padding:0 22px 4px;font-size:12px;color:var(--pink);font-weight:600;letter-spacing:0.02em;}
@@ -194,6 +208,14 @@ img{max-width:100%;display:block;}
    doar ca fallback fără JS; .js-live-search e adăugată de JS abia după ce
    confirmă că filtrarea live chiar funcționează. */
 .search-bar.js-live-search .search-submit-btn{display:none;}
+/* Feedback textual pentru căutarea live — fără el, o tastare nu are nicio
+   confirmare vizibilă că interfața a reacționat (nu doar cardurile care se
+   schimbă brusc, greu de observat pe telefon la tastare rapidă). */
+.search-status{
+  margin:-6px 22px 14px;
+  font-size:11.5px;font-weight:600;color:var(--maroon);opacity:0.6;
+}
+.search-status.is-loading{opacity:0.45;}
 .filters{
   position:relative;
   display:flex;gap:8px;margin:0 22px 16px;
@@ -772,6 +794,13 @@ select.field{appearance:none;}
 .messages li.success::before{content:"✨";}
 .messages li.error{background:#FBD7D7;color:#8A1F1F;}
 .messages li.error::before{content:"💌";}
+.messages li>span{flex:1 1 auto;}
+.messages-close{
+  flex-shrink:0;appearance:none;border:none;background:none;
+  color:inherit;opacity:0.55;font-size:17px;line-height:1;
+  cursor:pointer;padding:2px 4px;
+}
+.messages-close:hover{opacity:1;}
 
 /* Toast (confirmări scurte pentru acțiuni client-side: wishlist, descărcare) */
 .glow-toast{

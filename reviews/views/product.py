@@ -149,7 +149,7 @@ class ProductDetailView(DetailView):
             cache.delete(cache_key)
             messages.error(
                 request,
-                "Ai lăsat destule păreri pentru moment — mai încearcă peste câteva minute.",
+                "Ai trimis prea multe păreri într-un timp scurt. Încearcă din nou peste câteva minute.",
             )
             return redirect(self.object.get_absolute_url())
 
@@ -218,7 +218,7 @@ class ProductStoryImageView(View):
             # randări simultane nelimitate.
             if global_rate_limited(client_ip(request), "story-render"):
                 return HttpResponse(
-                    "Prea multe imagini generate deodată — mai încearcă peste câteva minute.",
+                    "Nu pot genera acum imaginea pentru Story. Încearcă din nou peste câteva minute.",
                     status=429,
                 )
             png_bytes = self._render_with_lock(cache_key, produs, host)

@@ -8,6 +8,7 @@
   <div class="feed-title">Ultimele încercări</div>
   <div class="feed-tag">Real products. My honest take.</div>
   <p class="feed-intro">Fără PR-uri, fără sponsorizări: machiajul de aici l-am cumpărat, l-am testat și l-am evaluat eu — fie că-i de la drugstore sau de lux, contează doar dacă chiar merită banii. Lasă și tu o părere rapidă la orice produs, fără cont. Vezi și <a href="{% url 'reviews:collections' %}">colecțiile mele →</a>{% if instagram_url %} sau <a href="{{ instagram_url }}" target="_blank" rel="noopener noreferrer">urmărește-mă pe Instagram →</a>{% endif %}</p>
+  <a href="#card-grid" class="hero-cta">Începe explorarea ↓</a>
 </div>
 {% if arata_contor_produse %}
 <div class="stat-chip">✨ {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} până acum</div>
@@ -100,6 +101,7 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
 </form>
 <button type="button" id="filter-toggle" class="filter-toggle-btn{% if filtre_active %} active{% endif %}">⚙️ Filtrează{% if filtre_active %} ✓{% endif %}</button>
 </div>
+<div id="search-status" class="search-status" aria-live="polite" hidden></div>
 
 <div class="filters">
   <a href="?{{ querystring_fara_categorie }}" class="chip{% if not categorie_activa %} active{% endif %}">Toate</a>
@@ -181,7 +183,7 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
 {% for produs in produse %}
   {% include "reviews/_product_card.html" with produs=produs produsul_lunii_id=produsul_lunii_id show_details=True snippet_words=20 %}
 {% empty %}
-<div class="empty-state">N-am găsit nimic — încearcă alt filtru sau altă căutare.</div>
+<div class="empty-state">Nu am găsit produse pentru criteriile alese. Încearcă o altă căutare sau resetează filtrele.</div>
 {% endfor %}
 </div>
 
@@ -254,6 +256,7 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
     var grid = document.getElementById('card-grid');
     var pagination = document.getElementById('pagination-nav');
     var searchBar = document.getElementById('search-bar');
+    var status = document.getElementById('search-status');
     if (!input || !grid) return;
 
     // Butonul "Caută" rămâne în HTML (fallback dacă JS-ul ăsta nu rulează),
@@ -297,11 +300,24 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data.produse.length) {
-            grid.innerHTML = '<div class="empty-state">N-am găsit nimic — încearcă alt filtru sau altă căutare.</div>';
+            grid.innerHTML = '<div class="empty-state">Nu am găsit produse pentru criteriile alese. Încearcă o altă căutare sau resetează filtrele.</div>';
           } else {
             grid.innerHTML = data.produse.map(GlowCards.render).join('');
           }
           GlowFavorites.wireButtons('.card-fav');
+          if (status) {
+            var n = data.produse.length;
+            status.textContent = n
+              ? n + (n === 1 ? ' rezultat pentru "' + q + '"' : ' rezultate pentru "' + q + '"')
+              : 'Niciun rezultat pentru "' + q + '"';
+            status.classList.remove('is-loading');
+          }
+        })
+        .catch(function () {
+          if (status) {
+            status.textContent = 'Căutarea nu a putut fi finalizată — încearcă din nou.';
+            status.classList.remove('is-loading');
+          }
         });
     };
 
@@ -314,10 +330,16 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
         if (pagination) pagination.style.display = originalPaginationDisplay || '';
         history.replaceState(null, '', originalUrl);
         GlowFavorites.wireButtons('.card-fav');
+        if (status) { status.hidden = true; status.classList.remove('is-loading'); }
         return;
       }
 
       if (pagination) pagination.style.display = 'none';
+      if (status) {
+        status.hidden = false;
+        status.classList.add('is-loading');
+        status.textContent = 'Se caută...';
+      }
       timer = setTimeout(function () {
         runSearch(q);
       }, CAUTARE_DEBOUNCE_MS);

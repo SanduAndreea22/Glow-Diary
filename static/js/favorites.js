@@ -1,6 +1,7 @@
 /* Wishlist locală, fără cont — salvat doar în browserul vizitatoarei (localStorage). */
 var GlowFavorites = {
   KEY: "glow-diary-favorites",
+  EXPLAINED_KEY: "glow-diary-favorites-explained",
   BURST_DURATA_MS: 500,
 
   /* Escapare defensivă înainte de a injecta text în innerHTML (chiar dacă azi
@@ -18,6 +19,22 @@ var GlowFavorites = {
       return JSON.parse(localStorage.getItem(this.KEY) || "[]");
     } catch (e) {
       return [];
+    }
+  },
+
+  hasExplainedStorage: function () {
+    try {
+      return localStorage.getItem(this.EXPLAINED_KEY) === "1";
+    } catch (e) {
+      return true;
+    }
+  },
+
+  markExplainedStorage: function () {
+    try {
+      localStorage.setItem(this.EXPLAINED_KEY, "1");
+    } catch (e) {
+      /* localStorage indisponibil — nu insistăm, doar arătăm mesajul scurt data viitoare */
     }
   },
 
@@ -82,9 +99,17 @@ var GlowFavorites = {
         syncTitle(btn, isFav);
         if (isFav) self.burst(btn);
         // Pe telefon (fără hover) title-ul de mai sus nu se vede niciodată —
-        // toast-ul e singura confirmare textuală vizibilă a acțiunii.
+        // toast-ul e singura confirmare textuală vizibilă a acțiunii. La prima
+        // salvare vreodată, explicăm și unde ajunge lista (fără cont, doar
+        // acest browser) — altfel vizitatoarea află abia dacă ajunge separat
+        // pe pagina Favorite.
         if (window.GlowToast) {
-          GlowToast.show(isFav ? "Salvat la favorite ✓" : "Eliminat din favorite");
+          if (isFav && !self.hasExplainedStorage()) {
+            GlowToast.show("Salvat ✓ — ține minte doar în acest browser, fără cont", 4000);
+            self.markExplainedStorage();
+          } else {
+            GlowToast.show(isFav ? "Salvat la favorite ✓" : "Eliminat din favorite");
+          }
         }
         btn.dispatchEvent(new CustomEvent("favchange", { detail: { isFav: isFav } }));
       });

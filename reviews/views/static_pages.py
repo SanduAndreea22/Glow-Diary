@@ -32,7 +32,7 @@ class ContactView(TemplateView):
 
         if global_rate_limited(ip, "contact"):
             cache.delete(cache_key)
-            messages.error(request, "Ai trimis destule mesaje pentru moment — mai încearcă peste câteva minute.")
+            messages.error(request, "Ai trimis prea multe mesaje într-un timp scurt. Încearcă din nou peste câteva minute.")
             return redirect("reviews:contact")
 
         form = ContactForm(request.POST)

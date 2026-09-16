@@ -1105,7 +1105,7 @@ class ComentariuCuPozaTests(TestCase):
             files={"imagine": poza_marcata_mare},
         )
         self.assertFalse(form.is_valid())
-        self.assertIn("prea mare", str(form.errors["imagine"]))
+        self.assertIn("mai mare de 5 MB", str(form.errors["imagine"]))
 
     @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
     def test_poza_cu_rezolutie_extrema_e_respinsa(self):
@@ -1117,7 +1117,7 @@ class ComentariuCuPozaTests(TestCase):
         })
         self.assertEqual(r.status_code, 200)
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 0)
-        self.assertContains(r, "rezoluție neobișnuit de mare")
+        self.assertContains(r, "dimensiuni prea mari")
 
 
 @_no_ssl_redirect
