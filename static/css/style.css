@@ -574,6 +574,14 @@ img{max-width:100%;display:block;}
 }
 .my-take-label{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
 .my-take-text{font-size:14.5px;line-height:1.7;color:var(--maroon);white-space:pre-line;font-weight:500;}
+/* "Trimite mai departe"/"Descarcă pentru Story" mutate aici, sub Părerea
+   mea — nu mai concurează cu "Salvează" sus, lângă poză, care rămâne
+   singura acțiune la vedere imediat (Prompt 2, decizie de design). */
+.share-section{margin-top:18px;}
+.share-section-title{
+  font-size:11px;font-weight:700;color:var(--maroon);opacity:0.55;
+  text-transform:uppercase;letter-spacing:0.03em;margin-bottom:10px;
+}
 /* Nici Salvează/Trimite mai departe/Descarcă pentru Story nu invită spre
    acțiunea cu cea mai mare valoare — lăsarea unei păreri. Punte scurtă,
    text, către formular, chiar după "Părerea mea". */
