@@ -115,25 +115,28 @@ img{max-width:100%;display:block;}
    poză mare, ca să iasă clar în evidență față de un card oarecare din
    grid. Motiv de revenire: "ce a mai ales Deea săptămâna asta?" */
 .week-pick{
-  display:block;margin:0 22px 16px;
+  display:flex;margin:0 22px 16px;
   background:var(--white);border:2px solid var(--gold);border-radius:20px;
   overflow:hidden;
   transition:transform 0.18s ease, box-shadow 0.18s ease;
 }
 .week-pick:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(122,30,61,0.14);}
 .week-pick-photo{
-  position:relative;height:150px;
+  width:110px;flex-shrink:0;aspect-ratio:4/5;
   background:linear-gradient(135deg, var(--pink-soft), var(--photo-peach));
-  display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;
 }
 .week-pick-photo img{width:100%;height:100%;object-fit:cover;}
 .week-pick-badge{
-  position:absolute;top:10px;left:12px;
+  display:inline-block;
   background:var(--gold);color:var(--maroon);
-  font-size:10.5px;font-weight:700;padding:5px 12px;border-radius:100px;
-  font-family:'Fraunces';
+  font-size:10.5px;font-weight:700;padding:4px 11px;border-radius:100px;
+  font-family:'Fraunces';margin-bottom:6px;
 }
-.week-pick-body{padding:14px 16px;}
+.week-pick-body{padding:14px 16px;min-width:0;flex:1 1 auto;}
+@media (min-width:600px){
+  .week-pick-photo{width:150px;}
+}
 .week-pick-name{font-size:17px;font-weight:700;font-family:'Fraunces';}
 .week-pick-desc{font-size:12.5px;color:var(--maroon);opacity:0.7;margin-top:4px;}
 .week-pick-cta{font-size:11.5px;font-weight:700;color:var(--pink);margin-top:8px;}

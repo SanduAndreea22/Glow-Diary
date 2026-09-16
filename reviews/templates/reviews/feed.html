@@ -22,9 +22,9 @@
 <a href="{{ colectia_saptamanii.get_absolute_url }}" class="week-pick">
   <div class="week-pick-photo">
     {% if colectia_saptamanii.coperta %}<img src="{{ colectia_saptamanii.coperta.url }}" alt="{{ colectia_saptamanii.nume }}">{% else %}✨{% endif %}
-    <div class="week-pick-badge">✨ Colecția săptămânii</div>
   </div>
   <div class="week-pick-body">
+    <div class="week-pick-badge">✨ Colecția săptămânii</div>
     <div class="week-pick-name">{{ colectia_saptamanii.nume }}</div>
     {% if colectia_saptamanii.descriere %}<div class="week-pick-desc">{{ colectia_saptamanii.descriere }}</div>{% endif %}
     <div class="week-pick-cta">Vezi colecția →</div>
@@ -39,9 +39,9 @@ manuală. Aceeași structură vizuală (.week-pick) ca la colecție.
 <a href="{{ produs_hero.get_absolute_url }}" class="week-pick">
   <div class="week-pick-photo">
     {% if produs_hero.poza %}<img src="{{ produs_hero.poza.url }}" alt="{{ produs_hero.nume }}">{% else %}💄{% endif %}
-    <div class="week-pick-badge">✨ Alegerea mea</div>
   </div>
   <div class="week-pick-body">
+    <div class="week-pick-badge">✨ Alegerea mea</div>
     <div class="week-pick-name">{{ produs_hero.brand }} — {{ produs_hero.nume }}</div>
     <div class="week-pick-desc">{{ produs_hero.parerea_mea|truncatewords:18 }}</div>
     <div class="week-pick-cta">Vezi recenzia →</div>
