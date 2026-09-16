@@ -15,7 +15,7 @@ from PIL import Image
 from .forms import MAX_UPLOAD_IMAGINE_BYTES, CommentForm
 from .image_utils import MAX_PIXELI_ACCEPTATI, PozaPreaMareError
 from .models import Categorie, Collection, Comment, ContactMessage, Product, Tag
-from .queries import colectia_saptamanii, colectii_de_sezon
+from .queries import colectia_saptamanii, colectii_de_sezon, produs_hero_fallback
 from .story_image import _safe_text, build_story_image, render_story_png
 from .templatetags.glow_extras import stars_svg
 
@@ -594,6 +594,47 @@ class ColectiaSaptamaniiFeedTests(TestCase):
         self.colectie.save()
         r = self.client.get(reverse("reviews:feed"))
         self.assertNotContains(r, "Colecția săptămânii")
+
+
+class ProdusHeroFallbackQueryTests(TestCase):
+    def test_alege_cel_mai_bine_notat(self):
+        slab = Product.objects.create(
+            nume="Slab", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+        )
+        bun = Product.objects.create(
+            nume="Bun", brand="B", categorie=_cat("altele"), nota_mea=5, parerea_mea="x",
+        )
+        self.assertEqual(produs_hero_fallback(), bun)
+        self.assertNotEqual(produs_hero_fallback(), slab)
+
+    def test_produs_inactiv_nu_e_ales(self):
+        produs = Product.objects.create(
+            nume="Ascuns", brand="B", categorie=_cat("altele"), nota_mea=5,
+            parerea_mea="x", activ=False,
+        )
+        self.assertNotEqual(produs_hero_fallback(), produs)
+
+
+@_no_ssl_redirect
+class ProdusHeroFallbackFeedTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.produs = Product.objects.create(
+            nume="Cel mai bun", brand="Brand", categorie=_cat("altele"),
+            nota_mea=5, parerea_mea="Text.",
+        )
+
+    def test_apare_fara_nicio_colectie_a_saptamanii(self):
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertContains(r, "Alegerea mea")
+        self.assertContains(r, "Cel mai bun")
+
+    def test_nu_apare_daca_exista_colectie_a_saptamanii(self):
+        colectie = Collection.objects.create(nume="Vara", recomandata_saptamana=True)
+        colectie.produse.add(self.produs)
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertNotContains(r, "Alegerea mea")
+        self.assertContains(r, "Colecția săptămânii")
 
 
 class ColectiiDeSezonQueryTests(TestCase):

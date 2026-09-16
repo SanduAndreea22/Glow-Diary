@@ -103,6 +103,13 @@ def colectii_de_sezon():
     )
 
 
+def produs_hero_fallback():
+    """Dacă nu există o "colecție a săptămânii" bifată, alegem automat cel
+    mai bine notat produs activ ca hero pe prima pagină (tiebreaker: cel
+    mai recent) — nicio alegere manuală din admin, doar date existente."""
+    return Product.objects.filter(activ=True).order_by("-nota_mea", "-data_postarii").first()
+
+
 def produsul_lunii():
     o_luna_in_urma = timezone.now() - timedelta(days=30)
     top = (
