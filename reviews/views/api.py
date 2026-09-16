@@ -7,6 +7,7 @@ from ..queries import cu_numar_pareri, feed_stats, filtreaza_produse
 
 MAX_SLUGURI_FAVORITE = 50  # cât poate ține realist localStorage-ul de Favorite
 MAX_REZULTATE_CAUTARE = 24  # destul pentru câteva "ecrane" de scroll pe /api/search/
+MAX_RECOMANDARI = 6  # "Recomandat pentru tine" — un rând-două de carduri, nu un feed întreg
 
 
 def _product_card_data(p, produsul_lunii_id=None):
@@ -19,6 +20,7 @@ def _product_card_data(p, produsul_lunii_id=None):
         "nume": p.nume,
         "brand": p.brand,
         "categorie": p.categorie.nume,
+        "categorie_slug": p.categorie.slug,
         "nuanta": p.nuanta,
         "sursa": p.sursa,
         "poza": p.poza.url if p.poza else "",
@@ -51,4 +53,29 @@ class SearchDataView(View):
         )
         produsul_lunii_id = feed_stats()["produsul_lunii_id"]
         data = [_product_card_data(p, produsul_lunii_id) for p in qs[:MAX_REZULTATE_CAUTARE]]
+        return JsonResponse({"produse": data})
+
+
+class RecomandariDataView(View):
+    """"Recomandat pentru tine" — folosit doar client-side (vezi feed.html):
+    JS-ul citește favoritele din localStorage, calculează categoria cea mai
+    frecventă dintre ele prin /api/favorite-data/, apoi cere aici alte
+    produse din acea categorie. Fără `categorie`, nu are ce recomanda."""
+
+    def get(self, request):
+        categorie = request.GET.get("categorie", "").strip()
+        if not categorie:
+            return JsonResponse({"produse": []})
+
+        exclude = [s for s in request.GET.get("exclude", "").split(",") if s][:MAX_SLUGURI_FAVORITE]
+        qs = (
+            cu_numar_pareri(
+                Product.objects.filter(activ=True, categorie__slug=categorie)
+                .exclude(slug__in=exclude)
+                .select_related("categorie")
+            )
+            .order_by("-nota_mea", "-data_postarii")
+        )
+        produsul_lunii_id = feed_stats()["produsul_lunii_id"]
+        data = [_product_card_data(p, produsul_lunii_id) for p in qs[:MAX_RECOMANDARI]]
         return JsonResponse({"produse": data})

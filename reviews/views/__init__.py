@@ -3,7 +3,7 @@ API JSON, pagini statice) — reexportate aici ca `reviews.urls` și
 `CSRF_FAILURE_VIEW` din settings să continue să le găsească la `reviews.views.X`,
 neschimbat."""
 
-from .api import FavoritesDataView, SearchDataView
+from .api import FavoritesDataView, RecomandariDataView, SearchDataView
 from .collections import CollectionDetailView, CollectionListView
 from .feed import FeedView
 from .product import ProductDetailView, ProductStoryImageView
@@ -21,6 +21,7 @@ __all__ = [
     "FeedView",
     "ProductDetailView",
     "ProductStoryImageView",
+    "RecomandariDataView",
     "SearchDataView",
     "csrf_failure",
 ]

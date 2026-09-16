@@ -14,6 +14,7 @@ urlpatterns = [
     path("an/<int:an>/", views.AnRecapView.as_view(), name="an_recap"),
     path("api/favorite-data/", views.FavoritesDataView.as_view(), name="favorites_data"),
     path("api/search/", views.SearchDataView.as_view(), name="search_data"),
+    path("api/recomandari/", views.RecomandariDataView.as_view(), name="recomandari_data"),
     path("despre/", views.AboutView.as_view(), name="about"),
     path("contact/", views.ContactView.as_view(), name="contact"),
 ]

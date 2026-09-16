@@ -50,6 +50,18 @@
 </div>
 {% endif %}
 
+{% if pagina_fara_filtre %}
+{% comment %}
+"Recomandat pentru tine" — 100% client-side (vezi recommendations.js),
+pe baza favoritelor din localStorage. Ascuns implicit; JS-ul îl arată
+doar dacă vizitatoarea are favorite ȘI găsim recomandări reale.
+{% endcomment %}
+<div class="season-block" id="for-you-block" hidden>
+  <div class="season-block-title">Recomandat pentru tine</div>
+  <div class="card-grid" id="for-you-grid"></div>
+</div>
+{% endif %}
+
 {% if arata_contor_produse or filtre_active or q or categorie_activa %}
 {% comment %}
 Sub pragul de produse (vezi MIN_PRODUSE_PENTRU_CONTOR), căutarea+filtrele
@@ -185,6 +197,7 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
 <script src="{% static 'js/favorites.js' %}"></script>
 <script src="{% static 'js/cards.js' %}"></script>
 <script src="{% static 'js/milestone.js' %}"></script>
+<script src="{% static 'js/recommendations.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     GlowFavorites.wireButtons('.card-fav');

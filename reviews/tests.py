@@ -666,6 +666,49 @@ class FavoritesApiTests(TestCase):
         r = self.client.get(reverse("reviews:favorites_data"), {"slugs": produs.slug})
         self.assertEqual(r.json()["produse"][0]["comment_count"], 1)
 
+    def test_categorie_slug_apare_in_json(self):
+        # Necesar în JS (recommendations.js) ca să ceară recomandări din
+        # aceeași categorie ca favoritele — vezi RecomandariDataView.
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie=_cat("ten"),
+            nota_mea=3, parerea_mea="a",
+        )
+        r = self.client.get(reverse("reviews:favorites_data"), {"slugs": produs.slug})
+        self.assertEqual(r.json()["produse"][0]["categorie_slug"], "ten")
+
+
+@_no_ssl_redirect
+class RecomandariApiTests(TestCase):
+    def setUp(self):
+        self.favorit = Product.objects.create(
+            nume="Favorit", brand="B", categorie=_cat("ten"), nota_mea=4, parerea_mea="x",
+        )
+        self.recomandat = Product.objects.create(
+            nume="Recomandat", brand="B", categorie=_cat("ten"), nota_mea=5, parerea_mea="x",
+        )
+        self.alta_categorie = Product.objects.create(
+            nume="Altă categorie", brand="B", categorie=_cat("buze"), nota_mea=5, parerea_mea="x",
+        )
+
+    def test_fara_categorie_intoarce_lista_goala(self):
+        r = self.client.get(reverse("reviews:recomandari_data"))
+        self.assertEqual(r.json(), {"produse": []})
+
+    def test_recomanda_din_aceeasi_categorie_excluzand_favoritele(self):
+        r = self.client.get(reverse("reviews:recomandari_data"), {
+            "categorie": "ten", "exclude": self.favorit.slug,
+        })
+        slugs = [p["slug"] for p in r.json()["produse"]]
+        self.assertEqual(slugs, [self.recomandat.slug])
+        self.assertNotIn(self.alta_categorie.slug, slugs)
+
+    def test_produs_inactiv_nu_e_recomandat(self):
+        self.recomandat.activ = False
+        self.recomandat.save(update_fields=["activ"])
+        r = self.client.get(reverse("reviews:recomandari_data"), {"categorie": "ten"})
+        slugs = [p["slug"] for p in r.json()["produse"]]
+        self.assertNotIn(self.recomandat.slug, slugs)
+
 
 @_no_ssl_redirect
 class SearchDataApiTests(TestCase):

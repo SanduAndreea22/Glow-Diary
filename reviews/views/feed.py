@@ -45,9 +45,14 @@ class FeedView(ListView):
         ctx["categorii_navigare"] = stats["categorii_navigare"]
         if stats["an_curent_total"] >= MIN_PRODUSE_PENTRU_CONTOR:
             ctx["an_recap_an"] = stats["an_curent"]
-        # Doar pe prima pagină, fără filtre — un hero nu are sens în mijlocul
-        # unei liste deja filtrate/paginate.
-        if self.request.GET.get("page") in (None, "1") and not ctx["filtre_active"] and not ctx["q"]:
+        # Doar pe prima pagină, fără filtre — blocurile astea (colecția
+        # săptămânii, de sezon, recomandări) n-au sens în mijlocul unei liste
+        # deja filtrate/paginate.
+        ctx["pagina_fara_filtre"] = (
+            self.request.GET.get("page") in (None, "1")
+            and not ctx["filtre_active"] and not ctx["q"]
+        )
+        if ctx["pagina_fara_filtre"]:
             ctx["colectia_saptamanii"] = colectia_saptamanii()
             ctx["colectii_de_sezon"] = colectii_de_sezon()
 
