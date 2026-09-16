@@ -114,8 +114,6 @@ img{max-width:100%;display:block;}
 .search-filters-row{
   display:flex;align-items:center;gap:8px;
   margin:0 22px 14px;
-  position:sticky;top:72px;z-index:19;
-  background:var(--cream);
 }
 .search-bar{
   display:flex;align-items:center;gap:10px;
