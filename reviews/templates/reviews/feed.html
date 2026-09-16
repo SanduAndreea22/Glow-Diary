@@ -4,9 +4,11 @@
 {% block title %}Glow Diary by Deea — Ultimele încercări{% endblock %}
 
 {% block content %}
-<div class="feed-title">Ultimele încercări</div>
-<div class="feed-tag">Real products. My honest take.</div>
-<p class="feed-intro">Fără PR-uri, fără sponsorizări: machiajul de aici l-am cumpărat, l-am testat și l-am evaluat eu — fie că-i de la drugstore sau de lux, contează doar dacă chiar merită banii. Lasă și tu o părere rapidă la orice produs, fără cont. Vezi și <a href="{% url 'reviews:collections' %}">colecțiile mele curate →</a>{% if instagram_url %} sau <a href="{{ instagram_url }}" target="_blank" rel="noopener noreferrer">urmărește-mă pe Instagram →</a>{% endif %}</p>
+<div class="hero-intro">
+  <div class="feed-title">Ultimele încercări</div>
+  <div class="feed-tag">Real products. My honest take.</div>
+  <p class="feed-intro">Fără PR-uri, fără sponsorizări: machiajul de aici l-am cumpărat, l-am testat și l-am evaluat eu — fie că-i de la drugstore sau de lux, contează doar dacă chiar merită banii. Lasă și tu o părere rapidă la orice produs, fără cont. Vezi și <a href="{% url 'reviews:collections' %}">colecțiile mele →</a>{% if instagram_url %} sau <a href="{{ instagram_url }}" target="_blank" rel="noopener noreferrer">urmărește-mă pe Instagram →</a>{% endif %}</p>
+</div>
 {% if arata_contor_produse %}
 <div class="stat-chip">✨ {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} până acum</div>
 {% elif ultima_actualizare %}

@@ -85,6 +85,16 @@ img{max-width:100%;display:block;}
   .nav-links.open{max-height:260px;padding:10px 22px 18px;}
 }
 /* Feed */
+/* Suprafață închisă la culoare, plină, în jurul titlului+tagline+intro —
+   singurul bloc "dramatic" de contrast de pe pagină (restul e roz peste
+   tot). Vezi excepția din @media (dark) mai jos — rămâne închisă și pe
+   tema întunecată, ca footer-ul/toast-ul, nu urmează --maroon (care
+   devine deschis în dark mode). */
+.hero-intro{background:var(--maroon);padding:22px 22px 20px;margin-bottom:16px;}
+.hero-intro .feed-title{padding:0;color:var(--cream);}
+.hero-intro .feed-tag{padding:0;color:var(--gold);margin-top:4px;}
+.hero-intro .feed-intro{padding:0;color:var(--cream);opacity:0.85;margin-top:8px;}
+.hero-intro .feed-intro a{color:var(--gold);}
 .feed-title{padding:0 22px 4px;font-size:22px;font-weight:700;}
 .feed-title-sub{font-size:17px;}
 .feed-tag{padding:0 22px 4px;font-size:12px;color:var(--pink);font-weight:600;letter-spacing:0.02em;}
@@ -885,9 +895,11 @@ footer.site-footer{
   footer.site-footer,
   .recap-hero,
   .milestone-banner-inner,
-  .glow-toast{
+  .glow-toast,
+  .hero-intro{
     background:#3A1220;color:#F8E9EE;
   }
+  .hero-intro .feed-title,.hero-intro .feed-intro{color:#F8E9EE;}
   .recap-hero-number{color:var(--gold);}
   footer.site-footer .footer-social a{color:#FFD6E8;}
   footer.site-footer .footer-social a:hover{color:var(--gold);}
