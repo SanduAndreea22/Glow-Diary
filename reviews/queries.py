@@ -9,7 +9,7 @@ from django.db.models import Count, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from .models import Categorie, Product, Tag
+from .models import Categorie, Collection, Product, Tag
 
 FEED_STATS_CACHE_TTL = 300  # 5 minute
 # Sub acest prag, un contor de tip "X produse testate" atrage atenția exact
@@ -75,6 +75,19 @@ def cu_numar_pareri(qs):
     # înlocuită de apelant.
     return qs.annotate(
         comment_count=Count("comentarii", filter=Q(comentarii__aprobat=True))
+    )
+
+
+def colectia_saptamanii():
+    """Colecția bifată `recomandata_saptamana=True` din admin, cu cel puțin
+    un produs activ — dacă Deea bifează mai multe din greșeală, se ia cea
+    modificată cel mai recent (`modificat_la`, auto_now la orice salvare)."""
+    return (
+        Collection.objects.filter(recomandata_saptamana=True)
+        .annotate(produse_active=Count("produse", filter=Q(produse__activ=True)))
+        .filter(produse_active__gt=0)
+        .order_by("-modificat_la")
+        .first()
     )
 
 

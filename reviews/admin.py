@@ -154,7 +154,8 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
     form = CollectionAdminForm
-    list_display = ("nume", "data_creare")
+    list_display = ("nume", "recomandata_saptamana", "data_creare")
+    list_editable = ("recomandata_saptamana",)
     filter_horizontal = ("produse",)
     search_fields = ("nume", "descriere")
 

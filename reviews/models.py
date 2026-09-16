@@ -230,6 +230,14 @@ class Collection(models.Model):
         Product, related_name="colectii", blank=True, verbose_name="Produse"
     )
     data_creare = models.DateTimeField("Data creării", auto_now_add=True)
+    modificat_la = models.DateTimeField("Ultima modificare", auto_now=True)
+    recomandata_saptamana = models.BooleanField(
+        "Colecția săptămânii", default=False,
+        help_text=(
+            "Apare distinct pe prima pagină. Dacă bifezi mai multe din "
+            "greșeală, se ia cea modificată cel mai recent."
+        ),
+    )
 
     class Meta:
         ordering = ["-data_creare"]

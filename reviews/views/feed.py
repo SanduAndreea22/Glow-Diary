@@ -4,6 +4,7 @@ from ..models import Product
 from ..queries import (
     DEFAULT_SORT,
     MIN_PRODUSE_PENTRU_CONTOR,
+    colectia_saptamanii,
     cu_numar_pareri,
     feed_stats,
     filtreaza_produse,
@@ -43,6 +44,10 @@ class FeedView(ListView):
         ctx["categorii_navigare"] = stats["categorii_navigare"]
         if stats["an_curent_total"] >= MIN_PRODUSE_PENTRU_CONTOR:
             ctx["an_recap_an"] = stats["an_curent"]
+        # Doar pe prima pagină, fără filtre — un hero nu are sens în mijlocul
+        # unei liste deja filtrate/paginate.
+        if self.request.GET.get("page") in (None, "1") and not ctx["filtre_active"] and not ctx["q"]:
+            ctx["colectia_saptamanii"] = colectia_saptamanii()
 
         extra = self.request.GET.copy()
         extra.pop("page", None)

@@ -15,6 +15,7 @@ from PIL import Image
 from .forms import MAX_UPLOAD_IMAGINE_BYTES, CommentForm
 from .image_utils import MAX_PIXELI_ACCEPTATI, PozaPreaMareError
 from .models import Categorie, Collection, Comment, ContactMessage, Product, Tag
+from .queries import colectia_saptamanii
 from .story_image import _safe_text, build_story_image, render_story_png
 from .templatetags.glow_extras import stars_svg
 
@@ -528,6 +529,71 @@ class CollectionTests(TestCase):
         r = self.client.get(colectie.get_absolute_url())
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Test")
+
+
+class ColectiaSaptamaniiQueryTests(TestCase):
+    """Testează queries.colectia_saptamanii() direct, fără HTTP."""
+
+    def _produs(self, nume="P"):
+        return Product.objects.create(
+            nume=nume, brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+        )
+
+    def test_fara_nicio_colectie_bifata_intoarce_none(self):
+        Collection.objects.create(nume="Neutru")
+        self.assertIsNone(colectia_saptamanii())
+
+    def test_colectie_bifata_dar_fara_produse_active_nu_conteaza(self):
+        Collection.objects.create(nume="Goală", recomandata_saptamana=True)
+        self.assertIsNone(colectia_saptamanii())
+
+    def test_colectie_bifata_cu_produs_activ_e_intoarsa(self):
+        colectie = Collection.objects.create(nume="Vara", recomandata_saptamana=True)
+        colectie.produse.add(self._produs())
+        self.assertEqual(colectia_saptamanii(), colectie)
+
+    def test_produs_inactiv_nu_conteaza_ca_activ(self):
+        colectie = Collection.objects.create(nume="Ascunsă", recomandata_saptamana=True)
+        produs = self._produs()
+        produs.activ = False
+        produs.save(update_fields=["activ"])
+        colectie.produse.add(produs)
+        self.assertIsNone(colectia_saptamanii())
+
+    def test_mai_multe_bifate_ia_cea_mai_recent_modificata(self):
+        veche = Collection.objects.create(nume="Veche", recomandata_saptamana=True)
+        veche.produse.add(self._produs("P1"))
+        noua = Collection.objects.create(nume="Nouă", recomandata_saptamana=True)
+        noua.produse.add(self._produs("P2"))
+        # Resalvăm "veche" ca s-o facem mai recentă decât "noua" (auto_now).
+        veche.save()
+        self.assertEqual(colectia_saptamanii(), veche)
+
+
+@_no_ssl_redirect
+class ColectiaSaptamaniiFeedTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.produs = Product.objects.create(
+            nume="P", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+        )
+        self.colectie = Collection.objects.create(nume="Vara", recomandata_saptamana=True)
+        self.colectie.produse.add(self.produs)
+
+    def test_apare_pe_prima_pagina_fara_filtre(self):
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertContains(r, "Colecția săptămânii")
+        self.assertContains(r, "Vara")
+
+    def test_nu_apare_cu_cautare_activa(self):
+        r = self.client.get(reverse("reviews:feed"), {"q": "p"})
+        self.assertNotContains(r, "Colecția săptămânii")
+
+    def test_nu_apare_fara_nicio_colectie_bifata(self):
+        self.colectie.recomandata_saptamana = False
+        self.colectie.save()
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertNotContains(r, "Colecția săptămânii")
 
 
 @_no_ssl_redirect
