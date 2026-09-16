@@ -5,6 +5,7 @@ from ..queries import (
     DEFAULT_SORT,
     MIN_PRODUSE_PENTRU_CONTOR,
     colectia_saptamanii,
+    colectii_de_sezon,
     cu_numar_pareri,
     feed_stats,
     filtreaza_produse,
@@ -48,6 +49,7 @@ class FeedView(ListView):
         # unei liste deja filtrate/paginate.
         if self.request.GET.get("page") in (None, "1") and not ctx["filtre_active"] and not ctx["q"]:
             ctx["colectia_saptamanii"] = colectia_saptamanii()
+            ctx["colectii_de_sezon"] = colectii_de_sezon()
 
         extra = self.request.GET.copy()
         extra.pop("page", None)

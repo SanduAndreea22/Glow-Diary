@@ -91,6 +91,18 @@ def colectia_saptamanii():
     )
 
 
+def colectii_de_sezon():
+    """Colecțiile bifate `recomandata_sezon=True` din admin, cu cel puțin
+    un produs activ — spre deosebire de colecția săptămânii, pot fi mai
+    multe deodată (Deea bifează tot ce e relevant acum)."""
+    return (
+        Collection.objects.filter(recomandata_sezon=True)
+        .annotate(produse_active=Count("produse", filter=Q(produse__activ=True)))
+        .filter(produse_active__gt=0)
+        .order_by("-modificat_la")
+    )
+
+
 def produsul_lunii():
     o_luna_in_urma = timezone.now() - timedelta(days=30)
     top = (

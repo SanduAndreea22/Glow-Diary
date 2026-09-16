@@ -32,6 +32,24 @@
 </a>
 {% endif %}
 
+{% if colectii_de_sezon %}
+<div class="season-block">
+  <div class="season-block-title">De sezon acum</div>
+  {% for colectie in colectii_de_sezon %}
+  <a href="{{ colectie.get_absolute_url }}" class="collection-card">
+    <div class="collection-cover">
+      {% if colectie.coperta %}<img src="{{ colectie.coperta.url }}" alt="{{ colectie.nume }}">{% else %}✨{% endif %}
+    </div>
+    <div class="collection-body">
+      <div class="collection-name">{{ colectie.nume }}</div>
+      {% if colectie.descriere %}<div class="collection-desc">{{ colectie.descriere }}</div>{% endif %}
+      <div class="collection-cta">Vezi colecția →</div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
 {% if arata_contor_produse or filtre_active or q or categorie_activa %}
 {% comment %}
 Sub pragul de produse (vezi MIN_PRODUSE_PENTRU_CONTOR), căutarea+filtrele

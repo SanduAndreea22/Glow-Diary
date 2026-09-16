@@ -238,6 +238,10 @@ class Collection(models.Model):
             "greșeală, se ia cea modificată cel mai recent."
         ),
     )
+    recomandata_sezon = models.BooleanField(
+        "De sezon acum", default=False,
+        help_text="Apare într-un bloc separat pe prima pagină. Poți bifa mai multe deodată.",
+    )
 
     class Meta:
         ordering = ["-data_creare"]

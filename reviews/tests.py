@@ -15,7 +15,7 @@ from PIL import Image
 from .forms import MAX_UPLOAD_IMAGINE_BYTES, CommentForm
 from .image_utils import MAX_PIXELI_ACCEPTATI, PozaPreaMareError
 from .models import Categorie, Collection, Comment, ContactMessage, Product, Tag
-from .queries import colectia_saptamanii
+from .queries import colectia_saptamanii, colectii_de_sezon
 from .story_image import _safe_text, build_story_image, render_story_png
 from .templatetags.glow_extras import stars_svg
 
@@ -594,6 +594,52 @@ class ColectiaSaptamaniiFeedTests(TestCase):
         self.colectie.save()
         r = self.client.get(reverse("reviews:feed"))
         self.assertNotContains(r, "Colecția săptămânii")
+
+
+class ColectiiDeSezonQueryTests(TestCase):
+    """Testează queries.colectii_de_sezon() direct, fără HTTP."""
+
+    def _produs(self, nume="P"):
+        return Product.objects.create(
+            nume=nume, brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+        )
+
+    def test_fara_nicio_colectie_bifata_e_goala(self):
+        Collection.objects.create(nume="Neutru")
+        self.assertEqual(list(colectii_de_sezon()), [])
+
+    def test_colectie_bifata_fara_produse_active_nu_apare(self):
+        Collection.objects.create(nume="Goală", recomandata_sezon=True)
+        self.assertEqual(list(colectii_de_sezon()), [])
+
+    def test_mai_multe_colectii_bifate_apar_toate(self):
+        c1 = Collection.objects.create(nume="Vara", recomandata_sezon=True)
+        c1.produse.add(self._produs("P1"))
+        c2 = Collection.objects.create(nume="Iarna", recomandata_sezon=True)
+        c2.produse.add(self._produs("P2"))
+        self.assertEqual(set(colectii_de_sezon()), {c1, c2})
+
+
+@_no_ssl_redirect
+class ColectiiDeSezonFeedTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.produs = Product.objects.create(
+            nume="P", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+        )
+        self.colectie = Collection.objects.create(nume="Vara", recomandata_sezon=True)
+        self.colectie.produse.add(self.produs)
+
+    def test_apare_pe_prima_pagina(self):
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertContains(r, "De sezon acum")
+        self.assertContains(r, "Vara")
+
+    def test_nu_apare_fara_nicio_colectie_bifata(self):
+        self.colectie.recomandata_sezon = False
+        self.colectie.save()
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertNotContains(r, "De sezon acum")
 
 
 @_no_ssl_redirect
