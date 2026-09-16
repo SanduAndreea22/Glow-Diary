@@ -342,6 +342,9 @@ img{max-width:100%;display:block;}
   font-size:46px;
   position:relative;
   background:linear-gradient(135deg, var(--pink-soft), var(--photo-peach));
+  /* Tratament "editorial": o umbră interioară fină la marginea de jos,
+     ca poza să pară încadrată, nu doar lipită de corpul alb al cardului. */
+  box-shadow:inset 0 -14px 18px -16px rgba(74,17,36,0.35);
 }
 /* 8 variante — recombină cele 3 nuanțe calde existente, pereche + direcție
    diferite, plus 2 variante cu accent albastru pudrat (singura nuanță
