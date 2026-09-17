@@ -308,6 +308,7 @@ class Comment(models.Model):
 class ContactMessage(models.Model):
     nume = models.CharField("Nume", max_length=100, blank=True)
     email = models.EmailField("Email")
+    produs_brand = models.CharField("Produsul / brandul", max_length=150, blank=True)
     mesaj = models.TextField("Mesaj", max_length=4000)
     data = models.DateTimeField("Data", auto_now_add=True)
     citit = models.BooleanField("Citit", default=False)

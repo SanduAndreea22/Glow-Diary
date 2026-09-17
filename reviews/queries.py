@@ -5,7 +5,7 @@ from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.core.cache import cache
-from django.db.models import Count, Q
+from django.db.models import Avg, Count, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -124,10 +124,38 @@ def ataseaza_poze_colaj(colectii, max_poze=COLAJ_MAX_POZE):
 
 
 def produs_hero_fallback():
-    """Dacă nu există o "colecție a săptămânii" bifată, alegem automat cel
-    mai bine notat produs activ ca hero pe prima pagină (tiebreaker: cel
-    mai recent) — nicio alegere manuală din admin, doar date existente."""
-    return Product.objects.filter(activ=True).order_by("-nota_mea", "-data_postarii").first()
+    """Dacă nu există o "colecție a săptămânii" bifată, alegem automat un
+    produs hero pe prima pagină. Preferăm vocea cititoarelor: cel cu cea mai
+    mare notă medie din comentariile aprobate (tiebreaker: cele mai multe
+    voturi, apoi cel mai recent) — nu nota Deei. Dacă încă nu există niciun
+    comentariu cu notă, cădem pe cel mai bine notat de Deea, ca înainte.
+    Niciodată o alegere manuală din admin. Marchează pe instanța returnată
+    `hero_din_cititoare` (True/False), ca șablonul să poată eticheta corect
+    badge-ul ("Favoritul cititoarelor" vs "Alegerea mea")."""
+    din_cititoare = (
+        Product.objects.filter(
+            activ=True, comentarii__aprobat=True, comentarii__nota__isnull=False
+        )
+        .annotate(
+            medie_cititoare=Avg(
+                "comentarii__nota",
+                filter=Q(comentarii__aprobat=True, comentarii__nota__isnull=False),
+            ),
+            voturi_cititoare=Count(
+                "comentarii",
+                filter=Q(comentarii__aprobat=True, comentarii__nota__isnull=False),
+            ),
+        )
+        .order_by("-medie_cititoare", "-voturi_cititoare", "-data_postarii")
+        .first()
+    )
+    if din_cititoare:
+        din_cititoare.hero_din_cititoare = True
+        return din_cititoare
+    produs = Product.objects.filter(activ=True).order_by("-nota_mea", "-data_postarii").first()
+    if produs:
+        produs.hero_din_cititoare = False
+    return produs
 
 
 MAX_RECOMANDARI_FAVORITE_GOALE = 4

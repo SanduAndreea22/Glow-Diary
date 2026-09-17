@@ -581,10 +581,14 @@ class ColectiaSaptamaniiFeedTests(TestCase):
         self.colectie = Collection.objects.create(nume="Vara", recomandata_saptamana=True)
         self.colectie.produse.add(self.produs)
 
-    def test_apare_pe_prima_pagina_fara_filtre(self):
+    def test_nu_mai_apare_pe_prima_pagina_de_la_redesign(self):
+        # Blocul "Colecția săptămânii"/"Alegerea mea" a fost scos din Acasă
+        # odată cu redesign-ul (Deea a cerut explicit să dispară, homepage-ul
+        # nou merge direct din hero în grila de produse) — vezi și
+        # ProdusHeroFallbackFeedTests mai jos. Datele/query-urile rămân
+        # intacte, doar nu se mai randează.
         r = self.client.get(reverse("reviews:feed"))
-        self.assertContains(r, "Colecția săptămânii")
-        self.assertContains(r, "Vara")
+        self.assertNotContains(r, "Colecția săptămânii")
 
     def test_nu_apare_cu_cautare_activa(self):
         r = self.client.get(reverse("reviews:feed"), {"q": "p"})
@@ -625,17 +629,12 @@ class ProdusHeroFallbackFeedTests(TestCase):
             nota_mea=5, parerea_mea="Text.",
         )
 
-    def test_apare_fara_nicio_colectie_a_saptamanii(self):
-        r = self.client.get(reverse("reviews:feed"))
-        self.assertContains(r, "Alegerea mea")
-        self.assertContains(r, "Cel mai bun")
-
-    def test_nu_apare_daca_exista_colectie_a_saptamanii(self):
-        colectie = Collection.objects.create(nume="Vara", recomandata_saptamana=True)
-        colectie.produse.add(self.produs)
+    def test_nu_mai_apare_de_la_redesign(self):
+        # Vezi ColectiaSaptamaniiFeedTests.test_nu_mai_apare_pe_prima_pagina_de_la_redesign
+        # — produs_hero_fallback() rămâne funcțional (query-ul e testat separat
+        # în ProdusHeroFallbackQueryTests), doar nu se mai randează pe Acasă.
         r = self.client.get(reverse("reviews:feed"))
         self.assertNotContains(r, "Alegerea mea")
-        self.assertContains(r, "Colecția săptămânii")
 
 
 class ColectiiDeSezonQueryTests(TestCase):

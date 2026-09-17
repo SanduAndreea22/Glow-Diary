@@ -4,32 +4,29 @@
 {% block title %}Glow Diary by Deea — Ultimele încercări{% endblock %}
 
 {% block content %}
-<div class="hero-intro">
-  <div class="feed-title">Ultimele încercări</div>
-  <div class="feed-tag">Real products. My honest take.</div>
-  <p class="feed-intro">Fără PR-uri, fără sponsorizări: produsele de aici le-am cumpărat, l-am testat și l-am evaluat eu — fie că-i de la drugstore sau de lux, contează doar dacă chiar merită banii. Lasă și tu o părere rapidă la orice produs, fără cont. Vezi și <a href="{% url 'reviews:collections' %}">colecțiile mele →</a></p>
-  <a href="#card-grid" class="hero-cta">Începe explorarea ↓</a>
-</div>
-{% comment %}
-Cine e Deea, pe scurt, chiar pe Acasă — nu doar pe /despre. Vizitatoarea
-decide în câteva secunde dacă are încredere; textul e preluat direct din
-about.html (nicio pretenție nouă), nu inventat aici.
-{% endcomment %}
-<div class="who-strip">
-  <a href="{% url 'reviews:about' %}" class="who-strip-link">
-    <div class="who-strip-avatar">
-      <img src="{% static 'img/deea-avatar.jpg' %}" alt="Deea, fondatoarea Glow Diary"
-           onerror="this.closest('.who-strip-avatar').classList.add('avatar-fallback');this.remove();">
-      <span class="avatar-fallback-mark">D</span>
+<div class="hero2">
+  <div class="hero2-text">
+    <div class="hero2-eyebrow">Jurnal de makeup, scris de Deea</div>
+    <h1 class="hero2-title">Nu iau bani<br>ca să spun<br>că-mi place.</h1>
+    <p class="hero2-desc">Cumpăr produsele cu banii mei, le testez pe pielea mea și scriu exact ce cred — fără sponsorizări, fără produse primite gratuit pentru recenzie.</p>
+    <div class="hero2-actions">
+      <a href="#card-grid" class="btn-solid">Vezi ultimele încercări</a>
+      <a href="{% url 'reviews:about' %}" class="btn-outline">Despre mine →</a>
     </div>
-    <div class="who-strip-body">
-      <div class="who-strip-text">Sunt Deea — produsele de-aici le cumpăr cu banii mei, le testez pe pielea mea și scriu exact ce cred, fără sponsorizări.</div>
-      <div class="who-strip-cta">Despre mine →</div>
+  </div>
+  {% with hero_produse=produse|slice:":2" %}
+  {% if hero_produse %}
+  <div class="hero2-photos">
+    {% for produs in hero_produse %}
+    <div class="hero2-photo hero2-photo-{{ forloop.counter }}">
+      {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}">{% else %}{% include "reviews/_photo_placeholder.html" %}{% endif %}
+      <div class="hero2-photo-label">{{ produs.nume }}</div>
     </div>
-  </a>
-  {% if instagram_url %}
-  <a href="{{ instagram_url }}" target="_blank" rel="noopener noreferrer" class="who-strip-ig">Instagram →</a>
+    {% endfor %}
+    <div class="hero2-badge">TESTED BY DEEA</div>
+  </div>
   {% endif %}
+  {% endwith %}
 </div>
 {% if arata_contor_produse %}
 <div class="stat-chip">✨ {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} până acum</div>
@@ -40,36 +37,6 @@ about.html (nicio pretenție nouă), nu inventat aici.
 <a href="{% url 'reviews:an_recap' an=an_recap_an %}" class="stat-chip stat-chip-link">🎁 Vezi rezumatul anului {{ an_recap_an }}</a>
 {% endif %}
 
-{% if colectia_saptamanii %}
-<a href="{{ colectia_saptamanii.get_absolute_url }}" class="week-pick">
-  <div class="week-pick-photo">
-    {% if colectia_saptamanii.coperta %}<img src="{{ colectia_saptamanii.coperta.url }}" alt="{{ colectia_saptamanii.nume }}">{% else %}✨{% endif %}
-  </div>
-  <div class="week-pick-body">
-    <div class="week-pick-badge">✨ Colecția săptămânii</div>
-    <div class="week-pick-name">{{ colectia_saptamanii.nume }}</div>
-    {% if colectia_saptamanii.descriere %}<div class="week-pick-desc">{{ colectia_saptamanii.descriere }}</div>{% endif %}
-    <div class="week-pick-cta">Vezi colecția →</div>
-  </div>
-</a>
-{% elif produs_hero %}
-{% comment %}
-Fără nicio "colecție a săptămânii" bifată — fallback automat pe cel mai
-bine notat produs (vezi produs_hero_fallback în queries.py), nu o alegere
-manuală. Aceeași structură vizuală (.week-pick) ca la colecție.
-{% endcomment %}
-<a href="{{ produs_hero.get_absolute_url }}" class="week-pick">
-  <div class="week-pick-photo">
-    {% if produs_hero.poza %}<img src="{{ produs_hero.poza.url }}" alt="{{ produs_hero.nume }}">{% else %}{% include "reviews/_photo_placeholder.html" %}{% endif %}
-  </div>
-  <div class="week-pick-body">
-    <div class="week-pick-badge">✨ Alegerea mea</div>
-    <div class="week-pick-name">{{ produs_hero.brand }} — {{ produs_hero.nume }}</div>
-    <div class="week-pick-desc">{{ produs_hero.parerea_mea|truncatewords:18 }}</div>
-    <div class="week-pick-cta">Vezi recenzia →</div>
-  </div>
-</a>
-{% endif %}
 
 {% if colectii_de_sezon %}
 <div class="season-block">
@@ -205,6 +172,10 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
 </div>
 {% endif %}
 
+<div class="section-header">
+  <h2>Ultimele încercări</h2>
+  {% if not filtre_active and not q %}<a href="{% url 'reviews:collections' %}">Vezi colecțiile →</a>{% endif %}
+</div>
 <div class="card-grid" id="card-grid">
 {% for produs in produse %}
   {% include "reviews/_product_card.html" with produs=produs produsul_lunii_id=produsul_lunii_id show_details=True snippet_words=20 %}
@@ -236,6 +207,26 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
   {% endif %}
 </nav>
 {% endif %}
+
+{% comment %}
+Cine e Deea, pe scurt, chiar pe Acasă — nu doar pe /despre. Vizitatoarea
+decide în câteva secunde dacă are încredere; textul e preluat direct din
+about.html (nicio pretenție nouă), nu inventat aici.
+{% endcomment %}
+<div class="who-strip">
+  <a href="{% url 'reviews:about' %}" class="who-strip-link">
+    <div class="who-strip-avatar">
+      <img src="{% static 'img/deea-avatar.jpg' %}" alt="Deea, fondatoarea Glow Diary"
+           onerror="this.closest('.who-strip-avatar').classList.add('avatar-fallback');this.remove();">
+      <span class="avatar-fallback-mark">D</span>
+    </div>
+    <div class="who-strip-body">
+      <div class="who-strip-title">Salut, sunt Deea</div>
+      <div class="who-strip-text">Glow Diary e jurnalul meu de makeup. Nu înfrumusețez nimic: dacă un produs merită banii, spun asta — dacă nu ține ce promite eticheta, spun și asta, la fel de clar.</div>
+    </div>
+  </a>
+  <a href="{% url 'reviews:about' %}" class="who-strip-cta">Citește tot →</a>
+</div>
 {% endblock %}
 
 {% block extra_js %}

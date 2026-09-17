@@ -3,27 +3,19 @@
 {% block title %}Colecții · Glow Diary by Deea{% endblock %}
 
 {% block content %}
-<div class="feed-title">Colecții</div>
-<div class="feed-tag">Produsele testate, grupate în colecții</div>
+<div class="page-eyebrow">Colecții</div>
+<h1 class="page-title">Produsele testate, grupate în colecții</h1>
 
-<div class="card-grid">
+<div class="collections-list">
 {% for colectie in colectii %}
-<a href="{{ colectie.get_absolute_url }}" class="collection-card">
-  <div class="collection-cover">
-    {% if colectie.coperta %}<img src="{{ colectie.coperta.url }}" alt="{{ colectie.nume }}" loading="lazy">
-    {% elif colectie.poze_colaj %}
-    <div class="collection-collage collage-count-{{ colectie.poze_colaj|length }}">
-      {% for produs in colectie.poze_colaj %}<img src="{{ produs.poza.url }}" alt="" loading="lazy">{% endfor %}
-    </div>
-    {% else %}✨{% endif %}
+<div class="collection-row">
+  <div class="collection-row-body">
+    <div class="collection-row-name">{{ colectie.nume }}</div>
+    {% if colectie.descriere %}<div class="collection-row-desc">{{ colectie.descriere }}</div>{% endif %}
+    <div class="collection-row-count">{{ colectie.produse_count }} {% if colectie.produse_count == 1 %}produs{% else %}produse{% endif %}</div>
   </div>
-  <div class="collection-body">
-    <div class="collection-name">{{ colectie.nume }}</div>
-    {% if colectie.descriere %}<div class="collection-desc">{{ colectie.descriere }}</div>{% endif %}
-    <div class="collection-count">{{ colectie.produse_count }} {% if colectie.produse_count == 1 %}produs{% else %}produse{% endif %}</div>
-    <div class="collection-cta">Vezi colecția →</div>
-  </div>
-</a>
+  <a href="{{ colectie.get_absolute_url }}" class="btn-outline">Vezi colecția →</a>
+</div>
 {% empty %}
 <div class="empty-state"><div class="empty-state-icon">✨</div>Nu sunt colecții publicate încă.</div>
 {% endfor %}

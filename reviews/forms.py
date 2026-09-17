@@ -132,9 +132,10 @@ class ContactForm(HoneypotFormMixin, forms.ModelForm):
 
     class Meta:
         model = ContactMessage
-        fields = ["nume", "email", "mesaj"]
+        fields = ["nume", "email", "produs_brand", "mesaj"]
         widgets = {
             "nume": forms.TextInput(attrs={"placeholder": "Numele tău (opțional)"}),
+            "produs_brand": forms.TextInput(attrs={"placeholder": "Produsul / brandul (opțional)"}),
         }
 
 

@@ -1,11 +1,12 @@
 :root{
-  --cream:#FFF7F0;
-  --pink:#FF6FA5;
-  --pink-soft:#FFD6E8;
-  --maroon:#7A1E3D;
+  --cream:#FBF3EC;
+  --pink:#B5717B;
+  --pink-soft:#F7E8E2;
+  --maroon:#6B2436;
+  --maroon-deep:#3F1420;
   --gold:#E8B84B;
   --white:#FFFFFF;
-  --line:#F4C9DC;
+  --line:#E6D6CB;
   /* Nuanțe secundare, doar pentru gradientul decorativ din spatele pozelor
      lipsă (post-photo/product-photo/collection-cover) — variabile, nu hex
      direct în reguli, ca dark mode să le poată închide la culoare fără să
@@ -20,24 +21,21 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
-  background:#F7E4DD;
-  font-family:'DM Sans', sans-serif;
+  background:var(--cream);
+  font-family:'Work Sans', sans-serif;
   color:var(--maroon);
-  padding:32px 0 80px;
 }
 a{color:inherit;text-decoration:none;}
-h1,h2,h3{font-family:'Fraunces', serif;}
+h1,h2,h3{font-family:'Instrument Serif', serif;}
 img{max-width:100%;display:block;}
 @media (prefers-reduced-motion: no-preference){
   html{scroll-behavior:smooth;}
 }
 
 .screen{
-  max-width:520px;
-  margin:0 auto 24px;
+  max-width:1280px;
+  margin:0 auto;
   background:var(--cream);
-  border-radius:30px;
-  box-shadow:0 12px 0 rgba(122,30,61,0.06);
   animation:screen-in 0.28s ease both;
 }
 @keyframes screen-in{
@@ -51,20 +49,19 @@ img{max-width:100%;display:block;}
 
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:22px 22px 14px;
+  padding:22px;
   position:sticky;top:0;z-index:20;
   background:var(--cream);
-  border-radius:30px 30px 0 0;
-  box-shadow:0 6px 12px -8px rgba(122,30,61,0.25);
+  border-bottom:1px solid var(--line);
 }
 .logo{
-  font-family:'Fraunces';font-weight:800;font-size:19px;
+  font-family:'Instrument Serif';font-weight:800;font-size:19px;
   color:var(--pink);
   display:flex;align-items:baseline;gap:6px;
 }
 .logo span{color:var(--maroon);}
 .logo small{
-  font-family:'DM Sans';font-weight:500;font-size:10.5px;
+  font-family:'Work Sans';font-weight:500;font-size:10.5px;
   color:var(--maroon);opacity:0.55;letter-spacing:0.02em;
 }
 .nav-toggle{
@@ -112,57 +109,86 @@ img{max-width:100%;display:block;}
   footer.site-footer{border-radius:0;max-width:none;margin:0;}
 }
 /* Feed */
-/* Suprafață închisă la culoare, plină, în jurul titlului+tagline+intro —
-   singurul bloc "dramatic" de contrast de pe pagină (restul e roz peste
-   tot). Vezi excepția din @media (dark) mai jos — rămâne închisă și pe
-   tema întunecată, ca footer-ul/toast-ul, nu urmează --maroon (care
-   devine deschis în dark mode). */
-.hero-intro{background:var(--maroon);padding:22px 22px 20px;margin-bottom:16px;}
-.hero-intro .feed-title{padding:0;color:var(--cream);}
-.hero-intro .feed-tag{padding:0;color:var(--gold);margin-top:4px;}
-.hero-intro .feed-intro{padding:0;color:var(--cream);opacity:0.85;margin-top:8px;}
-.hero-intro .feed-intro a{color:var(--gold);}
-/* Acțiune principală, evidentă din prima privire — fără ea, vizitatoarea
-   trebuie să deducă singură că trebuie să deruleze printre carduri. */
-.hero-cta{
-  display:inline-flex;align-items:center;gap:6px;
-  margin-top:14px;
-  background:var(--gold);color:var(--maroon);
-  font-family:'Fraunces';font-weight:700;font-size:13px;
-  padding:10px 20px;border-radius:100px;
+.hero2{display:flex;flex-direction:column;gap:28px;padding:28px 22px 36px;}
+.hero2-eyebrow{font-size:11.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--pink);}
+.hero2-title{
+  font-family:'Instrument Serif';font-weight:400;font-size:38px;line-height:1.08;
+  margin-top:12px;color:var(--maroon-deep);
+}
+.hero2-desc{font-size:14px;line-height:1.65;color:var(--maroon);opacity:0.8;margin-top:16px;max-width:440px;}
+.hero2-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;}
+.btn-solid{
+  display:inline-flex;align-items:center;
+  background:var(--maroon);color:var(--cream);
+  padding:13px 22px;border-radius:100px;font-weight:600;font-size:13.5px;
   transition:transform 0.15s ease, box-shadow 0.15s ease;
 }
-.hero-cta:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,0.18);}
-.feed-title{padding:0 22px 4px;font-size:22px;font-weight:700;}
-.feed-title-sub{font-size:17px;}
-.feed-tag{padding:0 22px 4px;font-size:12px;color:var(--pink);font-weight:600;letter-spacing:0.02em;}
-.feed-tag-muted{color:var(--maroon);opacity:0.7;font-weight:500;}
-.feed-intro{padding:0 22px 16px;font-size:12.5px;line-height:1.6;color:var(--maroon);opacity:0.75;}
-.feed-intro a{color:var(--pink);font-weight:600;opacity:1;}
-/* Cine e persoana din spatele site-ului — chiar pe Acasă, nu doar pe
-   /despre. Text preluat din about.html, nu reformulat aici (o singură
-   sursă de adevăr pentru "vocea" ei). Instagram stă alături, cu context,
-   nu ca link generic izolat în paragraful de sus. */
-.who-strip{
-  display:flex;align-items:center;gap:12px;
-  margin:0 22px 16px;padding:12px 14px;
-  background:var(--white);border:1px solid var(--line);border-radius:16px;
+.btn-solid:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(107,36,54,0.25);}
+.btn-outline{
+  display:inline-flex;align-items:center;
+  padding:13px 20px;border-radius:100px;border:1px solid var(--line);
+  font-weight:600;font-size:13.5px;color:var(--maroon-deep);
+  transition:border-color 0.15s ease, background 0.15s ease;
 }
-.who-strip-link{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;color:inherit;}
+.btn-outline:hover{border-color:var(--pink);background:var(--pink-soft);}
+.hero2-photos{position:relative;height:280px;margin:0 auto;max-width:320px;width:100%;}
+.hero2-photo{
+  position:absolute;width:60%;aspect-ratio:4/5;
+  background:var(--pink-soft);border-radius:10px;overflow:hidden;
+  box-shadow:0 18px 30px -14px rgba(63,20,32,0.3);
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+.hero2-photo img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.hero2-photo-label{
+  position:relative;z-index:1;font-family:'Instrument Serif';font-size:13px;
+  padding:10px;color:#fff;
+  background:linear-gradient(to top, rgba(43,18,25,0.75), transparent);
+}
+.hero2-photo-1{left:0;top:0;transform:rotate(-6deg);z-index:1;}
+.hero2-photo-2{right:0;top:34px;transform:rotate(4deg);z-index:2;}
+.hero2-badge{
+  position:absolute;top:44%;left:50%;transform:translate(-50%,-50%) rotate(-3deg);
+  background:var(--maroon);color:var(--cream);font-size:10.5px;font-weight:700;
+  letter-spacing:0.05em;padding:7px 14px;border-radius:100px;white-space:nowrap;z-index:3;
+}
+.section-header{display:flex;justify-content:space-between;align-items:baseline;padding:0 22px;margin-bottom:16px;gap:12px;}
+.section-header h2{font-family:'Instrument Serif';font-size:24px;font-weight:400;color:var(--maroon-deep);}
+.section-header a{font-size:12.5px;font-weight:600;color:var(--pink);flex-shrink:0;}
+/* Titlu de pagină reutilizabil (Colecții, și oriunde mai apare un titlu
+   static simplu) — eyebrow mic + titlu serif mare, ca în hero. */
+.page-eyebrow{padding:0 22px;margin-top:28px;font-size:11.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--pink);}
+.page-title{padding:0 22px;margin-top:8px;margin-bottom:28px;font-family:'Instrument Serif';font-weight:400;font-size:30px;line-height:1.15;color:var(--maroon-deep);}
+.collections-list{padding:0 22px;display:flex;flex-direction:column;gap:14px;margin-bottom:16px;}
+.collection-row{
+  display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  background:var(--white);border:1px solid var(--line);border-radius:18px;padding:24px 26px;
+}
+.collection-row-name{font-family:'Instrument Serif';font-size:19px;color:var(--maroon-deep);}
+.collection-row-desc{font-size:13px;line-height:1.6;color:var(--maroon);opacity:0.75;margin-top:6px;max-width:540px;}
+.collection-row-count{font-size:11px;font-weight:700;color:var(--pink);margin-top:10px;text-transform:uppercase;letter-spacing:0.04em;}
+/* Cine e persoana din spatele site-ului — la finalul feed-ului, ca teaser
+   spre /despre, nu doar acolo. Text preluat din about.html, nu reformulat
+   aici (o singură sursă de adevăr pentru "vocea" ei). */
+.who-strip{
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  margin:40px 22px 8px;padding:26px;
+  background:var(--pink-soft);border-radius:20px;
+}
+.who-strip-link{display:flex;align-items:center;gap:18px;flex:1 1 260px;min-width:0;color:inherit;}
 .who-strip-avatar{
-  width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;
-  background:linear-gradient(135deg, var(--pink), #FFA9C8);
+  width:64px;height:64px;border-radius:50%;overflow:hidden;flex-shrink:0;
+  background:linear-gradient(135deg, var(--pink), var(--maroon));
   display:flex;align-items:center;justify-content:center;
 }
 .who-strip-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
-.who-strip-avatar .avatar-fallback-mark{display:none;font-family:'Fraunces';font-size:16px;font-weight:800;color:#FFFFFF;}
+.who-strip-avatar .avatar-fallback-mark{display:none;font-family:'Instrument Serif';font-size:24px;font-weight:400;color:#FFFFFF;}
 .who-strip-avatar.avatar-fallback .avatar-fallback-mark{display:block;}
 .who-strip-body{min-width:0;}
-.who-strip-text{font-size:12px;line-height:1.5;color:var(--maroon);opacity:0.85;}
-.who-strip-cta{font-size:11.5px;font-weight:700;color:var(--pink);margin-top:3px;}
-.who-strip-ig{
-  flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--pink);
-  white-space:nowrap;padding-left:10px;border-left:1px solid var(--line);
+.who-strip-title{font-family:'Instrument Serif';font-size:19px;color:var(--maroon-deep);}
+.who-strip-text{font-size:13px;line-height:1.6;color:var(--maroon);opacity:0.85;margin-top:4px;max-width:560px;}
+.who-strip-cta{
+  flex-shrink:0;font-size:13px;font-weight:600;color:var(--maroon-deep);
+  padding:12px 20px;border:1px solid var(--maroon);border-radius:100px;
 }
 .stat-chip{
   margin:0 22px 16px;display:inline-flex;
@@ -194,13 +220,13 @@ img{max-width:100%;display:block;}
   display:inline-block;
   background:var(--gold);color:var(--maroon);
   font-size:10.5px;font-weight:700;padding:4px 11px;border-radius:100px;
-  font-family:'Fraunces';margin-bottom:6px;
+  font-family:'Instrument Serif';margin-bottom:6px;
 }
 .week-pick-body{padding:14px 16px;min-width:0;flex:1 1 auto;}
 @media (min-width:600px){
   .week-pick-photo{width:150px;}
 }
-.week-pick-name{font-size:17px;font-weight:700;font-family:'Fraunces';}
+.week-pick-name{font-size:17px;font-weight:700;font-family:'Instrument Serif';}
 .week-pick-desc{font-size:12.5px;color:var(--maroon);opacity:0.7;margin-top:4px;}
 .week-pick-cta{font-size:11.5px;font-weight:700;color:var(--pink);margin-top:8px;}
 /* "De sezon acum" — poate fi 0, 1 sau mai multe colecții bifate deodată;
@@ -234,20 +260,20 @@ img{max-width:100%;display:block;}
   color:var(--maroon);opacity:0.65;
   background:var(--white);
   cursor:pointer;white-space:nowrap;
-  font-family:'DM Sans';
+  font-family:'Work Sans';
 }
 .filter-toggle-btn.active{
   background:var(--pink);border-color:var(--pink);color:var(--white);opacity:1;
 }
 .search-bar input{
   border:none;background:none;outline:none;
-  font-family:'DM Sans';font-size:13px;color:var(--maroon);
+  font-family:'Work Sans';font-size:13px;color:var(--maroon);
   width:100%;
 }
 .search-bar input::placeholder{color:var(--maroon);opacity:0.45;}
 .search-bar button{
   border:none;background:none;color:var(--pink);font-weight:700;font-size:12px;
-  font-family:'DM Sans';cursor:pointer;flex-shrink:0;
+  font-family:'Work Sans';cursor:pointer;flex-shrink:0;
 }
 /* Căutarea e deja live (vezi JS-ul de mai jos) — butonul rămâne în HTML
    doar ca fallback fără JS; .js-live-search e adăugată de JS abia după ce
@@ -319,7 +345,7 @@ img{max-width:100%;display:block;}
   border:1.5px solid var(--line);
   color:var(--maroon);opacity:0.65;
   white-space:nowrap;
-  font-family:'DM Sans';
+  font-family:'Work Sans';
   background:var(--white);
   cursor:pointer;
 }
@@ -351,7 +377,7 @@ img{max-width:100%;display:block;}
 .filter-row select{
   width:100%;appearance:none;
   background:var(--cream);border:1.5px solid var(--line);border-radius:12px;
-  padding:9px 12px;font-size:13px;color:var(--maroon);font-family:'DM Sans';
+  padding:9px 12px;font-size:13px;color:var(--maroon);font-family:'Work Sans';
 }
 .filter-row select:focus{border-color:var(--pink);outline:none;}
 .filter-actions{display:flex;align-items:center;gap:14px;margin-top:4px;}
@@ -449,7 +475,7 @@ img{max-width:100%;display:block;}
   font-size:10.5px;font-weight:700;
   padding:4px 10px;border-radius:100px;
   transform:rotate(4deg);
-  font-family:'Fraunces';
+  font-family:'Instrument Serif';
   white-space:nowrap;
 }
 .post-body{padding:13px 15px 16px;}
@@ -459,9 +485,9 @@ img{max-width:100%;display:block;}
    ca fiind același lucru, nu două tratamente vizuale diferite. */
 .post-cat{
   display:inline-block;
-  font-size:10px;font-weight:600;
-  background:var(--maroon);color:var(--white);
-  padding:3px 9px;border-radius:100px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;
+  background:var(--pink-soft);color:var(--pink);
+  padding:4px 10px;border-radius:100px;
   margin-top:6px;
 }
 /* Distinct de .post-cat (categoria e mereu adevărată, "îl recumpăr" e o
@@ -474,7 +500,7 @@ img{max-width:100%;display:block;}
   padding:3px 9px;border-radius:100px;
   margin-top:6px;margin-left:5px;
 }
-.post-name{font-size:15px;font-weight:700;margin-top:2px;font-family:'Fraunces';}
+.post-name{font-size:15px;font-weight:700;margin-top:2px;font-family:'Instrument Serif';}
 .post-shade{font-size:11.5px;color:var(--maroon);opacity:0.6;margin-top:2px;}
 .post-source{font-size:10.5px;color:var(--pink);font-weight:600;margin-top:2px;}
 /* Iconiță generică de "sursă cumpărare" — nu logo-uri de brand (sursa e
@@ -575,7 +601,7 @@ img{max-width:100%;display:block;}
 .collage-count-2{grid-template-columns:1fr 1fr;}
 .collage-count-3,.collage-count-4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
 .collage-count-3 img:first-child{grid-row:1 / 3;}
-.collection-name{font-size:15px;font-weight:700;font-family:'Fraunces';}
+.collection-name{font-size:15px;font-weight:700;font-family:'Instrument Serif';}
 .collection-desc{font-size:12px;color:var(--maroon);opacity:0.65;margin-top:3px;}
 .collection-count{font-size:10.5px;color:var(--pink);font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:0.03em;}
 .collection-cta{font-size:11px;font-weight:700;color:var(--pink);margin-top:6px;opacity:0.85;}
@@ -640,7 +666,7 @@ img{max-width:100%;display:block;}
   background:var(--pink-soft);color:var(--maroon);
   border:none;border-radius:100px;
   padding:7px 13px;font-size:11px;font-weight:700;
-  font-family:'DM Sans';cursor:pointer;
+  font-family:'Work Sans';cursor:pointer;
   transition:background 0.15s ease, transform 0.15s ease;
 }
 .share-btn:hover{background:var(--pink);color:var(--white);}
@@ -671,7 +697,7 @@ img{max-width:100%;display:block;}
 .share-btn-2line-text{display:flex;flex-direction:column;line-height:1.35;text-align:left;}
 .share-btn-2line-caption{font-size:9px;font-weight:600;opacity:0.7;}
 .d-brand{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.05em;margin-top:12px;}
-.d-name{font-size:23px;font-weight:800;margin-top:4px;font-family:'Fraunces';}
+.d-name{font-size:23px;font-weight:800;margin-top:4px;font-family:'Instrument Serif';}
 .d-shade{font-size:12.5px;color:var(--maroon);opacity:0.65;margin-top:5px;}
 .tag-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
 .tag-chip{
@@ -728,7 +754,7 @@ img{max-width:100%;display:block;}
 .my-take::before{
   content:"\201E";
   position:absolute;left:14px;top:2px;
-  font-family:'Fraunces';font-size:44px;line-height:1;
+  font-family:'Instrument Serif';font-size:44px;line-height:1;
   color:var(--pink);opacity:0.4;
 }
 .my-take-label{font-size:11px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
@@ -784,7 +810,7 @@ img{max-width:100%;display:block;}
   border-radius:18px;
   padding:16px;
 }
-.comment-q{font-size:14px;font-weight:700;font-family:'Fraunces';line-height:1.4;}
+.comment-q{font-size:14px;font-weight:700;font-family:'Instrument Serif';line-height:1.4;}
 .field{
   margin-top:10px;
   width:100%;
@@ -793,7 +819,7 @@ img{max-width:100%;display:block;}
   border-radius:12px;
   padding:9px 12px;
   font-size:12.5px;color:var(--maroon);
-  font-family:'DM Sans';
+  font-family:'Work Sans';
   outline:none;
 }
 .field:focus{border-color:var(--pink);}
@@ -824,10 +850,30 @@ select.field{appearance:none;}
   border:none;border-radius:100px;
   padding:11px 22px;
   font-size:13px;font-weight:700;
-  font-family:'Fraunces';
+  font-family:'Instrument Serif';
   cursor:pointer;
 }
 .submit-btn:hover{background:var(--maroon);}
+.btn-solid-wide{
+  width:100%;display:block;text-align:center;
+  background:var(--maroon);color:var(--cream);
+  border:none;border-radius:100px;padding:14px 22px;
+  font-size:14px;font-weight:600;font-family:'Work Sans';cursor:pointer;
+  margin-top:16px;transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-solid-wide:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(107,36,54,0.25);}
+/* Contact: text la stânga (context + alternativă Instagram), formular
+   într-un card alb la dreapta — două coloane doar de la tabletă în sus. */
+.contact-layout{display:flex;flex-direction:column;gap:28px;}
+.contact-note{
+  display:flex;align-items:center;gap:8px;
+  font-size:12.5px;font-weight:600;color:var(--maroon);opacity:0.75;margin-top:6px;
+}
+.contact-note::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pink);flex-shrink:0;}
+.contact-form-card{padding:24px;border-radius:20px;}
+.field-label{display:block;margin-top:14px;font-size:11.5px;font-weight:700;color:var(--maroon);opacity:0.7;}
+.field-label:first-child{margin-top:0;}
+.contact-form-card .field{margin-top:6px;}
 /* Nu spune dacă apare imediat sau trece prin moderare — de fapt apare
    imediat (Comment.aprobat=True implicit), deci spunem asta explicit. */
 .comment-moderation-note{font-size:11px;color:var(--maroon);opacity:0.55;margin-top:10px;}
@@ -839,7 +885,7 @@ select.field{appearance:none;}
    folosit și ca link <a>, care are nevoie explicit de inline-block ca să
    accepte padding-ul, plus fără sublinierea implicită a linkurilor. */
 .submit-btn-link{display:inline-block;text-decoration:none;}
-.section-title{font-size:15px;font-weight:700;margin-bottom:6px;font-family:'Fraunces';}
+.section-title{font-size:15px;font-weight:700;margin-bottom:6px;font-family:'Instrument Serif';}
 /* Distribuție 5★→1★ a notelor lăsate de cititoare — doar cu destule note
    (vezi pragul din view) ca să nu inducă în eroare cu procente pe 1-2
    comentarii. Bare, nu un grafic complex — se citește dintr-o privire. */
@@ -877,7 +923,7 @@ select.field{appearance:none;}
   font-size:9.5px;font-weight:700;
   padding:5px 10px;border-radius:6px;
   transform:rotate(-4deg);
-  font-family:'Fraunces';
+  font-family:'Instrument Serif';
   letter-spacing:0.02em;
   box-shadow:0 2px 0 rgba(122,30,61,0.15);
   border:1px dashed var(--pink);
@@ -925,29 +971,37 @@ select.field{appearance:none;}
 }
 
 /* Static pages */
-.static-body{padding:22px;}
-.static-title{font-size:22px;font-weight:800;margin-bottom:12px;font-family:'Fraunces';}
-.static-text{font-size:13.5px;line-height:1.7;color:var(--maroon);opacity:0.85;margin-bottom:14px;}
-.contact-alt-channel{margin-top:14px;font-size:12.5px;color:var(--maroon);opacity:0.7;text-align:center;}
+.static-body{padding:28px 22px;}
+.static-title{font-size:26px;font-weight:400;margin-bottom:16px;font-family:'Instrument Serif';color:var(--maroon-deep);}
+.static-text{font-size:14px;line-height:1.75;color:var(--maroon);opacity:0.85;margin-bottom:14px;}
+.contact-alt-channel{margin-top:14px;font-size:12.5px;color:var(--maroon);opacity:0.7;}
 .contact-alt-channel a{color:var(--pink);font-weight:700;opacity:1;}
-.about-layout{display:flex;flex-direction:column;gap:4px;}
+.about-layout{display:flex;flex-direction:column;gap:20px;}
 /* Prezența vizuală a persoanei din spatele brandului — poza reală dacă
    există (static/img/deea-avatar.jpg), altfel un avatar cu inițială,
    nu o poză stricată. */
 .about-avatar{
-  width:84px;height:84px;border-radius:50%;margin-bottom:16px;
-  overflow:hidden;position:relative;flex-shrink:0;
-  background:linear-gradient(135deg, var(--pink), #FFA9C8);
+  width:100%;max-width:300px;aspect-ratio:5/6;margin:0 auto 4px;
+  border-radius:20px;overflow:hidden;position:relative;flex-shrink:0;
+  background:linear-gradient(135deg, var(--pink), var(--maroon));
   display:flex;align-items:center;justify-content:center;
-  border:3px solid var(--white);box-shadow:0 4px 14px rgba(122,30,61,0.18);
 }
 .about-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
-/* Fix, nu var(--white) — fundalul ei (gradient roz) nu se schimbă cu tema,
-   deci nici litera de pe el n-ar trebui să devină închisă la culoare doar
-   pentru că --white înseamnă altceva acum. */
-.avatar-fallback-mark{display:none;font-family:'Fraunces';font-size:32px;font-weight:800;color:#FFFFFF;}
-.about-avatar.avatar-fallback{background:linear-gradient(135deg, var(--pink), #FFA9C8);}
+.avatar-fallback-mark{display:none;font-family:'Instrument Serif';font-size:48px;font-weight:400;color:#FFFFFF;}
+.about-avatar.avatar-fallback{background:linear-gradient(135deg, var(--pink), var(--maroon));}
 .about-avatar.avatar-fallback .avatar-fallback-mark{display:block;}
+/* Explică sigiliul "TESTED BY DEEA" de pe fiecare card de produs — separat
+   vizual de restul textului, ca o notă la subsol care merită observată. */
+.tested-callout{
+  background:var(--pink-soft);border-radius:16px;padding:20px;
+  margin:20px 0;display:flex;flex-direction:column;gap:10px;align-items:flex-start;
+}
+.tested-callout-badge{
+  background:var(--maroon);color:var(--cream);font-size:10.5px;font-weight:700;
+  letter-spacing:0.05em;padding:6px 12px;border-radius:100px;white-space:nowrap;
+}
+.tested-callout-text{font-size:13px;line-height:1.65;color:var(--maroon);opacity:0.85;margin:0;}
+.about-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
 
 /* Moment WOW: milestone + confetti */
 .milestone-banner{
@@ -961,7 +1015,7 @@ select.field{appearance:none;}
 .milestone-banner.show{opacity:1;transform:translate(-50%,0);}
 .milestone-banner-inner{
   background:var(--maroon);color:var(--cream);
-  font-family:'Fraunces';font-size:12.5px;font-weight:700;
+  font-family:'Instrument Serif';font-size:12.5px;font-weight:700;
   padding:12px 20px;border-radius:100px;
   box-shadow:0 8px 24px rgba(122,30,61,0.35);
   text-align:center;
@@ -976,28 +1030,32 @@ select.field{appearance:none;}
   100%{transform:translateY(105vh) rotate(540deg);opacity:0.9;}
 }
 
-/* Bandou închis la culoare sub cardul crem — singura suprafață de mare
-   contrast din tot layout-ul, ca site-ul să nu rămână crem-pe-roz de sus
-   până jos, fără nicio greutate vizuală care să-l ancoreze. */
 footer.site-footer{
-  max-width:520px;margin:0 auto;padding:18px 22px;
-  background:var(--maroon);border-radius:22px;
-  text-align:center;font-size:11px;color:var(--cream);
+  max-width:1280px;margin:24px auto 0;padding:28px 22px;
+  border-top:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  font-size:13px;color:var(--pink);
 }
-.footer-tagline{opacity:0.65;}
-.footer-social{
-  display:flex;justify-content:center;gap:16px;margin-top:10px;
-}
-.footer-social a{color:var(--pink-soft);opacity:0.9;display:inline-flex;}
-.footer-social a:hover{color:var(--gold);opacity:1;}
+.footer-tagline{opacity:0.85;}
+.footer-social{display:flex;gap:16px;}
+.footer-social a{color:var(--pink);opacity:0.85;display:inline-flex;}
+.footer-social a:hover{color:var(--maroon);opacity:1;}
 .footer-social svg{width:17px;height:17px;}
 
 /* Responsive: tabletă / desktop — pe ecrane late, cardul nu mai rămâne
    blocat la lățimea de telefon; feed-ul/colecțiile trec pe grid cu mai
    multe coloane, iar textul lung rămâne pe o coloană lizibilă. */
 @media (min-width:760px){
-  .screen{max-width:720px;}
-  footer.site-footer{max-width:720px;}
+  .topbar{padding:28px 40px;}
+  .hero2{
+    flex-direction:row;align-items:center;gap:56px;
+    padding:56px 40px 48px;
+  }
+  .hero2-text{flex:1 1 0;min-width:0;}
+  .hero2-title{font-size:52px;}
+  .hero2-photos{flex:0 0 auto;max-width:380px;height:320px;margin:0;}
+  .section-header{padding:0 40px;}
+  .who-strip{margin-left:40px;margin-right:40px;}
   .card-grid{
     display:grid;grid-template-columns:repeat(2, 1fr);
     gap:0 16px;align-items:start;
@@ -1009,24 +1067,32 @@ footer.site-footer{
      întindem explicit ca să nu iasă unele mai scunde ca altele. */
   .card-grid .collection-card{align-self:stretch;}
   .card-grid .post-wrap{--post-photo-h:300px;}
-  .detail-body,.static-body{max-width:640px;margin:0 auto;}
-  /* Despre: poză mare în dreapta, text în stânga — mai editorial, mai
+  .detail-body{max-width:640px;margin:0 auto;}
+  .static-body{max-width:900px;margin:0 auto;}
+  .contact-layout{flex-direction:row;align-items:flex-start;gap:48px;}
+  .contact-text{flex:1 1 0;padding-top:8px;}
+  .contact-form-card{flex:1 1 0;max-width:420px;}
+  /* Despre: poză mare în stânga, text în dreapta — mai editorial, mai
      personal decât avatarul mic de pe mobil (păstrat neschimbat sub
      acest breakpoint). */
   .about-layout{
-    flex-direction:row-reverse;align-items:flex-start;gap:32px;
+    flex-direction:row;align-items:flex-start;gap:48px;
   }
-  .about-text{flex:1 1 auto;min-width:0;}
+  .about-text{flex:1 1 auto;min-width:0;padding-top:8px;}
   .about-avatar{
-    width:240px;height:280px;border-radius:24px;flex:0 0 auto;
-    margin-bottom:0;
+    width:300px;max-width:300px;aspect-ratio:5/6;flex:0 0 auto;
+    margin:0;
   }
   .about-avatar .avatar-fallback-mark{font-size:64px;}
 }
 @media (min-width:1200px){
-  .screen{max-width:1040px;}
-  footer.site-footer{max-width:1040px;}
-  .card-grid{grid-template-columns:repeat(3, 1fr);}
+  .topbar{padding:36px 80px;}
+  .hero2{padding:80px 80px 64px;gap:64px;}
+  .hero2-title{font-size:64px;}
+  .hero2-photos{max-width:440px;height:380px;}
+  .section-header{padding:0 80px;}
+  .who-strip{margin-left:80px;margin-right:80px;}
+  .card-grid{grid-template-columns:repeat(4, 1fr);gap:0 24px;padding:0 80px;}
 }
 
 /* Rezumatul anului ("wrapped") */
@@ -1034,7 +1100,7 @@ footer.site-footer{
   margin:4px 22px 18px;padding:28px 20px;text-align:center;
   background:var(--maroon);border-radius:22px;color:var(--cream);
 }
-.recap-hero-number{font-family:'Fraunces';font-size:52px;font-weight:800;line-height:1;color:var(--gold);}
+.recap-hero-number{font-family:'Instrument Serif';font-size:52px;font-weight:800;line-height:1;color:var(--gold);}
 .recap-hero-label{font-size:13px;margin-top:8px;opacity:0.85;}
 .recap-grid{
   display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
@@ -1045,7 +1111,7 @@ footer.site-footer{
   padding:14px 16px;
 }
 .recap-stat-label{font-size:10.5px;font-weight:700;color:var(--maroon);opacity:0.55;text-transform:uppercase;letter-spacing:0.03em;}
-.recap-stat-value{font-size:17px;font-weight:800;font-family:'Fraunces';color:var(--maroon);margin-top:6px;display:flex;align-items:center;gap:6px;}
+.recap-stat-value{font-size:17px;font-weight:800;font-family:'Instrument Serif';color:var(--maroon);margin-top:6px;display:flex;align-items:center;gap:6px;}
 .recap-stat-sub{font-size:11.5px;color:var(--maroon);opacity:0.65;margin-top:3px;}
 .recap-stat-sub a{color:var(--pink);font-weight:600;}
 .recap-footer-link{padding:8px 22px 4px;}

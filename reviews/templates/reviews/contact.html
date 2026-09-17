@@ -4,32 +4,40 @@
 
 {% block content %}
 <div class="static-body">
-  <div class="static-title">Hai să vorbim</div>
-  <p class="static-text">
-    Ai un produs pe care vrei să-l testez? Trimite-mi-l — îl folosesc și scriu exact ce cred,
-    fără sponsorizare și fără notă garantată dinainte. Review-urile mele sunt mereu sincere,
-    în ambele sensuri: dacă îmi place, spun; dacă nu, la fel — și menționez numele brandului,
-    la fel ca la orice altă recenzie. Dacă ești de acord cu acest tip de colaborare, scrie-mi
-    câteva rânduri mai jos.
-  </p>
+  <div class="contact-layout">
+    <div class="contact-text">
+      <div class="static-title">Hai să vorbim</div>
+      <p class="static-text">
+        Ai un produs pe care vrei să-l testez? Trimite-mi-l — îl folosesc și scriu exact ce cred,
+        fără sponsorizare și fără notă garantată dinainte. Menționez mereu clar numele
+        brandului, la fel ca la orice altă recenzie de pe site.
+      </p>
+      <div class="contact-note">Răspund de obicei în 3 zile</div>
+      {% if instagram_url %}
+      <p class="contact-alt-channel">Preferi altceva? Scrie-mi direct pe <a href="{{ instagram_url }}" target="_blank" rel="noopener noreferrer">Instagram →</a></p>
+      {% endif %}
+    </div>
 
-  <form class="comment-form" method="post">
-    {% csrf_token %}
-    {{ form.website }}
+    <form class="comment-form contact-form-card" method="post">
+      {% csrf_token %}
+      {{ form.website }}
 
-    <input class="field" type="text" name="nume" value="{{ form.nume.value|default:'' }}" placeholder="Numele tău (opțional)" autocomplete="off">
-    <input class="field" type="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="Emailul tău">
-    {% if form.email.errors %}<div class="no-comments form-error">{{ form.email.errors.0 }}</div>{% endif %}
+      <label class="field-label" for="id_nume">Numele tău</label>
+      <input class="field" id="id_nume" type="text" name="nume" value="{{ form.nume.value|default:'' }}" placeholder="Numele tău (opțional)" autocomplete="off">
 
-    <textarea class="field" name="mesaj" rows="5" placeholder="Scrie-mi mesajul tău...">{{ form.mesaj.value|default:'' }}</textarea>
-    {% if form.mesaj.errors %}<div class="no-comments form-error">{{ form.mesaj.errors.0 }}</div>{% endif %}
+      <label class="field-label" for="id_email">Email</label>
+      <input class="field" id="id_email" type="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="Emailul tău">
+      {% if form.email.errors %}<div class="no-comments form-error">{{ form.email.errors.0 }}</div>{% endif %}
 
-    <div class="comment-moderation-note">Răspund de obicei în 3 zile.</div>
-    <button type="submit" class="submit-btn">Trimite mesajul</button>
-  </form>
+      <label class="field-label" for="id_produs_brand">Produsul / brandul</label>
+      <input class="field" id="id_produs_brand" type="text" name="produs_brand" value="{{ form.produs_brand.value|default:'' }}" placeholder="Produsul / brandul (opțional)">
 
-  {% if instagram_url %}
-  <p class="contact-alt-channel">Preferi altceva? Scrie-mi direct pe <a href="{{ instagram_url }}" target="_blank" rel="noopener noreferrer">Instagram →</a></p>
-  {% endif %}
+      <label class="field-label" for="id_mesaj">Mesajul tău</label>
+      <textarea class="field" id="id_mesaj" name="mesaj" rows="5" placeholder="Scrie-mi mesajul tău...">{{ form.mesaj.value|default:'' }}</textarea>
+      {% if form.mesaj.errors %}<div class="no-comments form-error">{{ form.mesaj.errors.0 }}</div>{% endif %}
+
+      <button type="submit" class="submit-btn btn-solid-wide">Trimite mesajul</button>
+    </form>
+  </div>
 </div>
 {% endblock %}
