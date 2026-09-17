@@ -139,6 +139,31 @@ img{max-width:100%;display:block;}
 .feed-tag-muted{color:var(--maroon);opacity:0.7;font-weight:500;}
 .feed-intro{padding:0 22px 16px;font-size:12.5px;line-height:1.6;color:var(--maroon);opacity:0.75;}
 .feed-intro a{color:var(--pink);font-weight:600;opacity:1;}
+/* Cine e persoana din spatele site-ului — chiar pe Acasă, nu doar pe
+   /despre. Text preluat din about.html, nu reformulat aici (o singură
+   sursă de adevăr pentru "vocea" ei). Instagram stă alături, cu context,
+   nu ca link generic izolat în paragraful de sus. */
+.who-strip{
+  display:flex;align-items:center;gap:12px;
+  margin:0 22px 16px;padding:12px 14px;
+  background:var(--white);border:1px solid var(--line);border-radius:16px;
+}
+.who-strip-link{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;color:inherit;}
+.who-strip-avatar{
+  width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;
+  background:linear-gradient(135deg, var(--pink), #FFA9C8);
+  display:flex;align-items:center;justify-content:center;
+}
+.who-strip-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.who-strip-avatar .avatar-fallback-mark{display:none;font-family:'Fraunces';font-size:16px;font-weight:800;color:#FFFFFF;}
+.who-strip-avatar.avatar-fallback .avatar-fallback-mark{display:block;}
+.who-strip-body{min-width:0;}
+.who-strip-text{font-size:12px;line-height:1.5;color:var(--maroon);opacity:0.85;}
+.who-strip-cta{font-size:11.5px;font-weight:700;color:var(--pink);margin-top:3px;}
+.who-strip-ig{
+  flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--pink);
+  white-space:nowrap;padding-left:10px;border-left:1px solid var(--line);
+}
 .stat-chip{
   margin:0 22px 16px;display:inline-flex;
   background:var(--pink-soft);color:var(--maroon);
