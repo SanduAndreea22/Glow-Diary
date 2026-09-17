@@ -208,7 +208,15 @@ class ProductAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         frunze = _categorii_frunza()
         self.fields["categorie"].queryset = frunze
-        self.fields["categorie"].widget.grup_dupa_categorie = {
+        # Admin-ul învelește widget-ul de FK într-un RelatedFieldWidgetWrapper
+        # (de-acolo iconițele creion/plus/x/ochi) — CategorieSelect-ul nostru
+        # e widget-ul DIN INTERIOR (.widget), nu wrapper-ul însuși. Setat pe
+        # wrapper, atributul nu ajungea niciodată la create_option(), care
+        # cădea mereu pe grup_dupa_categorie = {} (default-ul de clasă).
+        categorie_widget = self.fields["categorie"].widget
+        if hasattr(categorie_widget, "widget"):
+            categorie_widget = categorie_widget.widget
+        categorie_widget.grup_dupa_categorie = {
             str(c.pk): str(c.grup_id or c.pk) for c in frunze
         }
         if self.instance.pk and self.instance.categorie_id:
