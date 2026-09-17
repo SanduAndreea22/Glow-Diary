@@ -39,7 +39,7 @@ manuală. Aceeași structură vizuală (.week-pick) ca la colecție.
 {% endcomment %}
 <a href="{{ produs_hero.get_absolute_url }}" class="week-pick">
   <div class="week-pick-photo">
-    {% if produs_hero.poza %}<img src="{{ produs_hero.poza.url }}" alt="{{ produs_hero.nume }}">{% else %}💄{% endif %}
+    {% if produs_hero.poza %}<img src="{{ produs_hero.poza.url }}" alt="{{ produs_hero.nume }}">{% else %}{% include "reviews/_photo_placeholder.html" %}{% endif %}
   </div>
   <div class="week-pick-body">
     <div class="week-pick-badge">✨ Alegerea mea</div>

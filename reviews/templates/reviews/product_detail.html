@@ -25,7 +25,7 @@
 
   <div class="product-top">
     <div class="product-photo">
-      {% if galerie %}<img id="hero-img" src="{{ galerie.0.url }}" alt="{{ produs.nume }}">{% else %}💄{% endif %}
+      {% if galerie %}<img id="hero-img" src="{{ galerie.0.url }}" alt="{{ produs.nume }}">{% else %}{% include "reviews/_photo_placeholder.html" %}{% endif %}
       <div class="seal">TESTED BY DEEA</div>
     </div>
     <div class="product-top-info">

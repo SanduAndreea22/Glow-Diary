@@ -21,6 +21,12 @@ var GlowStars = {
 /* Construiește markup-ul unui card de produs din datele JSON (folosit de
    Favorite și de căutarea live) — un singur loc pentru acest HTML. */
 var GlowCards = {
+  // Identic cu reviews/templates/reviews/_photo_placeholder.html — un singur
+  // loc care știe cum arată placeholder-ul de poză lipsă, ca cele două căi
+  // de randare a unui card (Django, aici din JS) să nu poată diverge vizual.
+  PHOTO_PLACEHOLDER:
+    '<span class="photo-placeholder" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="12" width="7" height="9" rx="2"/><path d="M9.5 12c-.5-2 .5-3.5 1-4.5C11 6 11.5 4.5 12 3c.5 1.5 1 3 1.5 4.5.5 1 1.5 2.5 1 4.5"/></svg></span>',
+
   render: function (p) {
     var esc = GlowFavorites.escapeHtml;
     var favClass = GlowFavorites.has(p.slug) ? " active" : "";
@@ -28,7 +34,7 @@ var GlowCards = {
       '<div class="post-wrap">' +
         '<a href="' + esc(p.url) + '" class="post">' +
           '<div class="post-photo">' +
-            (p.poza ? '<img src="' + esc(p.poza) + '" alt="' + esc(p.nume) + '" loading="lazy">' : "💄") +
+            (p.poza ? '<img src="' + esc(p.poza) + '" alt="' + esc(p.nume) + '" loading="lazy">' : GlowCards.PHOTO_PLACEHOLDER) +
             '<div class="seal">TESTED BY DEEA</div>' +
             (p.produsul_lunii ? '<div class="sticker">⭐ PRODUSUL LUNII</div>' : "") +
           "</div>" +

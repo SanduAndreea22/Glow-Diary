@@ -91,6 +91,16 @@ img{max-width:100%;display:block;}
   }
   .nav-links.open{max-height:260px;padding:10px 22px 18px;}
 }
+/* Pe telefon (unde .screen oricum ia toată lățimea disponibilă), colțurile
+   foarte rotunjite + marginile verticale mari fac pagina să pară un mockup
+   de telefon plutind pe un fundal, nu o aplicație nativă — le păstrăm doar
+   pe ecrane late, unde chiar se vede fundalul colorat din jurul cardului. */
+@media (max-width:599px){
+  body{padding:0;}
+  .screen{border-radius:0;box-shadow:none;margin-bottom:0;}
+  .topbar{border-radius:0;}
+  footer.site-footer{border-radius:0;max-width:none;margin:0;}
+}
 /* Feed */
 /* Suprafață închisă la culoare, plină, în jurul titlului+tagline+intro —
    singurul bloc "dramatic" de contrast de pe pagină (restul e roz peste
@@ -358,6 +368,14 @@ img{max-width:100%;display:block;}
   border-color:var(--pink);
 }
 .post:active{transform:translateY(-1px) scale(1.005);}
+/* Placeholder pentru poza lipsă — SVG controlat (nu emoji: randare/proporție
+   diferite de la un sistem/browser la altul, arată ca un bug vizual mai
+   degrabă decât ca un "nu am încă poza asta"). Identic în cele 3 template-uri
+   care îl includ și în cards.js (căutare live + Favorite). */
+.photo-placeholder{
+  width:34%;max-width:56px;color:var(--maroon);opacity:0.28;
+}
+.photo-placeholder svg{width:100%;height:100%;display:block;}
 .post-photo{
   height:var(--post-photo-h);
   display:flex;align-items:center;justify-content:center;
