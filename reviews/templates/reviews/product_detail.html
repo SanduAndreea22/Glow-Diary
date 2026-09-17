@@ -127,7 +127,7 @@
         <label for="star{{ value }}">★</label>
       {% endfor %}
     </div>
-    <div class="star-pick-hint">Se adaugă la media cititoarelor, separat de nota mea de sus.</div>
+    <div class="star-pick-hint">Se adaugă la media cititoarelor, separat de nota mea de sus — ajută mult dacă lași și o notă.</div>
 
     <textarea class="field" name="comentariu" rows="3" placeholder="Scrie părerea ta...">{{ form.comentariu.value|default:'' }}</textarea>
     {% if form.comentariu.errors %}<div class="no-comments form-error">{{ form.comentariu.errors.0 }}</div>{% endif %}
@@ -168,7 +168,7 @@
     {% endif %}
   </div>
   {% empty %}
-  <div class="no-comments">Fii prima care lasă o părere despre acest produs.</div>
+  <div class="no-comments-yet"><div class="empty-state-icon">💬</div>Fii prima care lasă o părere despre acest produs.</div>
   {% endfor %}
 </div>
 

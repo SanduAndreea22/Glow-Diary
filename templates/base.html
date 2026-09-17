@@ -39,6 +39,7 @@
     <a href="{% url 'reviews:feed' %}" class="logo">glow<span>diary</span><small>by Deea</small></a>
     <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Meniu" aria-expanded="false" aria-controls="nav-links">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <span class="nav-toggle-badge" id="nav-toggle-badge" hidden></span>
     </button>
     <div class="nav-links" id="nav-links">
       <a href="{% url 'reviews:feed' %}" class="{% if request.resolver_match.url_name == 'feed' %}active{% endif %}">Acasă</a>
@@ -124,16 +125,18 @@ viewport-ul real.
   window.GlowFavCount = {
     KEY: "glow-diary-favorites",
     refresh: function () {
-      var el = document.getElementById('nav-fav-count');
-      if (!el) return;
       var n = 0;
       try {
         n = JSON.parse(localStorage.getItem(this.KEY) || "[]").length;
       } catch (e) {
         n = 0;
       }
-      el.textContent = n;
-      el.hidden = n === 0;
+      var el = document.getElementById('nav-fav-count');
+      if (el) { el.textContent = n; el.hidden = n === 0; }
+      // Vizibil pe iconița de hamburger, ca numărul să nu dispară complet pe
+      // mobil cât timp meniul (unde stă .nav-fav-count) e închis.
+      var badge = document.getElementById('nav-toggle-badge');
+      if (badge) { badge.textContent = n; badge.hidden = n === 0; }
     }
   };
   GlowFavCount.refresh();

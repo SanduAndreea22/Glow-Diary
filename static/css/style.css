@@ -65,8 +65,18 @@ img{max-width:100%;display:block;}
   color:var(--maroon);opacity:0.55;letter-spacing:0.02em;
 }
 .nav-toggle{
-  display:none;background:none;border:none;color:var(--maroon);
+  display:none;position:relative;background:none;border:none;color:var(--maroon);
   padding:6px;cursor:pointer;align-items:center;justify-content:center;
+}
+/* Contorul de favorite din meniul deschis (.nav-fav-count) nu se vede deloc
+   pe mobil cât timp meniul e închis — acest al doilea contor, pe iconița de
+   hamburger, păstrează vizibilitatea numărului și fără să deschizi meniul. */
+.nav-toggle-badge{
+  position:absolute;top:2px;right:2px;
+  display:flex;align-items:center;justify-content:center;
+  min-width:14px;height:14px;padding:0 3px;
+  background:var(--pink);color:var(--white);
+  border-radius:100px;font-size:8.5px;font-weight:700;line-height:1;
 }
 .nav-links{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;row-gap:4px;}
 .nav-links a{
@@ -924,6 +934,15 @@ select.field{appearance:none;}
   border:2px solid var(--line);
 }
 .no-comments{font-size:12.5px;color:var(--maroon);opacity:0.55;padding:10px 0;}
+/* Distinct de .no-comments (folosit și pentru erorile de formular) — "încă
+   nicio părere" e o invitație, nu o eroare, deci merită o formă vizuală
+   proprie (chenar punctat + iconiță), nu doar o linie de text mică. */
+.no-comments-yet{
+  text-align:center;padding:26px 16px;margin-top:6px;
+  border:1.5px dashed var(--line);border-radius:16px;
+  font-size:12.5px;color:var(--maroon);opacity:0.7;
+}
+.no-comments-yet .empty-state-icon{font-size:26px;margin-bottom:8px;opacity:0.8;}
 .comment-photo-label{
   display:block;margin-top:10px;font-size:11.5px;font-weight:600;
   color:var(--maroon);opacity:0.6;
