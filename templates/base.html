@@ -94,6 +94,16 @@ viewport-ul real.
     toggle.addEventListener('click', function () {
       var isOpen = nav.classList.toggle('open');
       toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      // Banner-ul de milestone (.milestone-banner, creat de GlowMilestone) e
+      // position:fixed în <body>, în afara lui .screen — z-index-ul lui nu
+      // poate fi comparat cu cel al .topbar (stacking context-uri separate,
+      // vezi nota despre modale mai jos), deci un z-index mai mic pe banner
+      // nu-l trimite sub meniul deschis. Cât timp meniul e deschis, ascundem
+      // direct banner-ul, ca să nu acopere linkurile de navigare.
+      if (isOpen) {
+        var banner = document.querySelector('.milestone-banner');
+        if (banner) banner.classList.remove('show');
+      }
     });
     nav.querySelectorAll('a').forEach(function (a) {
       a.addEventListener('click', function () {
