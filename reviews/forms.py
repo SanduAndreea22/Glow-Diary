@@ -178,7 +178,12 @@ class CategorieSelect(forms.Select):
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         option = super().create_option(name, value, label, selected, index, subindex, attrs)
         if value:
-            grup_id = self.grup_dupa_categorie.get(value.value if hasattr(value, "value") else value)
+            # `value` e un ModelChoiceIteratorValue (Django 4+) — cheile din
+            # grup_dupa_categorie sunt string-uri (str(c.pk)), deci trebuie
+            # normalizat la string înainte de căutare, altfel .get() ratează
+            # mereu și niciun <option> nu primește data-grup.
+            raw_value = value.value if hasattr(value, "value") else value
+            grup_id = self.grup_dupa_categorie.get(str(raw_value))
             if grup_id is not None:
                 option["attrs"]["data-grup"] = grup_id
         return option
