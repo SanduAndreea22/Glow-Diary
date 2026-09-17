@@ -978,6 +978,11 @@ footer.site-footer{
     gap:0 16px;align-items:start;
   }
   .card-grid .post-wrap,.card-grid .collection-card{margin:0 0 16px;}
+  /* Cardurile de colecție variază în înălțime după cât text au
+     (descriere opțională) — .card-grid le lasă altfel la "start", ca
+     pozele produselor din feed să nu se întindă artificial. Aici le
+     întindem explicit ca să nu iasă unele mai scunde ca altele. */
+  .card-grid .collection-card{align-self:stretch;}
   .card-grid .post-wrap{--post-photo-h:300px;}
   .detail-body,.static-body{max-width:640px;margin:0 auto;}
   /* Despre: poză mare în dreapta, text în stânga — mai editorial, mai
