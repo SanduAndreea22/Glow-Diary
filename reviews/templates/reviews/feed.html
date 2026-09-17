@@ -180,7 +180,7 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
 {% for produs in produse %}
   {% include "reviews/_product_card.html" with produs=produs produsul_lunii_id=produsul_lunii_id show_details=True snippet_words=20 %}
 {% empty %}
-<div class="empty-state">Nu am găsit produse pentru criteriile alese. Încearcă o altă căutare sau resetează filtrele.</div>
+<div class="empty-state">N-am găsit nimic pentru criteriile alese — încearcă o altă căutare sau resetează filtrele.</div>
 {% endfor %}
 </div>
 
@@ -317,7 +317,7 @@ about.html (nicio pretenție nouă), nu inventat aici.
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data.produse.length) {
-            grid.innerHTML = '<div class="empty-state">Nu am găsit produse pentru criteriile alese. Încearcă o altă căutare sau resetează filtrele.</div>';
+            grid.innerHTML = '<div class="empty-state">N-am găsit nimic pentru criteriile alese — încearcă o altă căutare sau resetează filtrele.</div>';
           } else {
             grid.innerHTML = data.produse.map(GlowCards.render).join('');
           }

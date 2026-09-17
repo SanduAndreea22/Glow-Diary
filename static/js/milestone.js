@@ -30,9 +30,9 @@ var GlowMilestone = {
     var banner = document.createElement("div");
     banner.className = "milestone-banner";
     banner.innerHTML =
-      '<div class="milestone-banner-inner">🎉 ' +
+      '<div class="milestone-banner-inner">🎉 Am ajuns la ' +
       n +
-      " produse testate pe Glow Diary! Mulțumesc că ești aici. 🎉</div>";
+      " produse testate! Mulțumesc că ești aici. 🎉</div>";
     document.body.appendChild(banner);
 
     requestAnimationFrame(function () {
