@@ -60,11 +60,13 @@
   {% block content %}{% endblock %}
 </div>
 
-{# Modalele (overlay pe tot ecranul) trebuie randate AICI, în afara .screen —
-   animația de intrare a lui .screen ("transform" în keyframes) îi creează un
-   containing block propriu pentru descendenții position:fixed, care altfel
-   s-ar centra față de .screen (înalt cât tot conținutul paginii), nu față de
-   viewport-ul real. #}
+{% comment %}
+Modalele (overlay pe tot ecranul) trebuie randate AICI, în afara .screen —
+animația de intrare a lui .screen ("transform" în keyframes) îi creează un
+containing block propriu pentru descendenții position:fixed, care altfel
+s-ar centra față de .screen (înalt cât tot conținutul paginii), nu față de
+viewport-ul real.
+{% endcomment %}
 {% block modals %}{% endblock %}
 
 <footer class="site-footer">
