@@ -1,7 +1,7 @@
 import os
 
 from django.conf import settings
-from django.core.checks import Error, Warning, register
+from django.core.checks import Error, register
 
 
 @register(deploy=True)
@@ -9,21 +9,27 @@ def verifica_redis_in_productie(app_configs, **kwargs):
     """Fără REDIS_URL setat, rate limiting-ul (honeypot/comentarii/contact,
     bazat pe LocMemCache — per-proces) devine inconsistent între workeri cu
     mai mult de un proces, lăsând un spammer să ocolească limita
-    distribuindu-se pe workeri diferiți. E deja documentat în checklist-ul
-    din README, dar un `manage.py check --deploy` care avertizează vizibil
-    e mai sigur decât un pas de checklist care poate fi omis din greșeală."""
+    distribuindu-se pe workeri diferiți. Eroare (nu doar warning) — un simplu
+    avertisment poate fi omis din greșeală la deploy; o eroare care blochează
+    `manage.py check --deploy` cere o decizie conștientă: fie REDIS_URL, fie
+    confirmarea explicită (SINGLE_WORKER=True) că rulează un singur proces,
+    caz în care LocMemCache e oricum consistent."""
     if settings.DEBUG or os.environ.get("REDIS_URL"):
         return []
+    single_worker = os.environ.get("SINGLE_WORKER", "").strip().lower() in ("1", "true", "yes", "on")
+    if single_worker:
+        return []
     return [
-        Warning(
+        Error(
             "REDIS_URL nu e setat, deși DEBUG=False.",
             hint=(
                 "Rate limiting-ul (bazat pe cache LocMemCache, per-proces) "
                 "devine inconsistent între workeri dacă rulezi mai mult de "
                 "un proces (gunicorn/uwsgi). Setează REDIS_URL pentru cache "
-                "partajat real."
+                "partajat real, sau SINGLE_WORKER=True dacă ești sigură că "
+                "rulezi explicit un singur proces."
             ),
-            id="reviews.W001",
+            id="reviews.E002",
         )
     ]
 

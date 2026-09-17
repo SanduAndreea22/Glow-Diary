@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 
+from .checks import verifica_redis_in_productie
 from .forms import MAX_UPLOAD_IMAGINE_BYTES, CommentForm
 from .image_utils import MAX_PIXELI_ACCEPTATI, PozaPreaMareError
 from .models import Categorie, Collection, Comment, ContactMessage, Product, Tag
@@ -1119,6 +1120,30 @@ class ComentariuCuPozaTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 0)
         self.assertContains(r, "dimensiuni prea mari")
+
+
+class RedisDeployCheckTests(TestCase):
+    def test_debug_true_ignora_lipsa_redis(self):
+        with override_settings(DEBUG=True), mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(verifica_redis_in_productie(None), [])
+
+    def test_debug_false_fara_redis_fara_single_worker_e_eroare(self):
+        with override_settings(DEBUG=False), mock.patch.dict(os.environ, {}, clear=True):
+            erori = verifica_redis_in_productie(None)
+        self.assertEqual(len(erori), 1)
+        self.assertEqual(erori[0].id, "reviews.E002")
+
+    def test_debug_false_cu_redis_url_e_curat(self):
+        with override_settings(DEBUG=False), mock.patch.dict(
+            os.environ, {"REDIS_URL": "redis://localhost:6379/0"}, clear=True
+        ):
+            self.assertEqual(verifica_redis_in_productie(None), [])
+
+    def test_debug_false_cu_single_worker_e_curat(self):
+        with override_settings(DEBUG=False), mock.patch.dict(
+            os.environ, {"SINGLE_WORKER": "True"}, clear=True
+        ):
+            self.assertEqual(verifica_redis_in_productie(None), [])
 
 
 @_no_ssl_redirect

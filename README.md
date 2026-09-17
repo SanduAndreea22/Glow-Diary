@@ -46,7 +46,8 @@ Toate valorile sensibile/specifice mediului vin din `.env` (local) sau din varia
 | `DEBUG` | `False` implicit; `True` doar local |
 | `ALLOWED_HOSTS` | domeniile permise, separate prin virgulă |
 | `CSRF_TRUSTED_ORIGINS` | originile `https://...` de încredere, în producție |
-| `REDIS_URL` | cache partajat pentru rate limiting — necesar dacă rulezi mai mult de un worker |
+| `REDIS_URL` | cache partajat pentru rate limiting — obligatoriu în producție, cu excepția `SINGLE_WORKER=True` |
+| `SINGLE_WORKER` | `True` doar dacă rulezi explicit un singur proces (fără Redis) — altfel `check --deploy` refuză să iasă curat |
 | `TRUST_X_FORWARDED_FOR` | `True` doar dacă hostingul suprascrie sigur acest header |
 | `ADMIN_URL` | schimbă ruta panoului de admin din `admin/` implicit |
 | `ADMIN_EMAIL` | primește email automat la fiecare eroare 500 |
@@ -56,7 +57,7 @@ Toate valorile sensibile/specifice mediului vin din `.env` (local) sau din varia
 ## Checklist înainte de lansare live
 
 1. `.env` (sau variabilele de mediu de pe server) completat: `SECRET_KEY` nou generat, `DEBUG=False`, `ALLOWED_HOSTS` cu domeniul real, `CSRF_TRUSTED_ORIGINS` cu `https://domeniultau.ro`.
-2. `REDIS_URL` setat dacă rulezi mai mult de un worker (gunicorn/uwsgi) — altfel rate limiting-ul devine inconsistent între procese.
+2. `REDIS_URL` setat (cache partajat, obligatoriu dacă rulezi mai mult de un worker gunicorn/uwsgi) — sau `SINGLE_WORKER=True` dacă ești sigură că rulezi explicit un singur proces. Fără unul din cele două, `check --deploy` de la pasul următor refuză să iasă curat.
 3. `python manage.py check --deploy` — trebuie să iasă curat.
 4. `python manage.py collectstatic --noinput` — copiază fișierele statice în `STATIC_ROOT` (`staticfiles/`), servite apoi de webserver/CDN.
 5. `python manage.py migrate`.
