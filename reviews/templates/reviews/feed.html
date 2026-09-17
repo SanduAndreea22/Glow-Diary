@@ -56,7 +56,12 @@ manuală. Aceeași structură vizuală (.week-pick) ca la colecție.
   {% for colectie in colectii_de_sezon %}
   <a href="{{ colectie.get_absolute_url }}" class="collection-card">
     <div class="collection-cover">
-      {% if colectie.coperta %}<img src="{{ colectie.coperta.url }}" alt="{{ colectie.nume }}">{% else %}✨{% endif %}
+      {% if colectie.coperta %}<img src="{{ colectie.coperta.url }}" alt="{{ colectie.nume }}">
+      {% elif colectie.poze_colaj %}
+      <div class="collection-collage collage-count-{{ colectie.poze_colaj|length }}">
+        {% for produs in colectie.poze_colaj %}<img src="{{ produs.poza.url }}" alt="" loading="lazy">{% endfor %}
+      </div>
+      {% else %}✨{% endif %}
     </div>
     <div class="collection-body">
       <div class="collection-name">{{ colectie.nume }}</div>

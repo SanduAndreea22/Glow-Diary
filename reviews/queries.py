@@ -103,11 +103,43 @@ def colectii_de_sezon():
     )
 
 
+COLAJ_MAX_POZE = 4  # 2x2 — peste 4, mozaicul devine ilizibil la dimensiunea mică de card
+
+
+def ataseaza_poze_colaj(colectii, max_poze=COLAJ_MAX_POZE):
+    """Pentru fiecare colecție fără copertă manuală, atașează `poze_colaj` —
+    primele poze de produs disponibile, pentru mini-colajul din card (vezi
+    .collection-cover) — o vitrină mai vizuală decât un emoji generic, fără
+    să ceară o copertă setată manual pentru fiecare colecție. Mutează
+    obiectele din `colectii` in-place; `colectii` trebuie să fie deja o
+    listă (nu un queryset leneș), ca instanțele mutate să fie cele randate."""
+    for colectie in colectii:
+        if not colectie.coperta:
+            colectie.poze_colaj = list(
+                colectie.produse.filter(activ=True)
+                .exclude(poza="")
+                .only("id", "poza")[:max_poze]
+            )
+    return colectii
+
+
 def produs_hero_fallback():
     """Dacă nu există o "colecție a săptămânii" bifată, alegem automat cel
     mai bine notat produs activ ca hero pe prima pagină (tiebreaker: cel
     mai recent) — nicio alegere manuală din admin, doar date existente."""
     return Product.objects.filter(activ=True).order_by("-nota_mea", "-data_postarii").first()
+
+
+MAX_RECOMANDARI_FAVORITE_GOALE = 4
+
+
+def recomandari_favorite_goale(n=MAX_RECOMANDARI_FAVORITE_GOALE):
+    """Produse arătate în pagina Favorite când lista e încă goală — cele mai
+    bine notate, ca un punct de plecare concret ("începe cu astea"), nu doar
+    un link generic înapoi la feed."""
+    return cu_numar_pareri(
+        Product.objects.filter(activ=True).select_related("categorie")
+    ).order_by("-nota_mea", "-data_postarii")[:n]
 
 
 def produsul_lunii():

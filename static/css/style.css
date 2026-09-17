@@ -76,6 +76,16 @@ img{max-width:100%;display:block;}
   font-size:12px;font-weight:600;color:var(--maroon);opacity:0.6;
 }
 .nav-links a.active,.nav-links a:hover{opacity:1;color:var(--pink);}
+/* Contor de favorite — actualizarea vizibilă a numărului, nu doar toast-ul
+   de moment, face salvarea să pară o acțiune cu efect real, nu doar un clic
+   care dispare fără urmă. */
+.nav-fav-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:15px;height:15px;padding:0 3px;margin-left:3px;
+  background:var(--pink);color:var(--white);
+  border-radius:100px;font-size:9px;font-weight:700;
+  vertical-align:middle;opacity:1;
+}
 
 @media (max-width:679px){
   .nav-toggle{display:flex;}
@@ -495,6 +505,14 @@ img{max-width:100%;display:block;}
 .empty-state .submit-btn-link{margin-top:14px;font-size:12.5px;padding:9px 18px;}
 .favorites-note{padding:0 22px 12px;font-size:11.5px;color:var(--maroon);opacity:0.55;}
 .empty-state-icon{font-size:34px;margin-bottom:10px;opacity:0.85;}
+/* Recomandări în Favorite goale — în afara .empty-state (care are opacity
+   redusă), ca produsele arătate aici să nu pară "estompate"/dezactivate. */
+.empty-state-recos{margin-top:8px;}
+.empty-state-recos-title{
+  text-align:center;font-size:11px;font-weight:700;color:var(--maroon);
+  opacity:0.55;text-transform:uppercase;letter-spacing:0.03em;
+  margin:0 22px 12px;
+}
 
 .skeleton-card{
   height:260px;border-radius:22px;margin:0 0 16px;
@@ -524,6 +542,14 @@ img{max-width:100%;display:block;}
   display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;
 }
 .collection-cover img{width:100%;height:100%;object-fit:cover;}
+/* Mini-colaj pentru colecțiile fără copertă manuală — 1-4 poze de produs,
+   layout diferit după câte sunt disponibile (vezi ataseaza_poze_colaj). */
+.collection-collage{width:100%;height:100%;display:grid;gap:1px;}
+.collection-collage img{width:100%;height:100%;object-fit:cover;display:block;}
+.collage-count-1{grid-template-columns:1fr;}
+.collage-count-2{grid-template-columns:1fr 1fr;}
+.collage-count-3,.collage-count-4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+.collage-count-3 img:first-child{grid-row:1 / 3;}
 .collection-name{font-size:15px;font-weight:700;font-family:'Fraunces';}
 .collection-desc{font-size:12px;color:var(--maroon);opacity:0.65;margin-top:3px;}
 .collection-count{font-size:10.5px;color:var(--pink);font-weight:700;margin-top:5px;text-transform:uppercase;letter-spacing:0.03em;}
@@ -641,6 +667,15 @@ img{max-width:100%;display:block;}
 .verdict-item{display:flex;flex-direction:column;gap:2px;}
 .verdict-label{font-size:10.5px;color:var(--maroon);opacity:0.55;}
 .verdict-value{font-size:13.5px;font-weight:700;color:var(--maroon);}
+/* "Îl recumpăr?" e verdictul cel mai căutat dintr-o privire — tratament
+   aparte (auriu, ca .badge-recumpar/sigiliul TESTED BY DEEA) doar la "Da",
+   ca ochiul să se oprească acolo; "Nu" rămâne discret, nu un avertisment. */
+.verdict-value-yes{
+  display:inline-flex;width:fit-content;
+  background:var(--gold);color:var(--maroon);
+  padding:2px 10px;border-radius:100px;font-size:12.5px;
+}
+.verdict-value-no{opacity:0.5;font-weight:600;}
 .d-rating{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   margin-top:14px;padding:13px 15px;
@@ -681,6 +716,32 @@ img{max-width:100%;display:block;}
   font-size:11px;font-weight:700;color:var(--maroon);opacity:0.55;
   text-transform:uppercase;letter-spacing:0.03em;margin-bottom:10px;
 }
+/* Previzualizare Story înainte de descărcare — vizitatoarea vede cardul
+   generat (marcă, notă, poză) înainte să-l salveze "pe încredere". */
+.story-modal{
+  display:none;position:fixed;inset:0;z-index:200;
+  align-items:center;justify-content:center;padding:20px;
+}
+.story-modal.open{display:flex;}
+.story-modal-backdrop{position:absolute;inset:0;background:rgba(40,10,20,0.72);}
+.story-modal-body{
+  position:relative;max-width:300px;width:100%;max-height:90vh;overflow:auto;
+  background:var(--cream);border-radius:22px;padding:18px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  animation:msg-in 0.25s ease both;
+}
+.story-modal-close{
+  position:absolute;top:10px;right:10px;z-index:1;
+  width:28px;height:28px;border-radius:100px;border:none;
+  background:var(--pink-soft);color:var(--maroon);
+  font-size:17px;line-height:1;cursor:pointer;
+}
+.story-modal-body img{
+  width:100%;aspect-ratio:9/16;object-fit:cover;
+  border-radius:14px;background:var(--pink-soft);
+}
+.story-modal-body .submit-btn{width:100%;text-align:center;margin-top:0;}
 /* Nici Salvează/Trimite mai departe/Descarcă pentru Story nu invită spre
    acțiunea cu cea mai mare valoare — lăsarea unei păreri. Punte scurtă,
    text, către formular, chiar după "Părerea mea". */

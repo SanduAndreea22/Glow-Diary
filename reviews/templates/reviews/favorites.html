@@ -13,10 +13,22 @@
   <div class="skeleton-card"></div>
 </div>
 <div id="favorites-list" class="card-grid"></div>
-<div id="favorites-empty" class="empty-state" hidden>
-  <div class="empty-state-icon">🤍</div>
-  Nu ai salvat încă niciun produs. Apasă pe inimioară de pe orice postare ca s-o adaugi aici.
-  <div><a href="{% url 'reviews:feed' %}" class="submit-btn submit-btn-link">Descoperă produse →</a></div>
+<div id="favorites-empty-wrap" hidden>
+  <div class="empty-state">
+    <div class="empty-state-icon">🤍</div>
+    Nu ai salvat încă niciun produs. Apasă pe inimioară de pe orice postare ca s-o adaugi aici.
+    <div><a href="{% url 'reviews:feed' %}" class="submit-btn submit-btn-link">Descoperă produse →</a></div>
+  </div>
+  {% if recomandari_favorite_goale %}
+  <div class="empty-state-recos">
+    <div class="empty-state-recos-title">Sau începe cu una din astea:</div>
+    <div class="card-grid">
+      {% for produs in recomandari_favorite_goale %}
+        {% include "reviews/_product_card.html" with produs=produs show_details=False snippet_words=14 %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 
@@ -27,12 +39,13 @@
   document.addEventListener('DOMContentLoaded', function () {
     var slugs = GlowFavorites.getAll();
     var list = document.getElementById('favorites-list');
-    var empty = document.getElementById('favorites-empty');
+    var empty = document.getElementById('favorites-empty-wrap');
     var skeleton = document.getElementById('favorites-skeleton');
 
     if (!slugs.length) {
       skeleton.hidden = true;
       empty.hidden = false;
+      GlowFavorites.wireButtons('.card-fav');
       return;
     }
 
@@ -42,6 +55,7 @@
         skeleton.hidden = true;
         if (!data.produse.length) {
           empty.hidden = false;
+          GlowFavorites.wireButtons('.card-fav');
           return;
         }
         list.innerHTML = data.produse.map(GlowCards.render).join('');
@@ -59,6 +73,7 @@
       .catch(function () {
         skeleton.hidden = true;
         empty.hidden = false;
+        GlowFavorites.wireButtons('.card-fav');
       });
   });
 </script>

@@ -74,7 +74,7 @@
       <div class="verdict-item"><span class="verdict-label">Preț</span><span class="verdict-value">{{ produs.pret }} lei</span></div>
       {% endif %}
       {% if produs.il_recumpar is not None %}
-      <div class="verdict-item"><span class="verdict-label">Îl recumpăr?</span><span class="verdict-value">{% if produs.il_recumpar %}Da ✓{% else %}Nu{% endif %}</span></div>
+      <div class="verdict-item"><span class="verdict-label">Îl recumpăr?</span><span class="verdict-value{% if produs.il_recumpar %} verdict-value-yes{% else %} verdict-value-no{% endif %}">{% if produs.il_recumpar %}Da ↻{% else %}Nu{% endif %}</span></div>
       {% endif %}
       {% if produs.tine_cat %}
       <div class="verdict-item"><span class="verdict-label">Cât ține</span><span class="verdict-value">{{ produs.tine_cat }}</span></div>
@@ -98,13 +98,13 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9"/></svg>
         <span id="share-btn-label">Trimite mai departe</span>
       </button>
-      <a class="share-btn share-btn-secondary share-btn-2line" id="story-download-btn" href="{% url 'reviews:product_story_image' slug=produs.slug %}" download>
+      <button type="button" class="share-btn share-btn-secondary share-btn-2line" id="story-preview-btn" data-story-url="{% url 'reviews:product_story_image' slug=produs.slug %}">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
         <span class="share-btn-2line-text">
           <span>Descarcă pentru Story</span>
           <span class="share-btn-2line-caption">PNG · 1080×1920</span>
         </span>
-      </a>
+      </button>
     </div>
   </div>
 
@@ -183,6 +183,17 @@
 {% endif %}
 {% endblock %}
 
+{% block modals %}
+<div class="story-modal" id="story-modal" role="dialog" aria-modal="true" aria-label="Previzualizare card Story">
+  <div class="story-modal-backdrop" id="story-modal-backdrop"></div>
+  <div class="story-modal-body">
+    <button type="button" class="story-modal-close" id="story-modal-close" aria-label="Închide previzualizarea">×</button>
+    <img id="story-modal-img" alt="Previzualizare card Story pentru {{ produs.nume }}" loading="lazy">
+    <a class="submit-btn submit-btn-comment" id="story-modal-download" download>Descarcă imaginea</a>
+  </div>
+</div>
+{% endblock %}
+
 {% block extra_js %}
 <script src="{% static 'js/favorites.js' %}"></script>
 <script src="{% static 'js/milestone.js' %}"></script>
@@ -213,14 +224,37 @@
   })();
 
   (function () {
-    // Click pe <a download> nu declanșează nicio schimbare vizibilă pe pagină —
-    // fără asta, cineva ar putea da clic și să nu observe că s-a întâmplat ceva.
-    var downloadBtn = document.getElementById('story-download-btn');
-    if (downloadBtn && window.GlowToast) {
-      downloadBtn.addEventListener('click', function () {
-        GlowToast.show('Se descarcă cardul de Story ✨');
-      });
-    }
+    // Previzualizare înainte de descărcare — altfel vizitatoarea descarcă
+    // "pe încredere" un PNG pe care nu l-a văzut, fără să știe dacă merită
+    // să-l posteze mai departe.
+    var previewBtn = document.getElementById('story-preview-btn');
+    var modal = document.getElementById('story-modal');
+    var backdrop = document.getElementById('story-modal-backdrop');
+    var closeBtn = document.getElementById('story-modal-close');
+    var img = document.getElementById('story-modal-img');
+    var downloadLink = document.getElementById('story-modal-download');
+    if (!previewBtn || !modal) return;
+
+    var closeModal = function () {
+      modal.classList.remove('open');
+    };
+
+    previewBtn.addEventListener('click', function () {
+      var url = previewBtn.getAttribute('data-story-url');
+      // src setat abia la deschidere — randarea cu Pillow e costisitoare,
+      // fără rost cerută la orice încărcare de pagină dacă nimeni n-o vede.
+      if (img.getAttribute('src') !== url) img.src = url;
+      downloadLink.href = url;
+      modal.classList.add('open');
+    });
+    backdrop.addEventListener('click', closeModal);
+    closeBtn.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+    });
+    downloadLink.addEventListener('click', function () {
+      if (window.GlowToast) GlowToast.show('Se descarcă cardul de Story ✨');
+    });
   })();
 
   (function () {

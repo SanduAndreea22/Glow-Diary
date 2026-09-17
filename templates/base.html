@@ -43,7 +43,7 @@
     <div class="nav-links" id="nav-links">
       <a href="{% url 'reviews:feed' %}" class="{% if request.resolver_match.url_name == 'feed' %}active{% endif %}">Acasă</a>
       <a href="{% url 'reviews:collections' %}" class="{% if request.resolver_match.url_name == 'collections' or request.resolver_match.url_name == 'collection_detail' %}active{% endif %}">Colecții</a>
-      <a href="{% url 'reviews:favorites' %}" class="{% if request.resolver_match.url_name == 'favorites' %}active{% endif %}">Favorite</a>
+      <a href="{% url 'reviews:favorites' %}" class="{% if request.resolver_match.url_name == 'favorites' %}active{% endif %}">Favorite<span class="nav-fav-count" id="nav-fav-count" hidden></span></a>
       <a href="{% url 'reviews:about' %}" class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}">Despre</a>
       <a href="{% url 'reviews:contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
     </div>
@@ -59,6 +59,13 @@
 
   {% block content %}{% endblock %}
 </div>
+
+{# Modalele (overlay pe tot ecranul) trebuie randate AICI, în afara .screen —
+   animația de intrare a lui .screen ("transform" în keyframes) îi creează un
+   containing block propriu pentru descendenții position:fixed, care altfel
+   s-ar centra față de .screen (înalt cât tot conținutul paginii), nu față de
+   viewport-ul real. #}
+{% block modals %}{% endblock %}
 
 <footer class="site-footer">
   <div class="footer-tagline">Glow Diary by Deea · Real products. My honest take.</div>
@@ -106,6 +113,27 @@
      folosită pentru acțiuni client-side (wishlist, descărcare) care nu trec
      printr-un request/redirect și deci n-ar avea altfel niciun feedback
      textual pe telefon, unde tooltip-urile pe hover nu există. */
+  // Contorul de lângă "Favorite" din nav — actualizat pe orice pagină la
+  // încărcare, și apelat din nou de favorites.js după fiecare salvare/
+  // eliminare, ca acțiunea să se simtă imediat vizibilă și în afara
+  // butonului de inimă apăsat efectiv.
+  window.GlowFavCount = {
+    KEY: "glow-diary-favorites",
+    refresh: function () {
+      var el = document.getElementById('nav-fav-count');
+      if (!el) return;
+      var n = 0;
+      try {
+        n = JSON.parse(localStorage.getItem(this.KEY) || "[]").length;
+      } catch (e) {
+        n = 0;
+      }
+      el.textContent = n;
+      el.hidden = n === 0;
+    }
+  };
+  GlowFavCount.refresh();
+
   window.GlowToast = {
     show: function (text, durataMs) {
       var el = document.getElementById('glow-toast');

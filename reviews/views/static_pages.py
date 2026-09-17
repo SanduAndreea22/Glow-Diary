@@ -4,11 +4,19 @@ from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
 
 from ..forms import ContactForm
+from ..queries import recomandari_favorite_goale
 from ..throttling import RATE_LIMIT_SECONDS, client_ip, global_rate_limited
 
 
 class FavoritesView(TemplateView):
     template_name = "reviews/favorites.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # Randate mereu server-side (nu doar dacă JS-ul detectează lista
+        # goală din localStorage) — vizibile imediat, fără flash de conținut.
+        ctx["recomandari_favorite_goale"] = recomandari_favorite_goale()
+        return ctx
 
 
 class AboutView(TemplateView):

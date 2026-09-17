@@ -2,7 +2,7 @@ from django.db.models import Count, Q
 from django.views.generic import DetailView, ListView
 
 from ..models import Collection
-from ..queries import cu_numar_pareri
+from ..queries import ataseaza_poze_colaj, cu_numar_pareri
 
 
 class CollectionListView(ListView):
@@ -11,12 +11,17 @@ class CollectionListView(ListView):
     context_object_name = "colectii"
 
     def get_queryset(self):
-        return (
+        return list(
             Collection.objects.annotate(
                 produse_count=Count("produse", filter=Q(produse__activ=True), distinct=True)
             )
             .filter(produse_count__gt=0)
         )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ataseaza_poze_colaj(ctx["colectii"])
+        return ctx
 
 
 class CollectionDetailView(DetailView):

@@ -1000,7 +1000,8 @@ class VerdictFieldsTests(TestCase):
         r = self.client.get(produs.get_absolute_url())
         self.assertContains(r, "badge-recumpar")
         self.assertContains(r, "99,90 lei")
-        self.assertContains(r, "Da ✓")
+        self.assertContains(r, "Da ↻")
+        self.assertContains(r, "verdict-value-yes")
         self.assertContains(r, "8 ore")
 
     def test_recumpar_fals_arata_nu_fara_badge(self):

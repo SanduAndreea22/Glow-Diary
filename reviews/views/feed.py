@@ -4,6 +4,7 @@ from ..models import Product
 from ..queries import (
     DEFAULT_SORT,
     MIN_PRODUSE_PENTRU_CONTOR,
+    ataseaza_poze_colaj,
     colectia_saptamanii,
     colectii_de_sezon,
     cu_numar_pareri,
@@ -55,7 +56,7 @@ class FeedView(ListView):
         )
         if ctx["pagina_fara_filtre"]:
             ctx["colectia_saptamanii"] = colectia_saptamanii()
-            ctx["colectii_de_sezon"] = colectii_de_sezon()
+            ctx["colectii_de_sezon"] = ataseaza_poze_colaj(list(colectii_de_sezon()))
             # Fallback automat — dacă nu există o colecție a săptămânii
             # bifată, arătăm cel mai bine notat produs ca hero în locul ei.
             if not ctx["colectia_saptamanii"]:

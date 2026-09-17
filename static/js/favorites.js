@@ -112,6 +112,7 @@ var GlowFavorites = {
           }
         }
         btn.dispatchEvent(new CustomEvent("favchange", { detail: { isFav: isFav } }));
+        if (window.GlowFavCount) GlowFavCount.refresh();
       });
     });
   },
