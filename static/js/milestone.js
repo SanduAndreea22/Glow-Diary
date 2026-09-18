@@ -1,6 +1,9 @@
 /* Moment WOW: celebrare la milestone (10, 25, 50... produse postate). O singură dată per prag. */
 var GlowMilestone = {
-  MILESTONES: [5, 10, 25, 50, 100, 200, 500],
+  // 5 și 10 scoase — pe un catalog tânăr, o celebrare la "doar 5 produse"
+  // atrage atenția exact spre cât de puțin conținut există încă, opusul
+  // impresiei dorite la prima vizită (vezi Prompt 4/5 — Prima impresie).
+  MILESTONES: [25, 50, 100, 200, 500],
   KEY_PREFIX: "glow-diary-milestone-seen-",
   COLORS: ["#FF6FA5", "#E8B84B", "#7A1E3D", "#FFD6E8", "#FFFFFF"],
   BANNER_VIZIBIL_MS: 4500,
