@@ -156,6 +156,17 @@ def _shadow_for(rotated_frame, alpha=90, blur=22):
     return shadow.filter(ImageFilter.GaussianBlur(blur))
 
 
+# Cuvinte de legătură foarte scurte, după care o trunchiere arată ca o
+# propoziție ruptă la mijloc, nu ca o trunchiere elegantă (ex. "...bine,
+# fără…" sună incomplet). Nu e o listă exhaustivă lingvistic, doar cele
+# mai frecvente cazuri întâlnite în text liber (părerile Deei).
+_CUVINTE_LEGATURA_FINAL = {
+    "fără", "dar", "și", "cu", "la", "în", "pe", "ca", "sau", "nu",
+    "mai", "prea", "ce", "să", "se", "de", "din", "prin", "spre",
+    "către", "după", "până", "iar",
+}
+
+
 def _wrap_truncated(text, width, max_lines):
     """Ca textwrap.wrap, dar dacă textul nu încape în max_lines, ultima
     linie afișată primește un „…" — altfel o simplă tăiere la [:max_lines]
@@ -165,7 +176,10 @@ def _wrap_truncated(text, width, max_lines):
     lines = textwrap.wrap(text, width=width)
     if len(lines) > max_lines:
         lines = lines[:max_lines]
-        lines[-1] = lines[-1].rstrip(" ,.;:!?") + "…"
+        words = lines[-1].split(" ")
+        while len(words) > 1 and words[-1].strip(" ,.;:!?").lower() in _CUVINTE_LEGATURA_FINAL:
+            words.pop()
+        lines[-1] = " ".join(words).rstrip(" ,.;:!?") + "…"
     return lines
 
 
