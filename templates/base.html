@@ -43,9 +43,9 @@
     </button>
     <div class="nav-links" id="nav-links">
       <a href="{% url 'reviews:feed' %}" class="{% if request.resolver_match.url_name == 'feed' %}active{% endif %}">Acasă</a>
+      <a href="{% url 'reviews:about' %}" class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}">Despre</a>
       <a href="{% url 'reviews:collections' %}" class="{% if request.resolver_match.url_name == 'collections' or request.resolver_match.url_name == 'collection_detail' %}active{% endif %}">Colecții</a>
       <a href="{% url 'reviews:favorites' %}" class="{% if request.resolver_match.url_name == 'favorites' %}active{% endif %}">Favorite<span class="nav-fav-count" id="nav-fav-count" hidden></span></a>
-      <a href="{% url 'reviews:about' %}" class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}">Despre</a>
       <a href="{% url 'reviews:contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
     </div>
   </div>
