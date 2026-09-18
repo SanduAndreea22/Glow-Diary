@@ -16,6 +16,9 @@
 <div class="empty-state"><div class="empty-state-icon">💄</div>N-am adăugat încă niciun produs în această colecție.</div>
 {% endfor %}
 </div>
+{% if produse %}
+<div class="recap-footer-link"><a href="{% url 'reviews:collections' %}" class="btn-outline">Vezi și alte colecții →</a></div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}

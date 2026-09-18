@@ -3,8 +3,8 @@
 {% block title %}Colecții · Glow Diary by Deea{% endblock %}
 
 {% block content %}
-<div class="page-eyebrow">Colecții</div>
-<h1 class="page-title">Tot ce am testat, grupat cum are sens pentru mine</h1>
+<div class="feed-title">Colecții</div>
+<div class="feed-tag">Tot ce am testat, grupat cum are sens pentru mine.</div>
 
 <div class="collections-list">
 {% for colectie in colectii %}
@@ -19,6 +19,8 @@
   </div>
   <div class="collection-body">
     <div class="collection-name collection-name-row">{{ colectie.nume }}</div>
+    {% if colectie.recomandata_sezon %}<div class="collection-badge">✨ De sezon</div>
+    {% elif colectie.recomandata_saptamana %}<div class="collection-badge">⭐ Recomandată</div>{% endif %}
     {% if colectie.descriere %}<div class="collection-desc">{{ colectie.descriere }}</div>{% endif %}
     <div class="collection-count">{{ colectie.produse_count }} {% if colectie.produse_count == 1 %}produs{% else %}produse{% endif %}</div>
     <div class="collection-cta">Vezi colecția →</div>

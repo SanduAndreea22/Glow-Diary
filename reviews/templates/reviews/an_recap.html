@@ -12,7 +12,7 @@
 <div class="empty-state">
   <div class="empty-state-icon">🎁</div>
   {% if total_produse %}
-  Anul {{ an }} are deocamdată doar {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} — prea puține pentru un rezumat cu sens. Revino mai încolo!
+  Anul {{ an }} are deocamdată doar {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} — sub pragul de {{ min_produse_recap }} de la care rezumatul chiar are sens. Revino mai încolo!
   {% else %}
   N-am testat încă niciun produs în {{ an }}.
   {% endif %}
@@ -90,7 +90,7 @@
 </div>
 {% endif %}
 
-<div class="recap-footer-link"><a href="{% url 'reviews:feed' %}" class="back-link">&larr; înapoi la ultimele încercări</a></div>
+<div class="recap-footer-link"><a href="{% url 'reviews:feed' %}" class="btn-outline">Înapoi la ultimele încercări →</a></div>
 {% endif %}
 {% endblock %}
 

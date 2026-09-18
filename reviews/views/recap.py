@@ -31,6 +31,7 @@ class AnRecapView(TemplateView):
         ctx["total_produse"] = total
         ctx["are_destule_date"] = total >= MIN_PRODUSE_PENTRU_RECAP
         if not ctx["are_destule_date"]:
+            ctx["min_produse_recap"] = MIN_PRODUSE_PENTRU_RECAP
             return ctx
 
         agregate = produse_an.aggregate(medie=Avg("nota_mea"), cheltuit=Sum("pret"))
