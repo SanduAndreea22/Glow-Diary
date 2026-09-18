@@ -45,6 +45,7 @@ img{max-width:100%;display:block;}
 @media (prefers-reduced-motion: reduce){
   .screen{animation:none;}
   .post-wrap{animation:none;opacity:1;}
+  .about-avatar,.about-eyebrow,.about-text .static-title:first-child{animation:none;opacity:1;}
 }
 
 .topbar{
@@ -1011,7 +1012,12 @@ select.field{appearance:none;}
 .contact-alt-channel{margin-top:14px;font-size:12.5px;color:var(--maroon);opacity:0.7;}
 .contact-alt-channel a{color:var(--pink);font-weight:700;opacity:1;}
 .about-layout{display:flex;flex-direction:column;gap:20px;}
-.about-eyebrow{margin-bottom:10px;}
+/* Home are animația de apariție eșalonată a cardurilor (card-in, mai jos în
+   fișier) — About stătea complet static lângă ea. Reluăm aceeași animație,
+   eșalonată pe poză → eyebrow → titlu, ca pagina să nu pară "moartă". */
+.about-avatar{opacity:0;animation:card-in 0.5s ease both;}
+.about-eyebrow{margin-bottom:10px;opacity:0;animation:card-in 0.45s ease both;animation-delay:0.08s;}
+.about-text .static-title:first-child{opacity:0;animation:card-in 0.45s ease both;animation-delay:0.16s;}
 /* Fără un ritm de spațiere diferit între „secțiuni" (Despre / De ce) și
    „paragrafe" din aceeași secțiune, cele două titluri static-title citeau
    ca încă un paragraf, nu ca un bloc nou — text nediferențiat, dezechilibrat. */
