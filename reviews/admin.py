@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from django.db import transaction
 from django.shortcuts import redirect, render
 from django.urls import path
 
@@ -98,8 +99,14 @@ class ProductAdmin(admin.ModelAdmin):
                     form for form in formset.forms
                     if form.has_changed() and form.cleaned_data
                 ]
-                for form in create:
-                    form.save()
+                # Toate rândurile se salvează într-o singură tranzacție —
+                # dacă unul eșuează la mijloc (ex. epuizare de slug unic),
+                # rândurile deja salvate din acest batch se anulează și ele,
+                # în loc să rămână un import pe jumătate, fără să fie clar
+                # ce s-a salvat și ce nu.
+                with transaction.atomic():
+                    for form in create:
+                        form.save()
                 if create:
                     messages.success(
                         request,

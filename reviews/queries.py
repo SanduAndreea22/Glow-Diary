@@ -5,7 +5,7 @@ from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.core.cache import cache
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Prefetch, Q, prefetch_related_objects
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -112,14 +112,18 @@ def ataseaza_poze_colaj(colectii, max_poze=COLAJ_MAX_POZE):
     .collection-cover) — o vitrină mai vizuală decât un emoji generic, fără
     să ceară o copertă setată manual pentru fiecare colecție. Mutează
     obiectele din `colectii` in-place; `colectii` trebuie să fie deja o
-    listă (nu un queryset leneș), ca instanțele mutate să fie cele randate."""
-    for colectie in colectii:
-        if not colectie.coperta:
-            colectie.poze_colaj = list(
-                colectie.produse.filter(activ=True)
-                .exclude(poza="")
-                .only("id", "poza")[:max_poze]
-            )
+    listă (nu un queryset leneș), ca instanțele mutate să fie cele randate.
+
+    Un singur query suplimentar, indiferent de câte colecții fără copertă
+    sunt — Prefetch aduce dintr-o dată toate produsele candidate pentru
+    toate colecțiile, apoi tăierea la `max_poze` se face în Python (Django
+    nu are un LIMIT nativ per grup într-un prefetch)."""
+    fara_coperta = [c for c in colectii if not c.coperta]
+    if fara_coperta:
+        candidati = Product.objects.filter(activ=True).exclude(poza="").only("id", "poza")
+        prefetch_related_objects(fara_coperta, Prefetch("produse", queryset=candidati, to_attr="_poze_candidat"))
+    for colectie in fara_coperta:
+        colectie.poze_colaj = colectie._poze_candidat[:max_poze]
     return colectii
 
 

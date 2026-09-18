@@ -10,6 +10,7 @@ folosi niciodată un fișier `.env` commis în git.
 import os
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -121,13 +122,22 @@ WSGI_APPLICATION = "glow_diary.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+# SQLite e suficient acum (un singur admin scrie rar, vizitatoarele scriu
+# ocazional — comentarii/mesaje de contact), dar blochează scrierea întregii
+# baze cât timp o tranzacție rulează, ceea ce devine un risc real de erori
+# "database is locked" la trafic mai mare cu scrieri concurente. DATABASE_URL
+# permite trecerea pe Postgres fără nicio schimbare de cod — doar setează
+# variabila de mediu; fără ea, comportamentul rămâne identic (SQLite local).
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
 
 
 # Password validation

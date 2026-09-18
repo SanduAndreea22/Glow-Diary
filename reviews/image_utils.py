@@ -44,17 +44,20 @@ def optimizeaza_poza(camp_fisier, max_dimensiune=MAX_DIMENSIUNE_IMPLICITA):
                 f"({imagine.width}x{imagine.height}px) — refuzată."
             )
 
-        if max(imagine.size) <= max_dimensiune:
-            camp_fisier.seek(0)
-            return
-
-        # exif_transpose ABIA aici (nu și pe calea "deja mică") — Pillow nu
-        # păstrează automat orientarea EXIF la un nou save(), așa că fără
-        # asta o poză de telefon ținută pe verticală ar ieși rotită greșit.
+        # exif_transpose mereu, chiar dacă poza e deja destul de mică pentru
+        # a nu necesita redimensionare — corectează orientarea ȘI, prin
+        # reîncodarea de mai jos (fără exif= la save), scapă de orice
+        # metadată EXIF (inclusiv coordonate GPS, dacă telefonul le-a scris)
+        # din fișierul original. Fără asta, o poză mică trecea nemodificată
+        # prin `return`-ul de mai devreme, cu EXIF-ul original intact —
+        # relevant mai ales la Comment.imagine, unde orice vizitatoare
+        # anonimă poate încărca o poză făcută pe loc cu telefonul.
         imagine = ImageOps.exif_transpose(imagine)
-        raport = max_dimensiune / float(max(imagine.size))
-        dimensiune_noua = (round(imagine.width * raport), round(imagine.height * raport))
-        imagine = imagine.resize(dimensiune_noua, Image.LANCZOS)
+
+        if max(imagine.size) > max_dimensiune:
+            raport = max_dimensiune / float(max(imagine.size))
+            dimensiune_noua = (round(imagine.width * raport), round(imagine.height * raport))
+            imagine = imagine.resize(dimensiune_noua, Image.LANCZOS)
 
         opțiuni_salvare = {}
         if format_imagine == "JPEG":

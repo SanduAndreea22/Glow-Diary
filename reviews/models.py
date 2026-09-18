@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models, transaction
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.text import slugify
 
@@ -162,6 +163,17 @@ class Product(models.Model):
 
     class Meta:
         ordering = ["-data_postarii"]
+        constraints = [
+            # Validată deja în formulare (choices + validators), dar doar
+            # acolo — un .update() sau un script de date ar putea scrie
+            # oricând o valoare în afara intervalului fără să treacă prin
+            # niciun formular. Constrângerea la nivel de bază de date e
+            # ultima plasă de siguranță, indiferent de calea de scriere.
+            models.CheckConstraint(
+                check=Q(nota_mea__gte=1, nota_mea__lte=5),
+                name="product_nota_mea_intre_1_si_5",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.brand} — {self.nume}"
@@ -291,6 +303,15 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ["-data"]
+        constraints = [
+            # Nota e opțională (NULL permis) — la fel ca la Product, doar
+            # ultima plasă de siguranță împotriva unei valori scrise pe o
+            # cale care ocolește formularul.
+            models.CheckConstraint(
+                check=Q(nota__isnull=True) | Q(nota__gte=1, nota__lte=5),
+                name="comment_nota_intre_1_si_5_sau_null",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.nume or 'anonim'} @ {self.product}"

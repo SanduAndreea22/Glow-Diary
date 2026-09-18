@@ -7,7 +7,9 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.test import TestCase, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
@@ -77,6 +79,25 @@ class ImageOptimizationTests(TestCase):
         )
         with Image.open(produs.poza.path) as img:
             self.assertEqual(img.size, (400, 300))
+
+    def test_poza_mica_pierde_exif_ul(self):
+        # O poză sub pragul de redimensionare trecea neatinsă (deci și cu
+        # EXIF-ul original, posibil GPS) — acum orice poză e reîncodată,
+        # indiferent de dimensiune.
+        buf = io.BytesIO()
+        img = Image.new("RGB", (400, 300), color=(0, 255, 0))
+        exif = img.getexif()
+        exif[271] = "TestCamera"
+        img.save(buf, format="JPEG", exif=exif)
+        buf.seek(0)
+        fisier = SimpleUploadedFile("mic.jpg", buf.read(), content_type="image/jpeg")
+
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
+            poza=fisier,
+        )
+        with Image.open(produs.poza.path) as salvata:
+            self.assertNotIn(271, salvata.getexif())
 
     def test_poza_peste_pragul_de_pixeli_e_respinsa(self):
         # Latură ~= sqrt(prag) * 1.2, ca să depășească clar MAX_PIXELI_ACCEPTATI
@@ -466,6 +487,18 @@ class ProductDetailAndCommentTests(TestCase):
         self.assertRedirects(r, self.produs.get_absolute_url() + "?prima-parere=1")
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 1)
 
+    def test_comentariu_fara_nota_se_salveaza(self):
+        # Nota e explicit opțională ("Notă (opțional)") — lăsată nealeasă,
+        # formularul trimitea '' (nu None) pe câmpul nullable Comment.nota,
+        # ceea ce făcea save()-ul să pice cu ValueError la INSERT. Bug real,
+        # reproductibil pe orice comentariu fără stea, indiferent de audit.
+        r = self.client.post(self.produs.get_absolute_url(), {
+            "nume": "Ana", "nota": "", "comentariu": "Fără notă, doar părere.", "website": "",
+        })
+        self.assertRedirects(r, self.produs.get_absolute_url() + "?prima-parere=1")
+        comentariu = Comment.objects.get(product=self.produs)
+        self.assertIsNone(comentariu.nota)
+
     def test_al_doilea_comentariu_nu_are_parametrul_de_confetti(self):
         # ?prima-parere=1 declanșează confetti pe client — doar chiar primul
         # comentariu al unui produs merită asta, nu fiecare comentariu.
@@ -510,6 +543,28 @@ class ProductDetailAndCommentTests(TestCase):
 
 
 @_no_ssl_redirect
+class CollectionSitemapTests(TestCase):
+    def test_colectie_fara_produse_active_nu_apare_in_sitemap(self):
+        from .sitemaps import CollectionSitemap
+
+        Collection.objects.create(nume="Goală")
+        produs_inactiv = Product.objects.create(
+            nume="P", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+            activ=False,
+        )
+        colectie_doar_inactive = Collection.objects.create(nume="Doar inactive")
+        colectie_doar_inactive.produse.add(produs_inactiv)
+
+        colectie_vizibila = Collection.objects.create(nume="Vizibilă")
+        produs_activ = Product.objects.create(
+            nume="P2", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+        )
+        colectie_vizibila.produse.add(produs_activ)
+
+        nume = [c.nume for c in CollectionSitemap().items()]
+        self.assertEqual(nume, ["Vizibilă"])
+
+
 class CollectionTests(TestCase):
     def test_colectie_fara_produse_nu_apare_in_lista(self):
         Collection.objects.create(nume="Goală")
@@ -530,6 +585,35 @@ class CollectionTests(TestCase):
         r = self.client.get(colectie.get_absolute_url())
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Test")
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class CollectionsListQueryCountTests(TestCase):
+    """Verifică regresia N+1 din queries.ataseaza_poze_colaj — nr. de
+    query-uri pe /colectii/ nu trebuie să crească odată cu nr. de colecții
+    fără copertă manuală (Prefetch, nu un query per colecție)."""
+
+    def _colectie_cu_produs(self, nume):
+        produs = Product.objects.create(
+            nume=nume, brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+            poza=_poza_falsa(200, 200, nume=f"{nume}.jpg"),
+        )
+        colectie = Collection.objects.create(nume=nume)
+        colectie.produse.add(produs)
+        return colectie
+
+    def test_numarul_de_queryuri_nu_creste_cu_numarul_de_colectii(self):
+        self._colectie_cu_produs("Una")
+        self._colectie_cu_produs("Doua")
+        with CaptureQueriesContext(connection) as putine:
+            self.client.get(reverse("reviews:collections"))
+
+        for i in range(3, 8):
+            self._colectie_cu_produs(f"Colectie{i}")
+        with CaptureQueriesContext(connection) as multe:
+            self.client.get(reverse("reviews:collections"))
+
+        self.assertEqual(len(putine.captured_queries), len(multe.captured_queries))
 
 
 class ColectiaSaptamaniiQueryTests(TestCase):
@@ -754,6 +838,7 @@ class RecomandariApiTests(TestCase):
 @_no_ssl_redirect
 class SearchDataApiTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.p1 = Product.objects.create(
             nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie=_cat("ten"),
             nota_mea=5, parerea_mea="Text.", sursa="Sephora",
@@ -804,6 +889,22 @@ class SearchDataApiTests(TestCase):
         self.assertEqual(by_slug[self.p1.slug]["comment_count"], 1)
         self.assertTrue(by_slug[self.p1.slug]["produsul_lunii"])
         self.assertFalse(by_slug[self.p2.slug]["produsul_lunii"])
+
+    def test_cautare_normala_nu_atinge_limita(self):
+        # Căutarea live trimite o cerere per literă tastată — un prag prea
+        # strict ar rupe folosirea normală, nu doar abuzul.
+        cache.clear()
+        for _ in range(20):
+            r = self.client.get(reverse("reviews:search_data"), {"q": "a"})
+            self.assertEqual(r.status_code, 200)
+
+    def test_rate_limit_dupa_prag(self):
+        cache.clear()
+        self.addCleanup(cache.clear)
+        for _ in range(60):
+            self.client.get(reverse("reviews:search_data"))
+        r = self.client.get(reverse("reviews:search_data"))
+        self.assertEqual(r.status_code, 429)
 
 
 @_no_ssl_redirect

@@ -67,6 +67,14 @@ class CommentForm(HoneypotFormMixin, forms.ModelForm):
         choices=[("", "—")] + list(NOTA_CHOICES),
         coerce=int,
         required=False,
+        # Fără asta, o selecție goală întoarce '' (implicitul TypedChoiceField),
+        # nu None — Comment.nota e un IntegerField nullable, deci '' ajungea
+        # netratat pe instanță și făcea `comment.save()` să pice cu
+        # ValueError la INSERT ("expected a number but got ''"). Bug real,
+        # reproductibil pe orice comentariu trimis fără stea (câmpul e
+        # explicit opțional) — găsit abia acum, verificat inclusiv pe codul
+        # nemodificat dinainte de sesiunea asta.
+        empty_value=None,
     )
 
     comentariu = forms.CharField(

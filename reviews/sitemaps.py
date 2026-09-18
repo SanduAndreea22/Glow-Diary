@@ -1,4 +1,5 @@
 from django.contrib.sitemaps import Sitemap
+from django.db.models import Count, Q
 from django.urls import reverse
 
 from .models import Collection, Product
@@ -20,7 +21,12 @@ class CollectionSitemap(Sitemap):
     priority = 0.6
 
     def items(self):
-        return Collection.objects.all()
+        # La fel ca /colectii/ (CollectionListView) — o colecție fără niciun
+        # produs activ nu e vizibilă nicăieri în navigarea normală a
+        # site-ului, deci n-are rost indexată separat de Google.
+        return Collection.objects.annotate(
+            produse_active=Count("produse", filter=Q(produse__activ=True), distinct=True)
+        ).filter(produse_active__gt=0)
 
     def lastmod(self, obj):
         return obj.data_creare

@@ -4,6 +4,7 @@ from django.views import View
 
 from ..models import Product
 from ..queries import cu_numar_pareri, feed_stats, filtreaza_produse
+from ..throttling import api_rate_limited
 
 MAX_SLUGURI_FAVORITE = 50  # cât poate ține realist localStorage-ul de Favorite
 MAX_REZULTATE_CAUTARE = 24  # destul pentru câteva "ecrane" de scroll pe /api/search/
@@ -37,6 +38,8 @@ def _product_card_data(p, produsul_lunii_id=None):
 
 class FavoritesDataView(View):
     def get(self, request):
+        if api_rate_limited(request):
+            return JsonResponse({"produse": []}, status=429)
         slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:MAX_SLUGURI_FAVORITE]
         produse = cu_numar_pareri(
             Product.objects.filter(slug__in=slugs, activ=True).select_related("categorie")
@@ -48,6 +51,8 @@ class FavoritesDataView(View):
 
 class SearchDataView(View):
     def get(self, request):
+        if api_rate_limited(request):
+            return JsonResponse({"produse": []}, status=429)
         qs = filtreaza_produse(
             cu_numar_pareri(Product.objects.filter(activ=True).select_related("categorie")), request
         )
@@ -63,6 +68,8 @@ class RecomandariDataView(View):
     produse din acea categorie. Fără `categorie`, nu are ce recomanda."""
 
     def get(self, request):
+        if api_rate_limited(request):
+            return JsonResponse({"produse": []}, status=429)
         categorie = request.GET.get("categorie", "").strip()
         if not categorie:
             return JsonResponse({"produse": []})
