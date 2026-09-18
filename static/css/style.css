@@ -1011,25 +1011,36 @@ select.field{appearance:none;}
 .contact-alt-channel{margin-top:14px;font-size:12.5px;color:var(--maroon);opacity:0.7;}
 .contact-alt-channel a{color:var(--pink);font-weight:700;opacity:1;}
 .about-layout{display:flex;flex-direction:column;gap:20px;}
+.about-eyebrow{margin-bottom:10px;}
 /* Fără un ritm de spațiere diferit între „secțiuni" (Despre / De ce) și
    „paragrafe" din aceeași secțiune, cele două titluri static-title citeau
    ca încă un paragraf, nu ca un bloc nou — text nediferențiat, dezechilibrat. */
 .about-text .static-title{margin-top:40px;}
 .about-text .static-title:first-child{margin-top:0;}
 .about-text .static-text{max-width:560px;}
+/* Linia de final ("Produsele mele. Experiențele mele. Părerea mea.") ca
+   punct de impact vizual — nu doar încă un paragraf de 14px la coadă. */
+.about-pullquote{
+  font-family:'Instrument Serif';font-weight:400;font-size:26px;line-height:1.25;
+  color:var(--maroon-deep);opacity:1;margin-top:24px;margin-bottom:0;max-width:480px;
+}
 /* Prezența vizuală a persoanei din spatele brandului — poza reală dacă
    există (static/img/deea-avatar.jpg), altfel un avatar cu inițială,
-   nu o poză stricată. */
+   nu o poză stricată. Ușor rotită + umbră, ca pozele din hero2, ca să nu
+   arate ca un simplu thumbnail de profil, ci ca un element editorial. */
 .about-avatar{
   width:100%;max-width:300px;aspect-ratio:5/6;margin:0 auto 4px;
   border-radius:20px;overflow:hidden;position:relative;flex-shrink:0;
   background:linear-gradient(135deg, var(--pink), var(--maroon));
   display:flex;align-items:center;justify-content:center;
+  transform:rotate(-2deg);
+  box-shadow:0 24px 40px -18px rgba(63,20,32,0.35);
 }
 .about-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
 .avatar-fallback-mark{display:none;font-family:'Instrument Serif';font-size:48px;font-weight:400;color:#FFFFFF;}
 .about-avatar.avatar-fallback{background:linear-gradient(135deg, var(--pink), var(--maroon));}
 .about-avatar.avatar-fallback .avatar-fallback-mark{display:block;}
+.about-avatar .seal{transform:rotate(-6deg);}
 /* Explică sigiliul "TESTED BY DEEA" de pe fiecare card de produs — separat
    vizual de restul textului, ca o notă la subsol care merită observată. */
 .tested-callout{
@@ -1120,12 +1131,8 @@ footer.site-footer{
   }
   .about-text{flex:1 1 auto;min-width:0;padding-top:8px;}
   .about-avatar{
-    width:300px;max-width:300px;aspect-ratio:5/6;flex:0 0 auto;
-    margin:0;
-    /* Textul e mult mai lung decât poza (12 paragrafe) — fără sticky,
-       poza se termina sus și lăsa un gol mare, gol pe toată partea de
-       jos a coloanei din stânga cât timp citeai restul textului. */
-    position:sticky;top:92px;
+    width:320px;max-width:320px;aspect-ratio:5/6;flex:0 0 auto;
+    margin:8px 0 0;
   }
   .about-avatar .avatar-fallback-mark{font-size:64px;}
 }
