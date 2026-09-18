@@ -1116,6 +1116,10 @@ footer.site-footer{
   .about-avatar{
     width:300px;max-width:300px;aspect-ratio:5/6;flex:0 0 auto;
     margin:0;
+    /* Textul e mult mai lung decât poza (12 paragrafe) — fără sticky,
+       poza se termina sus și lăsa un gol mare, gol pe toată partea de
+       jos a coloanei din stânga cât timp citeai restul textului. */
+    position:sticky;top:92px;
   }
   .about-avatar .avatar-fallback-mark{font-size:64px;}
 }
@@ -1127,6 +1131,7 @@ footer.site-footer{
   .section-header{padding:0 80px;}
   .who-strip{margin-left:80px;margin-right:80px;}
   .card-grid{grid-template-columns:repeat(4, 1fr);gap:0 24px;padding:0 80px;}
+  .about-avatar{top:108px;}
 }
 
 /* Rezumatul anului ("wrapped") */
