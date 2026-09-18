@@ -12,7 +12,7 @@
 <div class="empty-state">
   <div class="empty-state-icon">🎁</div>
   {% if total_produse %}
-  Anul {{ an }} are deocamdată doar {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} — sub pragul de {{ min_produse_recap }} de la care rezumatul chiar are sens. Revino mai încolo!
+  Anul {{ an }} are deocamdată doar {{ total_produse }} {% if total_produse == 1 %}produs testat{% else %}produse testate{% endif %} — prea puține ca să iasă un rezumat cu sens (minim {{ min_produse_recap }}). Revino mai încolo!
   {% else %}
   N-am testat încă niciun produs în {{ an }}.
   {% endif %}
