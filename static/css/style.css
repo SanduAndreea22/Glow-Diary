@@ -1011,6 +1011,12 @@ select.field{appearance:none;}
 .contact-alt-channel{margin-top:14px;font-size:12.5px;color:var(--maroon);opacity:0.7;}
 .contact-alt-channel a{color:var(--pink);font-weight:700;opacity:1;}
 .about-layout{display:flex;flex-direction:column;gap:20px;}
+/* Fără un ritm de spațiere diferit între „secțiuni" (Despre / De ce) și
+   „paragrafe" din aceeași secțiune, cele două titluri static-title citeau
+   ca încă un paragraf, nu ca un bloc nou — text nediferențiat, dezechilibrat. */
+.about-text .static-title{margin-top:40px;}
+.about-text .static-title:first-child{margin-top:0;}
+.about-text .static-text{max-width:560px;}
 /* Prezența vizuală a persoanei din spatele brandului — poza reală dacă
    există (static/img/deea-avatar.jpg), altfel un avatar cu inițială,
    nu o poză stricată. */
@@ -1028,14 +1034,14 @@ select.field{appearance:none;}
    vizual de restul textului, ca o notă la subsol care merită observată. */
 .tested-callout{
   background:var(--pink-soft);border-radius:16px;padding:20px;
-  margin:20px 0;display:flex;flex-direction:column;gap:10px;align-items:flex-start;
+  margin:32px 0 0;display:flex;flex-direction:column;gap:10px;align-items:flex-start;
 }
 .tested-callout-badge{
   background:var(--maroon);color:var(--cream);font-size:10.5px;font-weight:700;
   letter-spacing:0.05em;padding:6px 12px;border-radius:100px;white-space:nowrap;
 }
 .tested-callout-text{font-size:13px;line-height:1.65;color:var(--maroon);opacity:0.85;margin:0;}
-.about-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.about-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;}
 
 /* Moment WOW: milestone + confetti */
 .milestone-banner{
