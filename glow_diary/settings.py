@@ -68,6 +68,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Primul — respinge cererile prea mari pe Content-Length, înainte ca
+    # orice middleware/view de după să atingă request.body/POST/FILES.
+    "reviews.middleware.MaxUploadSizeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
