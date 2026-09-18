@@ -111,14 +111,14 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
     {% if categorie_activa %}<input type="hidden" name="categorie" value="{{ categorie_activa }}">{% endif %}
 
     <div class="filter-row">
-      <label for="filter-nota">Notă</label>
+      <label for="filter-nota">Notă (exact)</label>
       <select name="nota_min" id="filter-nota">
         <option value=""{% if not nota_min_activa %} selected{% endif %}>Orice notă</option>
-        <option value="1"{% if nota_min_activa == "1" %} selected{% endif %}>1 stea</option>
-        <option value="2"{% if nota_min_activa == "2" %} selected{% endif %}>2 stele</option>
-        <option value="3"{% if nota_min_activa == "3" %} selected{% endif %}>3 stele</option>
-        <option value="4"{% if nota_min_activa == "4" %} selected{% endif %}>4 stele</option>
-        <option value="5"{% if nota_min_activa == "5" %} selected{% endif %}>5 stele</option>
+        <option value="1"{% if nota_min_activa == "1" %} selected{% endif %}>Exact 1 stea</option>
+        <option value="2"{% if nota_min_activa == "2" %} selected{% endif %}>Exact 2 stele</option>
+        <option value="3"{% if nota_min_activa == "3" %} selected{% endif %}>Exact 3 stele</option>
+        <option value="4"{% if nota_min_activa == "4" %} selected{% endif %}>Exact 4 stele</option>
+        <option value="5"{% if nota_min_activa == "5" %} selected{% endif %}>Exact 5 stele</option>
       </select>
     </div>
 
