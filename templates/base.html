@@ -70,7 +70,7 @@ viewport-ul real.
 {% endcomment %}
 {% block modals %}{% endblock %}
 
-<footer class="site-footer">
+<footer class="site-footer reveal">
   <div class="footer-tagline">Glow Diary by Deea · Real products. My honest take.</div>
   {% if instagram_url or tiktok_url %}
   <div class="footer-social">
@@ -181,6 +181,27 @@ viewport-ul real.
 
     setTimeout(function () { dismissMessage(el); }, GLOW_MESAJ_VIZIBIL_MS);
   });
+
+  /* Animație de apariție la scroll pentru blocurile marcate .reveal
+     (season-block, who-strip, footer etc.) — fără asta apar instant,
+     brusc, spre deosebire de cardurile din grid care au deja card-in. */
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('is-visible'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    els.forEach(function (el) { io.observe(el); });
+  })();
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {

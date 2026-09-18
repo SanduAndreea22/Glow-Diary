@@ -39,7 +39,7 @@
 
 
 {% if colectii_de_sezon %}
-<div class="season-block">
+<div class="season-block reveal">
   <div class="season-block-title">De sezon acum</div>
   {% for colectie in colectii_de_sezon %}
   <a href="{{ colectie.get_absolute_url }}" class="collection-card">
@@ -180,7 +180,7 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
 {% for produs in produse %}
   {% include "reviews/_product_card.html" with produs=produs produsul_lunii_id=produsul_lunii_id show_details=True snippet_words=20 %}
 {% empty %}
-<div class="empty-state">N-am găsit nimic pentru criteriile alese — încearcă o altă căutare sau resetează filtrele.</div>
+<div class="empty-state"><div class="empty-state-icon">🔍</div>N-am găsit nimic pentru criteriile alese — încearcă o altă căutare sau resetează filtrele.</div>
 {% endfor %}
 </div>
 
@@ -213,7 +213,7 @@ Cine e Deea, pe scurt, chiar pe Acasă — nu doar pe /despre. Vizitatoarea
 decide în câteva secunde dacă are încredere; textul e preluat direct din
 about.html (nicio pretenție nouă), nu inventat aici.
 {% endcomment %}
-<div class="who-strip">
+<div class="who-strip reveal">
   <a href="{% url 'reviews:about' %}" class="who-strip-link">
     <div class="who-strip-avatar">
       <img src="{% static 'img/deea-avatar.jpg' %}" alt="Deea, fondatoarea Glow Diary"
@@ -317,7 +317,7 @@ about.html (nicio pretenție nouă), nu inventat aici.
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data.produse.length) {
-            grid.innerHTML = '<div class="empty-state">N-am găsit nimic pentru criteriile alese — încearcă o altă căutare sau resetează filtrele.</div>';
+            grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div>N-am găsit nimic pentru criteriile alese — încearcă o altă căutare sau resetează filtrele.</div>';
           } else {
             grid.innerHTML = data.produse.map(GlowCards.render).join('');
           }

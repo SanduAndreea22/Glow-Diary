@@ -35,7 +35,7 @@ var GlowCards = {
         '<a href="' + esc(p.url) + '" class="post">' +
           '<div class="post-photo">' +
             (p.poza ? '<img src="' + esc(p.poza) + '" alt="' + esc(p.nume) + '" loading="lazy">' : GlowCards.PHOTO_PLACEHOLDER) +
-            '<div class="seal">TESTED BY DEEA</div>' +
+            '<div class="seal" title="Notă și poză reale — testat chiar de Deea, nu preluat din PR">TESTED BY DEEA</div>' +
             (p.produsul_lunii ? '<div class="sticker">⭐ PRODUSUL LUNII</div>' : "") +
           "</div>" +
           '<div class="post-body">' +

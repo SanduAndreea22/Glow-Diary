@@ -46,7 +46,15 @@ img{max-width:100%;display:block;}
   .screen{animation:none;}
   .post-wrap{animation:none;opacity:1;}
   .about-avatar,.about-eyebrow,.about-text .static-title:first-child{animation:none;opacity:1;}
+  .reveal{opacity:1;transform:none;transition:none;}
 }
+
+/* Blocuri sub fold (season-block, who-strip, footer, "s-ar putea să-ți
+   placă") — fără asta apăreau instant, brusc, spre deosebire de cardurile
+   din grid care au deja card-in. Clasa se pune pe element, JS-ul din
+   base.html adaugă .is-visible când intră în viewport (IntersectionObserver). */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity 0.5s ease, transform 0.5s ease;}
+.reveal.is-visible{opacity:1;transform:translateY(0);}
 
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
@@ -135,13 +143,15 @@ img{max-width:100%;display:block;}
   transition:transform 0.15s ease, box-shadow 0.15s ease;
 }
 .btn-solid:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(107,36,54,0.25);}
+.btn-solid:active{transform:scale(0.96);}
 .btn-outline{
   display:inline-flex;align-items:center;
   padding:13px 20px;border-radius:100px;border:1px solid var(--line);
   font-weight:600;font-size:13.5px;color:var(--maroon-deep);
-  transition:border-color 0.15s ease, background 0.15s ease;
+  transition:border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 .btn-outline:hover{border-color:var(--pink);background:var(--pink-soft);}
+.btn-outline:active{transform:scale(0.96);}
 .hero2-photos{position:relative;height:280px;margin:0 auto;max-width:320px;width:100%;}
 .hero2-photo{
   position:absolute;width:60%;aspect-ratio:4/5;
@@ -359,7 +369,9 @@ img{max-width:100%;display:block;}
   font-family:'Work Sans';
   background:var(--white);
   cursor:pointer;
+  transition:transform 0.15s ease;
 }
+.chip:active{transform:scale(0.94);}
 .chip.active{
   background:var(--maroon);
   border-color:var(--maroon);
@@ -566,6 +578,7 @@ img{max-width:100%;display:block;}
   transition:transform 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 .card-fav:hover{transform:scale(1.1);}
+.card-fav:active{transform:scale(0.92);}
 .card-fav.active{color:var(--pink);background:var(--white);}
 .card-fav.active svg{fill:var(--pink);}
 
@@ -878,8 +891,10 @@ select.field{appearance:none;}
   font-size:13px;font-weight:700;
   font-family:'Instrument Serif';
   cursor:pointer;
+  transition:transform 0.15s ease, background 0.15s ease;
 }
 .submit-btn:hover{background:var(--maroon);}
+.submit-btn:active{transform:scale(0.96);}
 .btn-solid-wide{
   width:100%;display:block;text-align:center;
   background:var(--maroon);color:var(--cream);

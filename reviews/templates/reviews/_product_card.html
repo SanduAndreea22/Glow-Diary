@@ -3,7 +3,7 @@
   <a href="{{ produs.get_absolute_url }}" class="post">
     <div class="post-photo">
       {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}" loading="lazy">{% else %}{% include "reviews/_photo_placeholder.html" %}{% endif %}
-      <div class="seal">TESTED BY DEEA</div>
+      <div class="seal" title="Notă și poză reale — testat chiar de Deea, nu preluat din PR">TESTED BY DEEA</div>
       {% if produsul_lunii_id and produs.id == produsul_lunii_id %}<div class="sticker">⭐ PRODUSUL LUNII</div>{% endif %}
     </div>
     <div class="post-body">
