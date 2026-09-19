@@ -135,6 +135,19 @@ img{max-width:100%;display:block;}
   margin-top:12px;color:var(--maroon-deep);
 }
 .hero2-desc{font-size:14px;line-height:1.65;color:var(--maroon);opacity:0.8;margin-top:16px;max-width:440px;}
+/* Leagă sigiliul TESTED BY DEEA (repetat pe fiecare poză mai jos) de
+   explicația lui, chiar în hero — altfel explicația există doar pe
+   /despre și o vizitatoare nouă n-are de unde să știe ce înseamnă. */
+.hero2-seal-note{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:12.5px;line-height:1.5;color:var(--maroon);opacity:0.75;
+  margin-top:10px;
+}
+.hero2-seal-note-badge{
+  flex-shrink:0;background:var(--maroon);color:var(--cream);
+  font-size:9.5px;font-weight:700;letter-spacing:0.04em;
+  padding:4px 9px;border-radius:100px;white-space:nowrap;
+}
 .hero2-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;}
 .btn-solid{
   display:inline-flex;align-items:center;
@@ -856,6 +869,17 @@ img{max-width:100%;display:block;}
   display:block;text-align:center;margin-top:16px;
   font-size:12.5px;font-weight:700;color:var(--pink);
 }
+/* Punte spre Instagram chiar la finalul recenziei — momentul în care
+   cititoarea e cel mai "încălzită", nu doar la formularul de comentarii
+   sau în footer, unde ajunge puțină lume. */
+.next-step-cta{
+  display:block;text-align:center;margin-top:18px;
+  background:var(--pink-soft);color:var(--maroon);
+  border-radius:100px;padding:11px 18px;
+  font-size:12.5px;font-weight:700;
+  transition:background 0.15s ease, transform 0.15s ease;
+}
+.next-step-cta:hover{background:var(--pink);color:var(--white);transform:translateY(-1px);}
 .divider{
   height:2px;background:var(--line);margin:22px 0;border-radius:2px;
 }
@@ -1174,6 +1198,17 @@ footer.site-footer{
   }
   .about-avatar .avatar-fallback-mark{font-size:64px;}
 }
+/* Ultimul card, singur pe un rând nou (ex. 5 produse într-un grid de 4) —
+   lăsat la stânga, arată ca o gaură goală lângă el, ca și cum pagina
+   nu s-a încărcat corect. Îl centrăm și îi păstrăm lățimea unui card
+   normal, doar când e chiar singur pe rând (nu și când rândul incomplet
+   are 2-3 carduri, unde alinierea la stânga arată firesc). */
+@media (min-width:760px) and (max-width:1199px){
+  .card-grid > .post-wrap:nth-child(2n+1):last-child{
+    grid-column:1/-1;justify-self:center;
+    max-width:calc((100% - 16px)/2);
+  }
+}
 @media (min-width:1200px){
   .topbar{padding:36px 80px;}
   .hero2{padding:80px 80px 64px;gap:64px;}
@@ -1182,6 +1217,10 @@ footer.site-footer{
   .section-header{padding:0 80px;}
   .who-strip{margin-left:80px;margin-right:80px;}
   .card-grid{grid-template-columns:repeat(4, 1fr);gap:0 24px;padding:0 80px;}
+  .card-grid > .post-wrap:nth-child(4n+1):last-child{
+    grid-column:1/-1;justify-self:center;
+    max-width:calc((100% - 72px)/4);
+  }
   .about-avatar{top:108px;}
 }
 
