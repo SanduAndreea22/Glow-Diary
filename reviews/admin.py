@@ -49,7 +49,14 @@ class ProductAdmin(admin.ModelAdmin):
             ),
         }),
         ("Verdict", {
-            "fields": ("nota_mea", "parerea_mea", "pret", "il_recumpar", "tine_cat", "pentru_cine"),
+            "fields": (
+                "nota_mea", "parerea_mea", "remarca_rapida", "pret", "il_recumpar",
+                "tine_cat", "pentru_cine",
+            ),
+        }),
+        ("Actualizare pe termen lung", {
+            "fields": ("actualizare_text", "actualizare_data"),
+            "classes": ("collapse",),
         }),
         ("Filtrare", {"fields": ("tag_uri",)}),
         ("Vizibilitate", {"fields": ("activ",)}),

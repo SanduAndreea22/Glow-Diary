@@ -32,6 +32,7 @@ class CollectionDetailView(DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["produse"] = cu_numar_pareri(
-            self.object.produse.filter(activ=True).select_related("categorie")
+            self.object.produse.filter(activ=True)
+            .select_related("categorie").prefetch_related("tag_uri")
         )
         return ctx

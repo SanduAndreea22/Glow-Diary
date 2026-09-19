@@ -27,6 +27,8 @@ def _product_card_data(p, produsul_lunii_id=None):
         "poza": p.poza.url if p.poza else "",
         "nota": p.nota_mea,
         "il_recumpar": bool(p.il_recumpar),
+        "remarca_rapida": p.remarca_rapida,
+        "tag_uri": [t.nume for t in p.tag_uri.all()],
         "snippet": p.parerea_mea[:140],
         "url": p.get_absolute_url(),
         "slug": p.slug,
@@ -42,7 +44,8 @@ class FavoritesDataView(View):
             return JsonResponse({"produse": []}, status=429)
         slugs = [s for s in request.GET.get("slugs", "").split(",") if s][:MAX_SLUGURI_FAVORITE]
         produse = cu_numar_pareri(
-            Product.objects.filter(slug__in=slugs, activ=True).select_related("categorie")
+            Product.objects.filter(slug__in=slugs, activ=True)
+            .select_related("categorie").prefetch_related("tag_uri")
         )
         produsul_lunii_id = feed_stats()["produsul_lunii_id"]
         data = [_product_card_data(p, produsul_lunii_id) for p in produse]
@@ -54,7 +57,11 @@ class SearchDataView(View):
         if api_rate_limited(request):
             return JsonResponse({"produse": []}, status=429)
         qs = filtreaza_produse(
-            cu_numar_pareri(Product.objects.filter(activ=True).select_related("categorie")), request
+            cu_numar_pareri(
+                Product.objects.filter(activ=True)
+                .select_related("categorie").prefetch_related("tag_uri")
+            ),
+            request,
         )
         produsul_lunii_id = feed_stats()["produsul_lunii_id"]
         data = [_product_card_data(p, produsul_lunii_id) for p in qs[:MAX_REZULTATE_CAUTARE]]
@@ -79,7 +86,7 @@ class RecomandariDataView(View):
             cu_numar_pareri(
                 Product.objects.filter(activ=True, categorie__slug=categorie)
                 .exclude(slug__in=exclude)
-                .select_related("categorie")
+                .select_related("categorie").prefetch_related("tag_uri")
             )
             .order_by("-nota_mea", "-data_postarii")
         )

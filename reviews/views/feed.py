@@ -21,7 +21,9 @@ class FeedView(ListView):
     paginate_by = 12
 
     def get_queryset(self):
-        qs = cu_numar_pareri(Product.objects.filter(activ=True).select_related("categorie"))
+        qs = cu_numar_pareri(
+            Product.objects.filter(activ=True).select_related("categorie").prefetch_related("tag_uri")
+        )
         return filtreaza_produse(qs, self.request)
 
     def get_context_data(self, **kwargs):

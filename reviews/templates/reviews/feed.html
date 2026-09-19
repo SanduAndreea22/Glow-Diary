@@ -74,12 +74,32 @@ doar dacă vizitatoarea are favorite ȘI găsim recomandări reale.
 </div>
 {% endif %}
 
+{% if categorii_navigare %}
+{% comment %}
+Navigarea pe tip de produs (categorii) răspunde la o nevoie reală — "am
+ten uscat, ce să încerc" — indiferent cât de mic e catalogul, spre
+deosebire de căutare/filtre avansate (notă/sursă/preț/sortare), care
+chiar sunt mobilier degeaba peste un catalog mic. De-asta chip-urile de
+categorie rămân mereu vizibile, separat de blocul gated de mai jos.
+{% endcomment %}
+<div class="filters">
+  <a href="?{{ querystring_fara_categorie }}" class="chip{% if not categorie_activa %} active{% endif %}">Toate</a>
+  {% for cat in categorii_navigare %}
+  <a href="?categorie={{ cat.slug }}{% if querystring_fara_categorie %}&{{ querystring_fara_categorie }}{% endif %}"
+     class="chip{% if categorie_activa == cat.slug %} active{% endif %}">{{ cat.nume }}</a>
+  {% endfor %}
+  <a href="?{{ querystring_toggle_recumpar }}" class="chip{% if recumpar_activ %} active{% endif %}">↻ Îl recumpăr</a>
+  <button type="button" class="filters-scroll-btn" id="filters-scroll-btn" aria-label="Mai multe categorii">›</button>
+</div>
+{% endif %}
+
 {% if arata_contor_produse or filtre_active or q or categorie_activa %}
 {% comment %}
 Sub pragul de produse (vezi MIN_PRODUSE_PENTRU_CONTOR), căutarea+filtrele
-sunt "mobilier" fără rost peste un catalog mic — ascunse temporar, nu
-șterse. Dacă vizitatoarea ajunge deja cu o căutare/filtru activ (link
-distribuit), tot arătăm interfața, ca să nu rămână blocată fără context.
+avansate sunt "mobilier" fără rost peste un catalog mic — ascunse
+temporar, nu șterse. Dacă vizitatoarea ajunge deja cu o căutare/filtru
+activ (link distribuit), tot arătăm interfața, ca să nu rămână blocată
+fără context.
 {% endcomment %}
 <div class="search-filters-row">
 <form class="search-bar" method="get" id="search-bar">
@@ -97,16 +117,6 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
 <button type="button" id="filter-toggle" class="filter-toggle-btn{% if filtre_active %} active{% endif %}">⚙️ Filtrează{% if filtre_active %} ✓{% endif %}</button>
 </div>
 <div id="search-status" class="search-status" aria-live="polite" hidden></div>
-
-<div class="filters">
-  <a href="?{{ querystring_fara_categorie }}" class="chip{% if not categorie_activa %} active{% endif %}">Toate</a>
-  {% for cat in categorii_navigare %}
-  <a href="?categorie={{ cat.slug }}{% if querystring_fara_categorie %}&{{ querystring_fara_categorie }}{% endif %}"
-     class="chip{% if categorie_activa == cat.slug %} active{% endif %}">{{ cat.nume }}</a>
-  {% endfor %}
-  <a href="?{{ querystring_toggle_recumpar }}" class="chip{% if recumpar_activ %} active{% endif %}">↻ Îl recumpăr</a>
-  <button type="button" class="filters-scroll-btn" id="filters-scroll-btn" aria-label="Mai multe categorii">›</button>
-</div>
 
 <div class="filter-panel" id="filter-panel">
   <form method="get">

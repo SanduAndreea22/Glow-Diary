@@ -5,6 +5,7 @@
       {% if produs.poza %}<img src="{{ produs.poza.url }}" alt="{{ produs.nume }}" loading="lazy">{% else %}{% include "reviews/_photo_placeholder.html" %}{% endif %}
       <div class="seal" title="Notă și poză reale — l-am testat chiar eu, fără produse primite gratuit pentru recenzie">TESTED BY DEEA</div>
       {% if produsul_lunii_id and produs.id == produsul_lunii_id %}<div class="sticker">⭐ PRODUSUL LUNII</div>{% endif %}
+      {% if produs.remarca_rapida %}<div class="handwritten-note">{{ produs.remarca_rapida }}</div>{% endif %}
     </div>
     <div class="post-body">
       <div class="post-brand">{{ produs.brand }}</div>
@@ -14,6 +15,9 @@
       {% if show_details %}
       {% if produs.nuanta %}<div class="post-shade">Nuanță: {{ produs.nuanta }}</div>{% endif %}
       {% if produs.sursa %}<div class="post-source"><svg class="source-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Cumpărat de la {{ produs.sursa }}</div>{% endif %}
+      {% if produs.tag_uri.all %}
+      <div class="post-tags">{% for tag in produs.tag_uri.all|slice:":3" %}<span class="tag-chip">{{ tag.nume }}</span>{% endfor %}</div>
+      {% endif %}
       {% endif %}
       <div class="post-rating"><span class="stars">{% stars_svg produs.nota_mea %}</span><span class="post-rating-label">nota mea</span></div>
       {% if show_details %}

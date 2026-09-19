@@ -37,6 +37,7 @@ var GlowCards = {
             (p.poza ? '<img src="' + esc(p.poza) + '" alt="' + esc(p.nume) + '" loading="lazy">' : GlowCards.PHOTO_PLACEHOLDER) +
             '<div class="seal" title="Notă și poză reale — l-am testat chiar eu, fără produse primite gratuit pentru recenzie">TESTED BY DEEA</div>' +
             (p.produsul_lunii ? '<div class="sticker">⭐ PRODUSUL LUNII</div>' : "") +
+            (p.remarca_rapida ? '<div class="handwritten-note">' + esc(p.remarca_rapida) + "</div>" : "") +
           "</div>" +
           '<div class="post-body">' +
             '<div class="post-brand">' + esc(p.brand) + "</div>" +
@@ -45,6 +46,7 @@ var GlowCards = {
             (p.il_recumpar ? '<div class="badge-recumpar">↻ Îl recumpăr</div>' : "") +
             (p.nuanta ? '<div class="post-shade">Nuanță: ' + esc(p.nuanta) + "</div>" : "") +
             (p.sursa ? '<div class="post-source"><svg class="source-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Cumpărat de la ' + esc(p.sursa) + "</div>" : "") +
+            (p.tag_uri && p.tag_uri.length ? '<div class="post-tags">' + p.tag_uri.slice(0, 3).map(function (t) { return '<span class="tag-chip">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
             '<div class="post-rating"><span class="stars">' + GlowStars.render(p.nota) + '</span><span class="post-rating-label">nota mea</span></div>' +
             (p.postat ? '<div class="post-meta">' + esc(p.postat) + (p.comment_count ? " · 💬 " + esc(p.comment_count) + " păreri" : "") + "</div>" : "") +
             '<div class="post-snippet">' + esc(p.snippet) + "</div>" +

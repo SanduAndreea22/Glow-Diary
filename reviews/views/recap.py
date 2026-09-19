@@ -26,7 +26,7 @@ class AnRecapView(TemplateView):
         an = kwargs["an"]
         ctx["an"] = an
 
-        produse_an = Product.objects.filter(activ=True, data_postarii__year=an)
+        produse_an = Product.objects.filter(activ=True, data_postarii__year=an).prefetch_related("tag_uri")
         total = produse_an.count()
         ctx["total_produse"] = total
         ctx["are_destule_date"] = total >= MIN_PRODUSE_PENTRU_RECAP

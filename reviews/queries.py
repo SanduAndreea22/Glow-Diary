@@ -173,7 +173,7 @@ def recomandari_favorite_goale(n=MAX_RECOMANDARI_FAVORITE_GOALE):
     bine notate, ca un punct de plecare concret ("începe cu astea"), nu doar
     un link generic înapoi la feed."""
     return cu_numar_pareri(
-        Product.objects.filter(activ=True).select_related("categorie")
+        Product.objects.filter(activ=True).select_related("categorie").prefetch_related("tag_uri")
     ).order_by("-nota_mea", "-data_postarii")[:n]
 
 

@@ -27,6 +27,7 @@
     <div class="product-photo">
       {% if galerie %}<img id="hero-img" src="{{ galerie.0.url }}" alt="{{ produs.nume }}">{% else %}{% include "reviews/_photo_placeholder.html" %}{% endif %}
       <div class="seal" title="Notă și poză reale — l-am testat chiar eu, fără produse primite gratuit pentru recenzie">TESTED BY DEEA</div>
+      {% if produs.remarca_rapida %}<div class="handwritten-note">{{ produs.remarca_rapida }}</div>{% endif %}
     </div>
     <div class="product-top-info">
       <div class="d-brand">{{ produs.brand }}</div>
@@ -94,6 +95,13 @@
     <div class="my-take-label">Părerea mea</div>
     <div class="my-take-text">{{ produs.parerea_mea }}</div>
   </div>
+
+  {% if produs.actualizare_text %}
+  <div class="update-take">
+    <div class="update-take-label">📓 Actualizare{% if produs.actualizare_data %} — {{ produs.actualizare_data|date:"d M Y" }}{% endif %}</div>
+    <div class="update-take-text">{{ produs.actualizare_text }}</div>
+  </div>
+  {% endif %}
 
   <div class="share-section">
     <div class="share-section-title">Dă mai departe</div>

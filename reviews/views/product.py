@@ -82,6 +82,7 @@ class ProductDetailView(DetailView):
             Product.objects.filter(activ=True, categorie=self.object.categorie)
             .exclude(pk=self.object.pk)
             .select_related("categorie")
+            .prefetch_related("tag_uri")
             .order_by("-data_postarii")
         )[:3]
         return ctx

@@ -145,6 +145,26 @@ class Product(models.Model):
         "Recomandat pentru", max_length=150, blank=True,
         help_text="Ex: ten gras, buze uscate, începătoare la machiaj...",
     )
+    remarca_rapida = models.CharField(
+        "Notiță rapidă", max_length=90, blank=True,
+        help_text=(
+            "O propoziție scurtă, ca o însemnare de jurnal — ex: „Cel mai bun "
+            "ruj mat pe care l-am încercat vreodată”. Apare stilizat, ca scris "
+            "de mână, lângă poză. Opțional."
+        ),
+    )
+    actualizare_text = models.TextField(
+        "Actualizare după folosire", blank=True,
+        help_text=(
+            "Pentru produse testate pe termen lung — ex: „După 3 săptămâni de "
+            "folosit zilnic...”. Apare într-un bloc separat, sub Părerea mea. "
+            "Opțional, completează oricând mai târziu."
+        ),
+    )
+    actualizare_data = models.DateField(
+        "Data actualizării", null=True, blank=True,
+        help_text="Când ai scris actualizarea de mai sus — apare alături de text.",
+    )
     tag_uri = models.ManyToManyField(
         Tag, blank=True, related_name="produse", verbose_name="Tag-uri",
         help_text="Atribute libere de filtrare (tip de ten, ingrediente etc.) — opțional.",

@@ -382,12 +382,19 @@ class SimplificareUISubPragTests(TestCase):
             nume="A", brand="B", categorie=_cat("ten"), nota_mea=3, parerea_mea="x",
         )
 
-    def test_sub_prag_fara_filtru_activ_ascunde_ui_ul(self):
+    def test_sub_prag_fara_filtru_activ_ascunde_cautarea_si_filtrele_avansate(self):
         r = self.client.get(reverse("reviews:feed"))
         content = r.content.decode()
         self.assertNotIn('id="search-bar"', content)
         self.assertNotIn('id="filter-panel"', content)
-        self.assertNotIn("categorie=ten", content)
+
+    def test_sub_prag_arata_totusi_chip_urile_de_categorie(self):
+        # Navigarea pe tip de produs răspunde la o nevoie reală ("am ten
+        # uscat, ce să încerc"), spre deosebire de căutare/filtre avansate —
+        # rămâne vizibilă chiar sub pragul de produse.
+        r = self.client.get(reverse("reviews:feed"))
+        content = r.content.decode()
+        self.assertIn("categorie=ten", content)
 
     def test_sub_prag_cu_cautare_activa_arata_ui_ul(self):
         # Vizitatoare ajunsă cu un link deja filtrat/cu căutare — nu rămâne
@@ -1135,6 +1142,46 @@ class VerdictFieldsTests(TestCase):
         produs.tag_uri.add(Tag.objects.get_or_create(nume="Vegan")[0])
         r = self.client.get(produs.get_absolute_url())
         self.assertContains(r, "Vegan")
+
+    def test_tag_uri_apar_pe_cardul_din_feed(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
+        )
+        produs.tag_uri.add(Tag.objects.get_or_create(nume="Fără parfum")[0])
+        r = self.client.get(reverse("reviews:feed"))
+        self.assertContains(r, "Fără parfum")
+
+    def test_remarca_rapida_apare_langa_poza(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
+            remarca_rapida="Cel mai bun ruj mat testat vreodată",
+        )
+        r = self.client.get(produs.get_absolute_url())
+        self.assertContains(r, "handwritten-note")
+        self.assertContains(r, "Cel mai bun ruj mat testat vreodată")
+
+    def test_fara_remarca_rapida_nu_apare_notita(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
+        )
+        r = self.client.get(produs.get_absolute_url())
+        self.assertNotContains(r, "handwritten-note")
+
+    def test_actualizare_apare_sub_parerea_mea(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
+            actualizare_text="După 3 săptămâni, tot îmi place.",
+        )
+        r = self.client.get(produs.get_absolute_url())
+        self.assertContains(r, "update-take")
+        self.assertContains(r, "După 3 săptămâni, tot îmi place.")
+
+    def test_fara_actualizare_nu_apare_blocul(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
+        )
+        r = self.client.get(produs.get_absolute_url())
+        self.assertNotContains(r, "update-take")
 
 
 @_no_ssl_redirect
