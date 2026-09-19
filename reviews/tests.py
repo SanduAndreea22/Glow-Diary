@@ -565,6 +565,7 @@ class CollectionSitemapTests(TestCase):
         self.assertEqual(nume, ["Vizibilă"])
 
 
+@_no_ssl_redirect
 class CollectionTests(TestCase):
     def test_colectie_fara_produse_nu_apare_in_lista(self):
         Collection.objects.create(nume="Goală")
