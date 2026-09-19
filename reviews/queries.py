@@ -42,6 +42,7 @@ def filtreaza_produse(qs, request):
     tag = request.GET.get("tag", "").strip()
     pret_max = request.GET.get("pret_max", "").strip()
     sort = request.GET.get("sort", "").strip()
+    recumpar = request.GET.get("recumpar", "").strip()
 
     if q:
         qs = qs.filter(Q(nume__icontains=q) | Q(brand__icontains=q))
@@ -63,6 +64,8 @@ def filtreaza_produse(qs, request):
             qs = qs.filter(pret__lte=Decimal(pret_max))
         except InvalidOperation:
             pass
+    if recumpar:
+        qs = qs.filter(il_recumpar=True)
 
     return qs.order_by(*SORT_OPTIONS.get(sort, SORT_OPTIONS[DEFAULT_SORT]))
 

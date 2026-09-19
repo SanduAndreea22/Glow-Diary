@@ -90,6 +90,7 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
   {% if sursa_activa %}<input type="hidden" name="sursa" value="{{ sursa_activa }}">{% endif %}
   {% if tag_activ %}<input type="hidden" name="tag" value="{{ tag_activ }}">{% endif %}
   {% if pret_max_activ %}<input type="hidden" name="pret_max" value="{{ pret_max_activ }}">{% endif %}
+  {% if recumpar_activ %}<input type="hidden" name="recumpar" value="{{ recumpar_activ }}">{% endif %}
   {% if sort_activ != "recent" %}<input type="hidden" name="sort" value="{{ sort_activ }}">{% endif %}
   <button type="submit" class="search-submit-btn">Caută</button>
 </form>
@@ -103,6 +104,7 @@ distribuit), tot arătăm interfața, ca să nu rămână blocată fără contex
   <a href="?categorie={{ cat.slug }}{% if querystring_fara_categorie %}&{{ querystring_fara_categorie }}{% endif %}"
      class="chip{% if categorie_activa == cat.slug %} active{% endif %}">{{ cat.nume }}</a>
   {% endfor %}
+  <a href="?{{ querystring_toggle_recumpar }}" class="chip{% if recumpar_activ %} active{% endif %}">↻ Îl recumpăr</a>
   <button type="button" class="filters-scroll-btn" id="filters-scroll-btn" aria-label="Mai multe categorii">›</button>
 </div>
 
@@ -296,12 +298,14 @@ about.html (nicio pretenție nouă), nu inventat aici.
       var sursa = document.querySelector('[name="sursa"]');
       var tag = document.querySelector('[name="tag"]');
       var pretMax = document.querySelector('[name="pret_max"]');
+      var recumpar = document.querySelector('[name="recumpar"]');
       var sort = document.querySelector('[name="sort"]');
       if (categorie) params.set('categorie', categorie.value);
       if (notaMin && notaMin.value) params.set('nota_min', notaMin.value);
       if (sursa && sursa.value) params.set('sursa', sursa.value);
       if (tag && tag.value) params.set('tag', tag.value);
       if (pretMax && pretMax.value) params.set('pret_max', pretMax.value);
+      if (recumpar && recumpar.value) params.set('recumpar', recumpar.value);
       if (sort && sort.value) params.set('sort', sort.value);
       return params;
     };

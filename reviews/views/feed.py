@@ -32,10 +32,11 @@ class FeedView(ListView):
         ctx["sursa_activa"] = self.request.GET.get("sursa", "")
         ctx["tag_activ"] = self.request.GET.get("tag", "")
         ctx["pret_max_activ"] = self.request.GET.get("pret_max", "")
+        ctx["recumpar_activ"] = self.request.GET.get("recumpar", "")
         ctx["sort_activ"] = self.request.GET.get("sort", "") or DEFAULT_SORT
         ctx["filtre_active"] = bool(
             ctx["nota_min_activa"] or ctx["sursa_activa"] or ctx["tag_activ"]
-            or ctx["pret_max_activ"] or self.request.GET.get("sort", "")
+            or ctx["pret_max_activ"] or ctx["recumpar_activ"] or self.request.GET.get("sort", "")
         )
         stats = feed_stats()
         ctx["produsul_lunii_id"] = stats["produsul_lunii_id"]
@@ -75,6 +76,16 @@ class FeedView(ListView):
         fara_categorie.pop("page", None)
         fara_categorie.pop("categorie", None)
         ctx["querystring_fara_categorie"] = fara_categorie.urlencode()
+
+        # Link unic care activează/dezactivează "Îl recumpăr", păstrând
+        # restul filtrelor active — la fel ca la categorie mai sus.
+        toggle_recumpar = self.request.GET.copy()
+        toggle_recumpar.pop("page", None)
+        if ctx["recumpar_activ"]:
+            toggle_recumpar.pop("recumpar", None)
+        else:
+            toggle_recumpar["recumpar"] = "1"
+        ctx["querystring_toggle_recumpar"] = toggle_recumpar.urlencode()
 
         if ctx.get("is_paginated"):
             page_obj = ctx["page_obj"]

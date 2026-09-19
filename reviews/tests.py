@@ -422,11 +422,11 @@ class FeedViewTests(TestCase):
     def setUp(self):
         self.p1 = Product.objects.create(
             nume="Soft Pinch Liquid Blush", brand="Rare Beauty", categorie=_cat("ten"),
-            nota_mea=5, parerea_mea="Text.", sursa="Sephora",
+            nota_mea=5, parerea_mea="Text.", sursa="Sephora", il_recumpar=True,
         )
         self.p2 = Product.objects.create(
             nume="Gloss Bomb", brand="Fenty Beauty", categorie=_cat("buze"),
-            nota_mea=4, parerea_mea="Text.", sursa="Douglas",
+            nota_mea=4, parerea_mea="Text.", sursa="Douglas", il_recumpar=False,
         )
 
     def test_feed_incarca(self):
@@ -459,6 +459,11 @@ class FeedViewTests(TestCase):
         r = self.client.get(reverse("reviews:feed"), {"nota_min": "4"})
         self.assertContains(r, "Fenty Beauty")
         self.assertNotContains(r, "Rare Beauty")
+
+    def test_feed_filtru_recumpar(self):
+        r = self.client.get(reverse("reviews:feed"), {"recumpar": "1"})
+        self.assertContains(r, "Rare Beauty")
+        self.assertNotContains(r, "Fenty Beauty")
 
 
 @_no_ssl_redirect

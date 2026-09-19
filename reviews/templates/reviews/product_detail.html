@@ -55,6 +55,10 @@
         </div>
         {% endif %}
       </div>
+      <button type="button" class="share-btn share-btn-secondary share-btn-compact js-story-preview-btn" data-story-url="{% url 'reviews:product_story_image' slug=produs.slug %}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+        <span>Descarcă pentru Story</span>
+      </button>
     </div>
   </div>
 
@@ -98,7 +102,7 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9"/></svg>
         <span id="share-btn-label">Trimite mai departe</span>
       </button>
-      <button type="button" class="share-btn share-btn-secondary share-btn-2line" id="story-preview-btn" data-story-url="{% url 'reviews:product_story_image' slug=produs.slug %}">
+      <button type="button" class="share-btn share-btn-secondary share-btn-2line js-story-preview-btn" data-story-url="{% url 'reviews:product_story_image' slug=produs.slug %}">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
         <span class="share-btn-2line-text">
           <span>Descarcă pentru Story</span>
@@ -233,25 +237,27 @@
     // Previzualizare înainte de descărcare — altfel vizitatoarea descarcă
     // "pe încredere" un PNG pe care nu l-a văzut, fără să știe dacă merită
     // să-l posteze mai departe.
-    var previewBtn = document.getElementById('story-preview-btn');
+    var previewBtns = document.querySelectorAll('.js-story-preview-btn');
     var modal = document.getElementById('story-modal');
     var backdrop = document.getElementById('story-modal-backdrop');
     var closeBtn = document.getElementById('story-modal-close');
     var img = document.getElementById('story-modal-img');
     var downloadLink = document.getElementById('story-modal-download');
-    if (!previewBtn || !modal) return;
+    if (!previewBtns.length || !modal) return;
 
     var closeModal = function () {
       modal.classList.remove('open');
     };
 
-    previewBtn.addEventListener('click', function () {
-      var url = previewBtn.getAttribute('data-story-url');
-      // src setat abia la deschidere — randarea cu Pillow e costisitoare,
-      // fără rost cerută la orice încărcare de pagină dacă nimeni n-o vede.
-      if (img.getAttribute('src') !== url) img.src = url;
-      downloadLink.href = url;
-      modal.classList.add('open');
+    previewBtns.forEach(function (previewBtn) {
+      previewBtn.addEventListener('click', function () {
+        var url = previewBtn.getAttribute('data-story-url');
+        // src setat abia la deschidere — randarea cu Pillow e costisitoare,
+        // fără rost cerută la orice încărcare de pagină dacă nimeni n-o vede.
+        if (img.getAttribute('src') !== url) img.src = url;
+        downloadLink.href = url;
+        modal.classList.add('open');
+      });
     });
     backdrop.addEventListener('click', closeModal);
     closeBtn.addEventListener('click', closeModal);

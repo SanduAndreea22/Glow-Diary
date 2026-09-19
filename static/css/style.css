@@ -762,6 +762,11 @@ img{max-width:100%;display:block;}
    folosită la "Descarcă pentru Story" (PNG · 1080x1920) și la "Salvează"
    (unde/cum se salvează), ca detaliile să fie mereu vizibile, nu doar
    într-un title="" la hover (invizibil pe mobil). */
+/* Versiune compactă, sus lângă rating — "Descarcă pentru Story" mai are
+   varianta completă în .share-section, mai jos; asta e doar un acces
+   rapid, vizibil fără scroll, care nu concurează cu Salvează (poza), sus
+   de tot, singura acțiune primară de-acolo. */
+.share-btn-compact{display:inline-flex;margin-top:12px;}
 .share-btn-2line{align-items:center;}
 .share-btn-2line-text{display:flex;flex-direction:column;line-height:1.35;text-align:left;}
 .share-btn-2line-caption{font-size:9px;font-weight:600;opacity:0.7;}
