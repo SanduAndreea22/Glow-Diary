@@ -1290,6 +1290,11 @@ footer.site-footer{
     --cream:#1C1014;
     --white:#2A1720;
     --maroon:#F3DDE6;
+    /* Lipsea din inversarea de mai jos — rămânea la valoarea din light mode
+       (#3F1420, maro foarte închis), aproape invizibilă pe orice fundal
+       întunecat de-aici. Afectat: titlul din hero, "Ultimele încercări",
+       "Salut, sunt Deea", titlul paginii Despre — toate titlurile mari. */
+    --maroon-deep:#FDF0F5;
     --pink:#FF86B3;
     --pink-soft:#3A1F2C;
     --line:#4E2C3C;
