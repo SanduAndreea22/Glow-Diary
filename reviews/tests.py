@@ -1,9 +1,11 @@
 import io
 import os
+import re
 import tempfile
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -14,7 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 
-from .checks import verifica_redis_in_productie
+from .checks import verifica_admin_url, verifica_redis_in_productie, verifica_topologia_proxy
 from .forms import MAX_UPLOAD_IMAGINE_BYTES, CommentForm
 from .image_utils import MAX_PIXELI_ACCEPTATI, PozaPreaMareError
 from .models import Categorie, Collection, Comment, ContactMessage, Product, Tag
@@ -1297,6 +1299,88 @@ class RedisDeployCheckTests(TestCase):
             os.environ, {"SINGLE_WORKER": "True"}, clear=True
         ):
             self.assertEqual(verifica_redis_in_productie(None), [])
+
+
+class ProxyTopologyDeployCheckTests(TestCase):
+    def test_debug_true_ignora_avertismentul(self):
+        with override_settings(DEBUG=True, TRUST_X_FORWARDED_FOR=False):
+            self.assertEqual(verifica_topologia_proxy(None), [])
+
+    def test_debug_false_fara_trust_forwarded_for_e_avertisment(self):
+        with override_settings(DEBUG=False, TRUST_X_FORWARDED_FOR=False):
+            avertismente = verifica_topologia_proxy(None)
+        self.assertEqual(len(avertismente), 1)
+        self.assertEqual(avertismente[0].id, "reviews.W001")
+
+    def test_debug_false_cu_trust_forwarded_for_e_curat(self):
+        with override_settings(DEBUG=False, TRUST_X_FORWARDED_FOR=True):
+            self.assertEqual(verifica_topologia_proxy(None), [])
+
+
+class AdminUrlDeployCheckTests(TestCase):
+    def test_debug_true_ignora_avertismentul(self):
+        with override_settings(DEBUG=True, ADMIN_URL="admin/"):
+            self.assertEqual(verifica_admin_url(None), [])
+
+    def test_debug_false_cu_admin_url_implicit_e_avertisment(self):
+        with override_settings(DEBUG=False, ADMIN_URL="admin/"):
+            avertismente = verifica_admin_url(None)
+        self.assertEqual(len(avertismente), 1)
+        self.assertEqual(avertismente[0].id, "reviews.W002")
+
+    def test_debug_false_cu_admin_url_schimbat_e_curat(self):
+        with override_settings(DEBUG=False, ADMIN_URL="panou-secret/"):
+            self.assertEqual(verifica_admin_url(None), [])
+
+
+@_no_ssl_redirect
+class AdminPasswordResetTests(TestCase):
+    """Singurul cont admin trebuie să aibă o cale de recuperare a parolei
+    în afară de acces shell/DB direct pe server."""
+
+    def setUp(self):
+        self.staff = get_user_model().objects.create_user(
+            username="deea3", password="parola-puternica-123",
+            email="deea@example.com", is_staff=True, is_superuser=True,
+        )
+
+    def test_pagina_de_login_arata_linkul_de_resetare(self):
+        r = self.client.get(reverse("admin:login"))
+        self.assertContains(r, "password-reset-link")
+        self.assertContains(r, reverse("admin_password_reset"))
+
+    def test_fluxul_complet_de_resetare_schimba_parola(self):
+        r = self.client.post(reverse("admin_password_reset"), {"email": "deea@example.com"})
+        self.assertRedirects(r, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 1)
+
+        match = re.search(r"/reset/\S+/", mail.outbox[0].body)
+        self.assertIsNotNone(match)
+        link = match.group(0)
+
+        r = self.client.get(link)
+        self.assertEqual(r.status_code, 302)
+        set_password_url = r.url
+
+        r = self.client.post(
+            set_password_url,
+            {"new_password1": "o-parola-noua-foarte-lunga", "new_password2": "o-parola-noua-foarte-lunga"},
+        )
+        self.assertRedirects(r, reverse("password_reset_complete"))
+
+        self.staff.refresh_from_db()
+        self.assertTrue(self.staff.check_password("o-parola-noua-foarte-lunga"))
+
+        # Link-ul original (deja folosit) nu mai poate fi refolosit.
+        r = self.client.get(link)
+        self.assertContains(r, "nu mai e valid")
+
+    def test_email_necunoscut_nu_dezvaluie_daca_contul_exista(self):
+        r = self.client.post(reverse("admin_password_reset"), {"email": "nimeni@example.com"})
+        # Django redirecționează la fel (fără mesaj de eroare), ca un atacator
+        # să nu poată deduce din răspuns dacă adresa are sau nu cont.
+        self.assertRedirects(r, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 0)
 
 
 @_no_ssl_redirect

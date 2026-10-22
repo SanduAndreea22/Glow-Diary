@@ -331,6 +331,13 @@ GOOGLE_SITE_VERIFICATION = os.environ.get("GOOGLE_SITE_VERIFICATION", "")
 # nu din JS) — HttpOnly e hardening gratuit, activ și local.
 CSRF_COOKIE_HTTPONLY = True
 
+# Implicit Django ține o sesiune validă 2 săptămâni — prea mult pentru un
+# singur cont admin cu acces total la tot site-ul, pe un calculator/browser
+# care poate fi partajat. 12 ore e suficient pentru o sesiune de lucru
+# normală — numărate de la autentificare (SESSION_SAVE_EVERY_REQUEST
+# rămâne False, implicit), nu de la ultima acțiune.
+SESSION_COOKIE_AGE = 60 * 60 * 12
+
 # Setări de securitate active doar când DEBUG=False (producție), ca să nu
 # strice dezvoltarea locală peste HTTP simplu.
 if not DEBUG:

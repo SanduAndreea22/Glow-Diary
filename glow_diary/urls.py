@@ -4,6 +4,7 @@ URL configuration for glow_diary project.
 
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.contrib.sitemaps.views import sitemap
 from django.http import Http404, HttpResponse
 from django.urls import include, path, re_path
@@ -11,8 +12,45 @@ from django.views.static import serve
 
 from reviews.sitemaps import sitemaps
 
+# Singurul cont admin nu avea nicio cale de recuperare a parolei în afară de
+# acces shell/DB direct pe server — pentru un site cu un singur operator,
+# o parolă pierdută ar fi însemnat blocaj total. Numele ('admin_password_reset'
+# etc.) sunt cele căutate explicit de template-ul de login al adminului
+# Django, ca să arate automat linkul "Ai uitat parola?" — trebuie
+# înregistrate ÎNAINTEA lui admin.site.urls (altfel admin.site.urls
+# "înghite" orice sub-cale de sub ADMIN_URL, inclusiv asta, fără fallback).
 urlpatterns = [
+    path(
+        f"{settings.ADMIN_URL}password_reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name="registration/password_reset_form.html",
+            email_template_name="registration/password_reset_email.html",
+            subject_template_name="registration/password_reset_subject.txt",
+        ),
+        name="admin_password_reset",
+    ),
+    path(
+        f"{settings.ADMIN_URL}password_reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="registration/password_reset_done.html",
+        ),
+        name="password_reset_done",
+    ),
     path(settings.ADMIN_URL, admin.site.urls),
+    path(
+        "reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="registration/password_reset_confirm.html",
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="registration/password_reset_complete.html",
+        ),
+        name="password_reset_complete",
+    ),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
     path("", include("reviews.urls")),
 ]

@@ -1,7 +1,7 @@
 import os
 
 from django.conf import settings
-from django.core.checks import Error, register
+from django.core.checks import Error, Warning, register
 
 
 @register(deploy=True)
@@ -30,6 +30,62 @@ def verifica_redis_in_productie(app_configs, **kwargs):
                 "rulezi explicit un singur proces."
             ),
             id="reviews.E002",
+        )
+    ]
+
+
+@register(deploy=True)
+def verifica_topologia_proxy(app_configs, **kwargs):
+    """Rate limiting-ul (reviews/throttling.py) și lockout-ul de login
+    (django-axes) sunt cheiate pe REMOTE_ADDR — corect doar dacă aplicația
+    NU stă în spatele unui reverse proxy, sau dacă TRUST_X_FORWARDED_FOR e
+    setat explicit după ce proxy-ul a fost verificat manual. Fără asta,
+    pe o găzduire cu proxy în față (comun, inclusiv pe multe PaaS-uri),
+    REMOTE_ADDR poate fi IP-ul proxy-ului — comun tuturor vizitatorilor —
+    iar rate limiting-ul/lockout-ul ar deveni efectiv globale (un singur
+    vizitator zgomotos poate bloca comentariile sau login-ul pentru toți
+    cei din spatele aceluiași proxy). Warning, nu Error — nu există un
+    default corect universal, decizia cere verificare manuală o singură
+    dată, la fiecare deploy nou."""
+    if settings.DEBUG or getattr(settings, "TRUST_X_FORWARDED_FOR", False):
+        return []
+    return [
+        Warning(
+            "TRUST_X_FORWARDED_FOR e False (implicit) — verifică dacă acest "
+            "deploy rulează în spatele unui reverse proxy.",
+            hint=(
+                "Dacă da, REMOTE_ADDR poate fi IP-ul proxy-ului pentru toți "
+                "vizitatorii, nu adresa lor reală — rate limiting-ul "
+                "(comentarii/contact) și lockout-ul de login (django-axes) "
+                "ar deveni efectiv globale, nu per-vizitator. Setează "
+                "TRUST_X_FORWARDED_FOR=True DOAR după ce confirmi manual că "
+                "proxy-ul suprascrie (nu doar adaugă la) X-Forwarded-For. "
+                "Dacă nu există niciun proxy în față, acest avertisment e "
+                "de ignorat."
+            ),
+            id="reviews.W001",
+        )
+    ]
+
+
+@register(deploy=True)
+def verifica_admin_url(app_configs, **kwargs):
+    """ADMIN_URL rămas pe valoarea implicită 'admin/' în producție — ușor
+    de găsit prin scanare automată. Warning, nu Error — e hardening prin
+    obscuritate, nu o cerință tehnică reală (contul e oricum protejat de
+    parolă + lockout django-axes)."""
+    if settings.DEBUG or settings.ADMIN_URL != "admin/":
+        return []
+    return [
+        Warning(
+            "ADMIN_URL e încă pe valoarea implicită 'admin/'.",
+            hint=(
+                "Schimbă ADMIN_URL în .env la ceva mai puțin previzibil, ca "
+                "hardening minim împotriva scanărilor automate. Nu e o "
+                "cerință critică (contul rămâne protejat de parolă + "
+                "lockout), doar un strat suplimentar ieftin."
+            ),
+            id="reviews.W002",
         )
     ]
 
