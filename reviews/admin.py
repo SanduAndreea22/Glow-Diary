@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
 from django.urls import path
 
@@ -111,18 +111,31 @@ class ProductAdmin(admin.ModelAdmin):
                 # rândurile deja salvate din acest batch se anulează și ele,
                 # în loc să rămână un import pe jumătate, fără să fie clar
                 # ce s-a salvat și ce nu.
-                with transaction.atomic():
-                    for form in create:
-                        form.save()
-                if create:
-                    messages.success(
+                try:
+                    with transaction.atomic():
+                        for form in create:
+                            form.save()
+                except IntegrityError:
+                    # Plasă de siguranță — ProductBulkForm.clean() prinde deja
+                    # cazul obișnuit (slug epuizat pe un brand+nume existent),
+                    # dar un IntegrityError neprevăzut tot nu trebuie să ajungă
+                    # la un 500 brut, cu toate rândurile completate pierdute.
+                    messages.error(
                         request,
-                        f"Am adăugat {len(create)} produs(e). Nu uita să încarci poza "
-                        "la fiecare, individual — bulk-add-ul nu include poze.",
+                        "N-am putut salva — un produs din listă are un conflict "
+                        "neașteptat (probabil un slug deja ocupat). Nimic nu s-a "
+                        "salvat din acest batch; încearcă din nou.",
                     )
                 else:
-                    messages.warning(request, "N-ai completat niciun rând — nimic de salvat.")
-                return redirect("admin:reviews_product_changelist")
+                    if create:
+                        messages.success(
+                            request,
+                            f"Am adăugat {len(create)} produs(e). Nu uita să încarci poza "
+                            "la fiecare, individual — bulk-add-ul nu include poze.",
+                        )
+                    else:
+                        messages.warning(request, "N-ai completat niciun rând — nimic de salvat.")
+                    return redirect("admin:reviews_product_changelist")
         else:
             formset = ProductBulkFormSet(queryset=Product.objects.none())
 

@@ -160,6 +160,23 @@ class ProductBulkForm(forms.ModelForm):
             "parerea_mea": forms.Textarea(attrs={"rows": 2}),
         }
 
+    def clean(self):
+        # Fără verificarea asta (prezentă pe ProductAdminForm, dar lipsă
+        # aici), un rând cu brand+nume deja epuizat la slug unic (20
+        # variante existente) ridica un IntegrityError necaptat din
+        # bulk_add_view — 500 brut, nu o eroare de formular. Verificăm doar
+        # dacă brand ȘI nume sunt ambele completate — altfel un rând gol
+        # sau parțial din formset (brand/nume invalide oricum) ar verifica
+        # un slug de bază gol, care se potrivește cu orice produs existent.
+        cleaned = super().clean()
+        brand, nume = cleaned.get("brand"), cleaned.get("nume")
+        if brand and nume and _slug_ar_epuiza_incercarile(Product, f"{brand}-{nume}"):
+            raise forms.ValidationError(
+                "Există deja prea multe produse cu acest brand+nume — "
+                "schimbă puțin numele, sau adaugă-l separat, din pagina individuală de produs."
+            )
+        return cleaned
+
 
 ProductBulkFormSet = forms.modelformset_factory(
     Product, form=ProductBulkForm, extra=8, can_delete=False,

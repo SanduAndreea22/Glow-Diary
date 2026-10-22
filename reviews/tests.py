@@ -1088,6 +1088,25 @@ class ProductBulkAddAdminTests(TestCase):
         self.assertTrue(Product.objects.filter(brand="Rare Beauty").exists())
         self.assertTrue(Product.objects.filter(brand="Fenty Beauty").exists())
 
+    def test_brand_nume_cu_slug_epuizat_arata_eroare_nu_500(self):
+        self.client.force_login(self.staff)
+        for i in range(1, 21):
+            slug = "brand-produs" if i == 1 else f"brand-produs-{i}"
+            Product.objects.create(
+                nume="Produs", brand="Brand", categorie=_cat("altele"),
+                nota_mea=3, parerea_mea="x", slug=slug,
+            )
+        data = self._management_form(1)
+        data.update({
+            "form-0-brand": "Brand", "form-0-nume": "Produs",
+            "form-0-categorie": str(_cat("altele").pk), "form-0-nuanta": "", "form-0-sursa": "",
+            "form-0-nota_mea": "4", "form-0-parerea_mea": "Alt produs identic.",
+        })
+        r = self.client.post(self.url, data)
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Există deja prea multe produse")
+        self.assertEqual(Product.objects.count(), 20)
+
 
 class StarsSvgTagTests(TestCase):
     def test_valoare_intreaga_da_stele_pline_si_goale(self):
