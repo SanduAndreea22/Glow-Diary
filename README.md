@@ -63,6 +63,8 @@ Toate valorile sensibile/specifice mediului vin din `.env` (local) sau din varia
 5. `python manage.py migrate`.
 6. `ADMIN_EMAIL` setat, ca să afli când pică ceva (email automat la eroare 500).
 7. `python manage.py test reviews` — toate testele trec.
+8. Pe serverul/proxy-ul din față (nginx, Apache etc.), setează propriul plafon de dimensiune a cererii (ex. `client_max_body_size` la nginx). Plafonul din Django (`reviews/middleware.py`, `MaxUploadSizeMiddleware`) se bazează pe header-ul `Content-Length` trimis de client — o cerere fără el (`Transfer-Encoding: chunked`) îl ocolește complet; plafonul de la server rămâne ultima plasă de siguranță reală.
+9. Verifică manual dacă deploy-ul chiar stă în spatele unui reverse proxy înainte de a decide `TRUST_X_FORWARDED_FOR` (vezi avertismentul `reviews.W001` de la pasul 3) — greșit setat, rate limiting-ul și lockout-ul de login pot deveni efectiv globale (toți vizitatorii din spatele aceluiași proxy tratați ca un singur IP).
 
 ## Adăugare produs nou
 
