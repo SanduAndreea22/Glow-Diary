@@ -118,7 +118,7 @@ class Product(models.Model):
     )
     poza = models.ImageField("Poză", upload_to="produse/", blank=True)
     nota_mea = models.PositiveSmallIntegerField(
-        "Nota mea", choices=NOTA_CHOICES,
+        "Nota mea", choices=NOTA_CHOICES, db_index=True,
         validators=[MinValueValidator(1), MaxValueValidator(5)],
     )
     parerea_mea = models.TextField("Părerea mea")
