@@ -28,7 +28,14 @@ class ProductDetailView(DetailView):
     def get_queryset(self):
         # activ=True — un produs ascuns (soft-delete) trebuie să 404
         # pentru vizitatoare, la fel ca unul șters cu adevărat.
-        return Product.objects.filter(activ=True).select_related("categorie")
+        # prefetch_related("tag_uri") — fără el, randarea tag-urilor
+        # proprii (.tag_chips, nu "similare") face un query în plus la
+        # fiecare vizualizare de pagină de produs.
+        return (
+            Product.objects.filter(activ=True)
+            .select_related("categorie")
+            .prefetch_related("tag_uri")
+        )
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

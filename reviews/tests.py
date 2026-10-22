@@ -1467,3 +1467,26 @@ class AnRecapTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Rare Beauty")
         self.assertContains(r, "10")
+
+    def test_cardurile_din_recap_nu_fac_un_query_separat_pe_categorie(self):
+        # top_produse randat prin _product_card.html afișează produs.categorie.nume —
+        # fără select_related("categorie") pe produse_an, fiecare card ar face un
+        # query separat pentru categorie (N+1), chiar dacă toate produsele sunt în
+        # aceeași categorie (fără select_related, Django nu deduplică query-uri
+        # între instanțe diferite, chiar cu același categorie_id).
+        for i in range(10):
+            Product.objects.create(
+                nume=f"Produs {i}", brand="Rare Beauty", categorie=_cat("ten"),
+                nota_mea=5, parerea_mea="x",
+            )
+        with CaptureQueriesContext(connection) as queries:
+            r = self.client.get(reverse("reviews:an_recap", args=[timezone.now().year]))
+        self.assertEqual(r.status_code, 200)
+        # Tiparul exact al unui lazy-load individual pe FK (simptomul N+1) —
+        # spre deosebire de JOIN-urile legitime (select_related, agregatul
+        # categorie_top), care includ mereu și "reviews_product" în query.
+        lazy_fk_lookups = [
+            q["sql"] for q in queries.captured_queries
+            if q["sql"].strip().startswith('SELECT "reviews_categorie"."id"')
+        ]
+        self.assertEqual(lazy_fk_lookups, [])

@@ -26,7 +26,14 @@ class AnRecapView(TemplateView):
         an = kwargs["an"]
         ctx["an"] = an
 
-        produse_an = Product.objects.filter(activ=True, data_postarii__year=an).prefetch_related("tag_uri")
+        # select_related("categorie") — top_produse/cele_mai_comentate sunt
+        # randate prin _product_card.html, care afișează produs.categorie.nume;
+        # fără el, fiecare card din recap face un query separat pentru categorie.
+        produse_an = (
+            Product.objects.filter(activ=True, data_postarii__year=an)
+            .select_related("categorie")
+            .prefetch_related("tag_uri")
+        )
         total = produse_an.count()
         ctx["total_produse"] = total
         ctx["are_destule_date"] = total >= MIN_PRODUSE_PENTRU_RECAP
