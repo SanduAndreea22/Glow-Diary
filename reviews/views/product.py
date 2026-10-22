@@ -5,7 +5,6 @@ import time
 
 from django.contrib import messages
 from django.core.cache import cache
-from django.db.models import Count, Sum
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.templatetags.static import static
@@ -39,19 +38,22 @@ class ProductDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        comentarii_aprobate = self.object.comentarii.filter(aprobat=True)
+        # Materializată o singură dată — media notelor și distribuția de
+        # mai jos foloseau fiecare propriul query separat pe același set
+        # de comentarii (.aggregate(), apoi .values_list()); cu volumul de
+        # comentarii al unui produs (zeci, nu mii), un query + calcul în
+        # Python e mai ieftin decât 2-3 query-uri separate pe DB.
+        comentarii_aprobate = list(self.object.comentarii.filter(aprobat=True))
         ctx["comentarii"] = comentarii_aprobate
         ctx["form"] = kwargs.get("form", CommentForm())
 
         # Media notelor lăsate de cititoare (doar cele cu notă, nu toate
         # comentariile au una) — separată vizual de nota Deei, ca cititoarea
         # să vadă dintr-o privire dacă părerile converg sau diverg.
-        rating_stats = comentarii_aprobate.filter(nota__isnull=False).aggregate(
-            suma=Sum("nota"), total=Count("nota")
-        )
-        vizitatoare_total = rating_stats["total"] or 0
+        note_cititoare = [c.nota for c in comentarii_aprobate if c.nota is not None]
+        vizitatoare_total = len(note_cititoare)
         if vizitatoare_total:
-            ctx["nota_cititoarelor"] = round(rating_stats["suma"] / vizitatoare_total, 1)
+            ctx["nota_cititoarelor"] = round(sum(note_cititoare) / vizitatoare_total, 1)
             ctx["nota_cititoarelor_total"] = vizitatoare_total
 
         # Distribuție 5★→1★ — utilă doar cu destule note ca procentele să
@@ -59,11 +61,8 @@ class ProductDetailView(DetailView):
         # ca "100% din vizitatoare au dat 3 stele"). Pragul e generos (3),
         # nu strict statistic — scopul e senzația de comunitate, nu precizie.
         if vizitatoare_total >= 3:
-            note_brute = comentarii_aprobate.filter(nota__isnull=False).values_list(
-                "nota", flat=True
-            )
             distributie = {n: 0 for n in range(5, 0, -1)}
-            for nota in note_brute:
+            for nota in note_cititoare:
                 distributie[nota] += 1
             ctx["distributie_note"] = [
                 {
@@ -75,7 +74,7 @@ class ProductDetailView(DetailView):
             ]
 
         ctx["product_schema_json"] = self._product_schema(
-            self.object, rating_stats["suma"] or 0, vizitatoare_total
+            self.object, sum(note_cititoare), vizitatoare_total
         )
         galerie = list(self.object.imagini.all())
         pozele = ([self.object.poza] if self.object.poza else []) + [

@@ -555,6 +555,22 @@ class ProductDetailAndCommentTests(TestCase):
         })
         self.assertEqual(Comment.objects.filter(product=self.produs).count(), 1)
 
+    def test_numarul_de_queries_pe_comentarii_nu_creste_cu_numarul_lor(self):
+        # Media notelor și distribuția 5★→1★ foloseau fiecare un query
+        # separat pe același set de comentarii — numărul total de query-uri
+        # nu trebuie să crească doar pentru că sunt mai multe comentarii.
+        for i in range(3):
+            Comment.objects.create(product=self.produs, nume=f"C{i}", nota=5, comentariu="Bun.")
+        with CaptureQueriesContext(connection) as putine:
+            self.client.get(self.produs.get_absolute_url())
+
+        for i in range(3, 15):
+            Comment.objects.create(product=self.produs, nume=f"C{i}", nota=4, comentariu="Bun.")
+        with CaptureQueriesContext(connection) as multe:
+            self.client.get(self.produs.get_absolute_url())
+
+        self.assertEqual(len(putine.captured_queries), len(multe.captured_queries))
+
 
 @_no_ssl_redirect
 class CollectionSitemapTests(TestCase):
