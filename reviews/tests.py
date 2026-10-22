@@ -20,7 +20,7 @@ from .checks import verifica_admin_url, verifica_redis_in_productie, verifica_to
 from .forms import MAX_UPLOAD_IMAGINE_BYTES, CommentForm
 from .image_utils import MAX_PIXELI_ACCEPTATI, PozaPreaMareError
 from .models import Categorie, Collection, Comment, ContactMessage, Product, Tag
-from .queries import colectia_saptamanii, colectii_de_sezon, produs_hero_fallback
+from .queries import colectia_saptamanii, colectii_de_sezon, feed_stats, produs_hero_fallback
 from .story_image import _safe_text, build_story_image, render_story_png
 from .templatetags.glow_extras import stars_svg
 
@@ -1106,6 +1106,48 @@ class ProductBulkAddAdminTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Există deja prea multe produse")
         self.assertEqual(Product.objects.count(), 20)
+
+
+class FeedStatsCacheInvalidationTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_redenumirea_unei_categorii_invalideaza_cache(self):
+        cat = _cat("altele")
+        Product.objects.create(
+            nume="Test", brand="Brand", categorie=cat, nota_mea=3, parerea_mea="a",
+        )
+        self.assertIn("Altele", [c["nume"] for c in feed_stats()["categorii_navigare"]])
+
+        cat.nume = "Altele nou"
+        cat.save()
+        nume = [c["nume"] for c in feed_stats()["categorii_navigare"]]
+        self.assertIn("Altele nou", nume)
+        self.assertNotIn("Altele", nume)
+
+    def test_redenumirea_unui_tag_invalideaza_cache(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
+        )
+        tag = Tag.objects.get_or_create(nume="Vegan")[0]
+        produs.tag_uri.add(tag)
+        self.assertIn("Vegan", [n for _, n in feed_stats()["tag_uri"]])
+
+        tag.nume = "100% vegan"
+        tag.save()
+        nume = [n for _, n in feed_stats()["tag_uri"]]
+        self.assertIn("100% vegan", nume)
+        self.assertNotIn("Vegan", nume)
+
+    def test_adaugarea_unui_tag_pe_produs_invalideaza_cache(self):
+        produs = Product.objects.create(
+            nume="Test", brand="Brand", categorie=_cat("altele"), nota_mea=3, parerea_mea="a",
+        )
+        self.assertEqual(feed_stats()["tag_uri"], [])
+
+        tag = Tag.objects.get_or_create(nume="Cu SPF")[0]
+        produs.tag_uri.add(tag)
+        self.assertIn("Cu SPF", [n for _, n in feed_stats()["tag_uri"]])
 
 
 class StarsSvgTagTests(TestCase):
