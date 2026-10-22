@@ -30,7 +30,9 @@
 <div class="empty-state"><div class="empty-state-icon">✨</div>N-am publicat nicio colecție încă.</div>
 {% endfor %}
 </div>
-{% if colectii and colectii|length <= 2 %}
+{% if colectii and not is_paginated and colectii|length <= 2 %}
 <div class="collection-teaser">Mai vin colecții curând ✨</div>
 {% endif %}
+
+{% include "reviews/_pagination.html" %}
 {% endblock %}

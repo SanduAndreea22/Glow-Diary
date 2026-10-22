@@ -617,6 +617,36 @@ class CollectionTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "Test")
 
+    def test_lista_de_colectii_e_paginata(self):
+        for i in range(13):
+            colectie = Collection.objects.create(nume=f"Colectie {i}")
+            produs = Product.objects.create(
+                nume=f"P{i}", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+            )
+            colectie.produse.add(produs)
+
+        r = self.client.get(reverse("reviews:collections"))
+        self.assertEqual(len(r.context["colectii"]), 12)
+        self.assertTrue(r.context["is_paginated"])
+
+        r = self.client.get(reverse("reviews:collections") + "?page=2")
+        self.assertEqual(len(r.context["colectii"]), 1)
+
+    def test_produsele_dintr_o_colectie_sunt_paginate(self):
+        colectie = Collection.objects.create(nume="Mare")
+        for i in range(13):
+            produs = Product.objects.create(
+                nume=f"P{i}", brand="B", categorie=_cat("altele"), nota_mea=3, parerea_mea="x",
+            )
+            colectie.produse.add(produs)
+
+        r = self.client.get(colectie.get_absolute_url())
+        self.assertEqual(len(r.context["produse"]), 12)
+        self.assertTrue(r.context["is_paginated"])
+
+        r = self.client.get(colectie.get_absolute_url() + "?page=2")
+        self.assertEqual(len(r.context["produse"]), 1)
+
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
 class CollectionsListQueryCountTests(TestCase):
