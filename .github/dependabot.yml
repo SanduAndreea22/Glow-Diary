@@ -4,6 +4,11 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    ignore:
+      # Django 6.x cere Python >= 3.12; CI-ul rulează pe 3.11.
+      # Scoate regula după ce se urcă Python-ul în CI și în producție.
+      - dependency-name: "django"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
